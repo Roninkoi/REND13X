@@ -147,6 +147,10 @@ int main()
 	rt = 1.0f;
 	rs = 0;
 
+	for (i = 0; i < 256; ++i) {
+		keydown[i] = 0;
+	}
+
 	r_init();
 
 	oldkb = getvect(9);
