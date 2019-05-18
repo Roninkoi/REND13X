@@ -170,7 +170,7 @@ int main()
 
 		rm = rotateX(&cm, rotx);
 
-		rm = rotateY(&rm, roty);
+		rm = rotateY(&cm, roty);
 
 		rm = translate(&rm, cam);
 
@@ -188,7 +188,7 @@ int main()
 
 		r_draw();
 
-		//r_drawtri3d(&t0, &t1, &t2, 5);
+		r_drawtri3d(&t0, &t1, &t2, 5);
 
 		rs += itime;
 
@@ -304,10 +304,10 @@ int main()
 			roty += 0.02f*dt;
 		}
 		if (keydown[(int)'2']) {
-			rotx += 0.02f*dt;
+			rotx -= 0.02f*dt;
 		}
 		if (keydown[(int)'3']) {
-			rotx -= 0.02f*dt;
+			rotx += 0.02f*dt;
 		}
 		if (keydown[(int)'r']) {
 			posy += 0.04f*dt;

@@ -1,8 +1,7 @@
-#######################################
-#    CRENDER DOS software renderer    #
-#######################################
+CRENDER DOS software renderer
+=============================
 
-A DOS software renderer written in C (mode 13h, 320x200, 256 colors)
+DOS software renderer written in C (mode 13h, 320x200, 256 colors)
 
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming
@@ -11,7 +10,7 @@ Runs in DOSBox
 
 Esc to exit
 
-=== Features ===
+--- Features ---
 
 - "Fast" x86 assembly draw routines for line drawing and triangle fills
 

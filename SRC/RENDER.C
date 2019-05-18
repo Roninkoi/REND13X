@@ -1,21 +1,55 @@
 #include "SRC\RENDER.H"
 
+int redraw = 0;
+int itime = 0;
+char vmode = 0;
+
+int pg = 0;
+
+void interrupt getTime()
+{
+	asm cli
+
+	asm {
+		sti
+	}
+	itime += 1;
+	redraw = 1;
+}
+
+unsigned now() {
+	return (unsigned)time(NULL);
+}
+
 void r_init()
 {
 	char p;
-	int fb;
 	p = pg;
+
 	asm {
+		mov ah, 0x0f
+		int 0x10
+		mov vmode, al // get current video mode
+
 		mov ah, 0
 		mov bh, p
-		//mov al, 0dh
-		mov al, 0x13
+		mov al, 0x13 // set 13
 		int 0x10
 
-		//mov ah, 0x48
-		//mov bx, 0x1000 // 64k
-		//int 0x21
-		//mov fb, ax
+		mov ah, 0x48
+		mov bx, 0x10 // 64k
+		int 0x21
+	}
+}
+
+void r_exit()
+{
+	asm {
+		mov ah, 0
+		mov bh, 0
+		mov bx, 0
+		mov al, vmode // return original video mode
+		int 0x10
 	}
 }
 
@@ -185,29 +219,43 @@ void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c)
 // horizontal line draw with x sort, usually fast
 void r_drawlineh(int x0, int x1, int y, unsigned char c)
 {
-		int to;
-		if (x0 > x1) {
-			to = x0;
-			x0 = x1;
-			x1 = to;
-		}
-		y = (y + (y << 2)) << 6;
-		x0 += y;
-		x1 += y;
-		asm {
-			mov ax, 0xa000
-			mov es, ax
-			mov ax, x1
-			mov dl, c
-			mov di, x0
-		}
-		draw:
-		asm {
-			mov [es:di], dl
-			inc di
-			cmp di, ax
-			jb draw
-		}
+	int to;
+	if (x0 > x1) {
+		to = x0;
+		x0 = x1;
+		x1 = to;
+	}
+
+	/*y = (y + (y << 2)) << 6;
+	x0 += y;
+	x1 += y;*/
+
+	asm {
+		mov ax, 0xa000
+		mov es, ax
+		/*mov ax, x1
+		mov dl, c
+		mov di, x0*/
+		mov dx, y
+		mov ax, dx
+		shl ax, 2
+		add dx, ax
+		shl dx, 6
+
+		mov ax, x1
+		mov di, x0
+		add ax, dx
+		add di, dx
+		
+		mov dl, c
+	}
+	draw:
+	asm {
+		mov [es:di], dl
+		inc di
+		cmp di, ax
+		jb draw
+	}
 }
 
 /*
@@ -327,13 +375,6 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 		xl0 = clamp(xl0, 0, 320);
 		xl1 = clamp(xl1, 0, 320);
 
-		// multiplied by 320
-		//yl = (yl + (yl << 2)) << 6;
-
-		//calculate memory location
-		//xl0 += yl;
-		//xl1 += yl;
-
 		asm {
 			mov ax, 0xa000
 			mov es, ax
@@ -390,13 +431,6 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 		xl0 = clamp(xl0, 0, 320);
 		xl1 = clamp(xl1, 0, 320);
 
-		// multiplied by 320
-		//yl = (yl + (yl << 2)) << 6;
-
-		// calculate memory location
-		//xl0 += yl;
-		//xl1 += yl;
-
 		asm {
 			mov ax, 0xa000
 			mov es, ax
@@ -423,6 +457,7 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 	}
 }
 
+
 void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned char c)
 {
 	float to;
@@ -431,6 +466,8 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 	int xl0;
 	int xl1;
 	int yl;
+
+	int isz = 0;
 
 	float k0;
 	float k1;
@@ -444,28 +481,43 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 
 	float x0;
 	float y0;
+	float z0;
 
 	float x1;
 	float y1;
+	float z1;
 
 	float x2;
 	float y2;
+	float z2;
+
+	int zp = 0;
+	int za = 0;
+	float zd = 0.0f;
+	float zdh = 0.0f;
 
 	// projection
+	z0 = v0->z;
 	x0 = v0->x;
-	x0 /= (fabs(v0->z)+0.1f);
+	x0 /= (fabs(z0)+0.1f);
 	y0 = v0->y;
-	y0 /= (fabs(v0->z)+0.1f);
+	y0 /= (fabs(z0)+0.1f);
 
+	z1 = v1->z;
 	x1 = v1->x;
-	x1 /= (fabs(v1->z)+0.1f);
+	x1 /= (fabs(z1)+0.1f);
 	y1 = v1->y;
-	y1 /= (fabs(v1->z)+0.1f);
+	y1 /= (fabs(z1)+0.1f);
 
+	z2 = v2->z;
 	x2 = v2->x;
-	x2 /= (fabs(v2->z)+0.1f);
+	x2 /= (fabs(z2)+0.1f);
 	y2 = v2->y;
-	y2 /= (fabs(v2->z)+0.1f);
+	y2 /= (fabs(z2)+0.1f);
+
+	// necessary?
+	if (z0 <= 0.4f && z1 <= 0.4f && z2 <= 0.4f)
+		return;
 
 	// transform from gl to pix
 	x0 = (x0+1.0f)*160.0f;
@@ -477,14 +529,15 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 	x2 = (x2+1.0f)*160.0f;
 	y2 = (-y2+1.0f)*100.0f;
 
-	// vertex clamping?
-	/*x0 = clamp(x0, 0, 320);
-	x1 = clamp(x1, 0, 320);
-	x2 = clamp(x2, 0, 320);
-
-	y0 = clamp(y0, 0, 160);
-	y1 = clamp(y1, 0, 160);
-	y2 = clamp(y2, 0, 160);*/
+	// bounds
+	if (x0 > 320 && x1 > 320 && x2 > 320)
+		return;
+	if (x0 < 0 && x1 < 0 && x2 < 0)
+		return;
+	if (y0 > 200 && y1 > 200 && y2 > 200)
+		return;
+	if (y0 < 0 && y1 < 0 && y2 < 0)
+		return;
 
 	// sort vertices
 	if (y0 > y2) {
@@ -552,21 +605,13 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		xl1 = (int)x1;
 		yl = (int)y0;
 
-		// clipping
+		// view clipping
 		cl = xl1 < 0 || yl < 8;
 		cl = cl || xl0 > 319 || yl > 199;
 		if (cl)
 			continue;
 		xl0 = clamp(xl0, 0, 320);
 		xl1 = clamp(xl1, 0, 320);
-
-		// multiplied by 320
-		//yl = (yl + (yl << 2)) << 6;
-
-		//calculate memory location
-		//xl0 += yl;
-		//xl1 += yl;
-
 		asm {
 			mov ax, 0xa000
 			mov es, ax
@@ -576,9 +621,9 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 			add dx, ax
 			shl dx, 6
 
-			mov ax, xl1
+			mov bx, xl1
 			mov di, xl0
-			add ax, dx
+			add bx, dx
 			add di, dx
 
 			mov dl, c
@@ -586,8 +631,9 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		draw1:
 		asm {
 			mov [es:di], dl
-			inc di
-			cmp di, ax
+			add di, 1
+			mov zp, di
+			cmp di, bx
 			jb draw1
 		}
 	}
@@ -615,20 +661,16 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		xl1 = (int)x2;
 		yl = (int)y2;
 
-		// clipping
+		zdh = (dy2 - y2) / dy2; // 0 -> 1
+		zdh = zdh * z2 + (1.0f - zdh) * z1;
+
+		// view clipping
 		cl = xl1 < 0 || yl < 8;
 		cl = cl || xl0 > 319 || yl > 199;
 		if (cl)
 			continue;
 		xl0 = clamp(xl0, 0, 320);
 		xl1 = clamp(xl1, 0, 320);
-
-		// multiplied by 320
-		//yl = (yl + (yl << 2)) << 6;
-
-		// calculate memory location
-		//xl0 += yl;
-		//xl1 += yl;
 
 		asm {
 			mov ax, 0xa000
@@ -637,20 +679,22 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 			mov ax, dx
 			shl ax, 2
 			add dx, ax
-			shl dx, 6
+			shl dx, 6 // * 320
 
-			mov ax, xl1
+			mov si, xl1
 			mov di, xl0
-			add ax, dx
+			add si, dx // calculate memory location
 			add di, dx
+			mov za, si
 
 			mov dl, c
 		}
-		draw2:
+		draw2: // ax reg used
 		asm {
 			mov [es:di], dl
-			inc di
-			cmp di, ax
+			add di, 1
+			mov zp, di
+			cmp di, si
 			jb draw2
 		}
 	}

@@ -42,8 +42,6 @@ struct mat4 mat4(float s);
 
 struct mat4 projmat(float fov, float ar, float fr, float nr);
 
-struct mat4 rotmatX(float a);
-
 struct mat4 rotmatY(float a);
 
 // vector addition

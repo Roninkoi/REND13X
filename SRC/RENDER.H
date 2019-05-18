@@ -15,11 +15,17 @@
 
 #include "SRC\VEC.H"
 
+typedef unsigned char BYTE;
+
 // viewport dimensions
 #define W 320
 #define H 200
 #define T 8
 #define B 0
+
+#define ZNEAR 0.2
+
+#define ZFAR 10.0
 
 #define clamp(x, min, max) x > max ? max : (x < min ? min : x)
 
@@ -27,35 +33,42 @@
 
 #define PI 3.1415926
 
-void interrupt (*oldkb) ();
+extern int redraw;
+extern int itime;
+extern char vmode;
 
-void interrupt (*oldtime) ();
+extern int pg;
 
-int redraw;
-int itime;
+struct tri {
+	struct vec4 v0; // vertices
+	struct vec4 v1;
+	struct vec4 v2;
 
-void interrupt getTime()
-{
-	asm cli
+	float fc; // face center distance
 
-	asm {
-		sti
-	}
-	itime += 1;
-	redraw = 1;
-}
+	BYTE c; // color
+};
 
-unsigned char keycode;
-unsigned char keycodeBuffer[256];
-unsigned char keycodeTail;
+extern struct tri r_buffer[256];
 
-unsigned now() {
-	return (unsigned)time(NULL);
-}
+extern BYTE r_s[256]; // sorted
 
-int pg = 0;
+extern BYTE r_n;
+
+// render matrix
+extern struct mat4 rm;
+
+extern unsigned char keycode;
+extern unsigned char keycodeBuffer[256];
+extern unsigned char keycodeTail;
+
+void interrupt getTime();
+
+unsigned now();
 
 void r_init();
+
+void r_exit();
 
 void r_flip();
 
