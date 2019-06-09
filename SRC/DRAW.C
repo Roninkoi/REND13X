@@ -18,6 +18,11 @@ void r_add(struct vec4* v0, struct vec4* v1, struct vec4* v2, BYTE c)
 	t.v1 = m4xv4(&rm, v1);
 	t.v2 = m4xv4(&rm, v2);
 
+	//face culling
+	if ((t.v1.x-t.v0.x)*(t.v2.y-t.v0.y) -
+		(t.v1.y-t.v0.y)*(t.v2.x-t.v0.x) > 1.0f)
+		return;
+
 	fc = t.v0;
 	fc = v4a(fc, t.v1);
 	fc = v4a(fc, t.v2);

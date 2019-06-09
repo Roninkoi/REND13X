@@ -31,6 +31,8 @@ typedef unsigned char BYTE;
 
 #define sign(x) (x) >= 0 ? 1 : -1;
 
+#define abs(x) x < 0 ? -x : x
+
 #define PI 3.1415926
 
 extern int redraw;

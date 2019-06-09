@@ -112,8 +112,8 @@ int main()
 	struct vec4 v2 = vec4(1.0f, 0.0f, 1.0f, 1.0f);
 
 	struct vec4 u0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	struct vec4 u1 = vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	struct vec4 u2 = vec4(0.0f, 0.0f, -1.4f, 1.0f);
+	struct vec4 u2 = vec4(-1.0f, 0.0f, 1.0f, 1.0f);
+	struct vec4 u1 = vec4(0.0f, 0.0f, -1.4f, 1.0f);
 
 	struct vec4 w0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
 	struct vec4 w1 = vec4(1.0f, 0.0f, 1.0f, 1.0f);
@@ -182,11 +182,11 @@ int main()
 
 		//matpr(&rm);
 
-		r_add(&v0, &v1, &v2, 2);
+		r_add(&v0, &v1, &v2, 32);
 
-		r_add(&u0, &u1, &u2, 3);
+		r_add(&u0, &u1, &u2, 42);
 
-		r_add(&w0, &w1, &w2, 4);
+		r_add(&w0, &w1, &w2, 48);
 
 		r_sort();
 

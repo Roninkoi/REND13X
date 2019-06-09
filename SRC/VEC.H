@@ -46,6 +46,12 @@ struct mat4 rotmatX(float a);
 
 struct mat4 rotmatY(float a);
 
+// dot product
+float v4dot(struct vec4* v0, struct vec4* v1);
+
+// cross product
+struct vec4 v4cross(struct vec4* v0, struct vec4* v1);
+
 // vector addition
 struct vec4 v4a(struct vec4 v0, struct vec4 v1);
 

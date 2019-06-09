@@ -1,11 +1,8 @@
 #include "SRC\RENDER.H"
 
-int redraw;
-int itime;
-
-unsigned char keycode;
-unsigned char keycodeBuffer[256];
-unsigned char keycodeTail;
+int redraw = 0;
+int itime = 0;
+char vmode = 0;
 
 int pg = 0;
 
@@ -26,13 +23,16 @@ unsigned now() {
 
 void r_init()
 {
+	char p;
+	p = pg;
+
 	asm {
 		mov ah, 0x0f
 		int 0x10
 		mov vmode, al // get current video mode
 
 		mov ah, 0
-		mov bh, pg
+		mov bh, p
 		mov al, 0x13 // set 13
 		int 0x10
 
@@ -219,29 +219,43 @@ void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c)
 // horizontal line draw with x sort, usually fast
 void r_drawlineh(int x0, int x1, int y, unsigned char c)
 {
-		int to;
-		if (x0 > x1) {
-			to = x0;
-			x0 = x1;
-			x1 = to;
-		}
-		y = (y + (y << 2)) << 6;
-		x0 += y;
-		x1 += y;
-		asm {
-			mov ax, 0xa000
-			mov es, ax
-			mov ax, x1
-			mov dl, c
-			mov di, x0
-		}
-		draw:
-		asm {
-			mov [es:di], dl
-			inc di
-			cmp di, ax
-			jb draw
-		}
+	int to;
+	if (x0 > x1) {
+		to = x0;
+		x0 = x1;
+		x1 = to;
+	}
+
+	/*y = (y + (y << 2)) << 6;
+	x0 += y;
+	x1 += y;*/
+
+	asm {
+		mov ax, 0xa000
+		mov es, ax
+		/*mov ax, x1
+		mov dl, c
+		mov di, x0*/
+		mov dx, y
+		mov ax, dx
+		shl ax, 2
+		add dx, ax
+		shl dx, 6
+
+		mov ax, x1
+		mov di, x0
+		add ax, dx
+		add di, dx
+		
+		mov dl, c
+	}
+	draw:
+	asm {
+		mov [es:di], dl
+		inc di
+		cmp di, ax
+		jb draw
+	}
 }
 
 /*
@@ -361,13 +375,6 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 		xl0 = clamp(xl0, 0, 320);
 		xl1 = clamp(xl1, 0, 320);
 
-		// multiplied by 320
-		//yl = (yl + (yl << 2)) << 6;
-
-		//calculate memory location
-		//xl0 += yl;
-		//xl1 += yl;
-
 		asm {
 			mov ax, 0xa000
 			mov es, ax
@@ -423,13 +430,6 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 			continue;
 		xl0 = clamp(xl0, 0, 320);
 		xl1 = clamp(xl1, 0, 320);
-
-		// multiplied by 320
-		//yl = (yl + (yl << 2)) << 6;
-
-		// calculate memory location
-		//xl0 += yl;
-		//xl1 += yl;
 
 		asm {
 			mov ax, 0xa000
@@ -496,28 +496,45 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 	float zd = 0.0f;
 	float zdh = 0.0f;
 
-	// projection
+	char dc = c;
+
+	zdh = (z0 + z1 + z2) / ZFAR;
+
+	if (c < 32 || 1) {
+		dc = c;
+	}
+	else if (zdh <= 2.5f) {
+		dc = 72 * ((int)(zdh) % 3) + (int)c;
+	}
+	else {
+		dc = 17;
+	}
+
 	z0 = v0->z;
-	x0 = v0->x;
-	x0 /= (fabs(z0)+0.1f);
-	y0 = v0->y;
-	y0 /= (fabs(z0)+0.1f);
-
 	z1 = v1->z;
-	x1 = v1->x;
-	x1 /= (fabs(z1)+0.1f);
-	y1 = v1->y;
-	y1 /= (fabs(z1)+0.1f);
-
 	z2 = v2->z;
-	x2 = v2->x;
-	x2 /= (fabs(z2)+0.1f);
-	y2 = v2->y;
-	y2 /= (fabs(z2)+0.1f);
 
-	// necessary?
-	if (z0 <= 0.4f && z1 <= 0.4f && z2 <= 0.4f)
+	if (z0 <= ZNEAR || z1 <= ZNEAR || z2 <= ZNEAR)
 		return;
+
+	if (z0 >= ZFAR && z1 >= ZFAR && z2 >= ZFAR)
+		return;
+
+	// projection
+	x0 = v0->x;
+	x0 /= z0;
+	y0 = v0->y;
+	y0 /= z0;
+
+	x1 = v1->x;
+	x1 /= z1;
+	y1 = v1->y;
+	y1 /= z1;
+
+	x2 = v2->x;
+	x2 /= z2;
+	y2 = v2->y;
+	y2 /= z2;
 
 	// transform from gl to pix
 	x0 = (x0+1.0f)*160.0f;
@@ -605,6 +622,10 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		xl1 = (int)x1;
 		yl = (int)y0;
 
+/*		zdh = (dy1 - y1) / dy1; // 0 -> 1
+		zdh = zdh * z1 + (1.0f - zdh) * z0;
+		zdh = zdh/ZFAR;
+	*/
 		// view clipping
 		cl = xl1 < 0 || yl < 8;
 		cl = cl || xl0 > 319 || yl > 199;
@@ -626,7 +647,7 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 			add bx, dx
 			add di, dx
 
-			mov dl, c
+			mov dl, dc
 		}
 		draw1:
 		asm {
@@ -661,8 +682,9 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		xl1 = (int)x2;
 		yl = (int)y2;
 
-		zdh = (dy2 - y2) / dy2; // 0 -> 1
+/*		zdh = (dy2 - y2) / dy2; // 0 -> 1
 		zdh = zdh * z2 + (1.0f - zdh) * z1;
+		zdh = zdh/ZFAR;*/
 
 		// view clipping
 		cl = xl1 < 0 || yl < 8;
@@ -687,7 +709,7 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 			add di, dx
 			mov za, si
 
-			mov dl, c
+			mov dl, dc
 		}
 		draw2: // ax reg used
 		asm {

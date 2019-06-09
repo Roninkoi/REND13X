@@ -350,3 +350,21 @@ struct mat4 rotateX(struct mat4* m, float a)
 
 	return r;
 }
+
+// dot product
+float v4dot(struct vec4* v0, struct vec4* v1)
+{
+	return v0->x*v1->x + v0->y*v1->y + v0->z*v1->z + v0->w*v1->w;
+}
+
+// cross product
+struct vec4 v4cross(struct vec4* v0, struct vec4* v1)
+{
+	struct vec4 v;
+
+	v.x = v0->y*v1->z - v0->z*v1->y;
+	v.y = v0->z*v1->x - v0->x*v1->z;
+	v.z = v0->x*v1->y - v0->y*v1->x;
+
+	return v;
+}

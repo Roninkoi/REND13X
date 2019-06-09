@@ -496,28 +496,60 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 	float zd = 0.0f;
 	float zdh = 0.0f;
 
-	// projection
+	char dc = c;
+
+	struct vec4 fv0;
+	struct vec4 fv1;
+
+	zdh = (z0 + z1 + z2) / ZFAR;
+
+	if (c < 32 || 1) {
+		dc = c;
+	}
+	else if (zdh <= 2.5f) {
+		dc = 72 * ((int)(zdh) % 3) + (int)c;
+	}
+	else {
+		dc = 17;
+	}
+
+	// face culling
+/*	fv0 = v4s(*v0, -1.0f);
+	fv0 = v4a(*v0, *v1);
+	fv1 = v4s(*v0, -1.0f);
+	fv1 = v4a(*v0, *v2);
+	fv1 = v4cross(&fv0, &fv1);
+	if (fv1.z < 0)
+		return;                 */
+
 	z0 = v0->z;
-	x0 = v0->x;
-	x0 /= (fabs(z0)+0.1f);
-	y0 = v0->y;
-	y0 /= (fabs(z0)+0.1f);
-
 	z1 = v1->z;
-	x1 = v1->x;
-	x1 /= (fabs(z1)+0.1f);
-	y1 = v1->y;
-	y1 /= (fabs(z1)+0.1f);
-
 	z2 = v2->z;
-	x2 = v2->x;
-	x2 /= (fabs(z2)+0.1f);
-	y2 = v2->y;
-	y2 /= (fabs(z2)+0.1f);
 
-	// necessary?
-	if (z0 <= 0.4f && z1 <= 0.4f && z2 <= 0.4f)
+	if (z0 <= ZNEAR || z1 <= ZNEAR || z2 <= ZNEAR)
 		return;
+
+	if (z0 >= ZFAR && z1 >= ZFAR && z2 >= ZFAR)
+		return;
+
+	// projection
+	x0 = v0->x;
+	x0 /= z0;
+	y0 = v0->y;
+	y0 /= z0;
+
+	x1 = v1->x;
+	x1 /= z1;
+	y1 = v1->y;
+	y1 /= z1;
+
+	x2 = v2->x;
+	x2 /= z2;
+	y2 = v2->y;
+	y2 /= z2;
+
+//	if ((x1-x0)*(y2-y0) - (y1-y0)*(x2-x0) > 0.0f)
+//		return;
 
 	// transform from gl to pix
 	x0 = (x0+1.0f)*160.0f;
@@ -605,6 +637,10 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		xl1 = (int)x1;
 		yl = (int)y0;
 
+/*		zdh = (dy1 - y1) / dy1; // 0 -> 1
+		zdh = zdh * z1 + (1.0f - zdh) * z0;
+		zdh = zdh/ZFAR;
+	*/
 		// view clipping
 		cl = xl1 < 0 || yl < 8;
 		cl = cl || xl0 > 319 || yl > 199;
@@ -626,7 +662,7 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 			add bx, dx
 			add di, dx
 
-			mov dl, c
+			mov dl, dc
 		}
 		draw1:
 		asm {
@@ -661,8 +697,9 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 		xl1 = (int)x2;
 		yl = (int)y2;
 
-		zdh = (dy2 - y2) / dy2; // 0 -> 1
+/*		zdh = (dy2 - y2) / dy2; // 0 -> 1
 		zdh = zdh * z2 + (1.0f - zdh) * z1;
+		zdh = zdh/ZFAR;*/
 
 		// view clipping
 		cl = xl1 < 0 || yl < 8;
@@ -687,7 +724,7 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 			add di, dx
 			mov za, si
 
-			mov dl, c
+			mov dl, dc
 		}
 		draw2: // ax reg used
 		asm {
