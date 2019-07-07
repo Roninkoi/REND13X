@@ -4,7 +4,7 @@ unsigned char keycode = 0;
 unsigned char keycodeBuffer[256];
 unsigned char keycodeTail = 0;
 
-void matpr(struct mat4* m)
+void matpr(mat4* m)
 {
 	printf("%.1f %.1f %.1f %.1f \n", m->m[0][0], m->m[0][1], m->m[0][2], m->m[0][3]);
 	printf("%.1f %.1f %.1f %.1f \n", m->m[1][0], m->m[1][1], m->m[1][2], m->m[1][3]);
@@ -12,7 +12,7 @@ void matpr(struct mat4* m)
 	printf("%.1f %.1f %.1f %.1f \n", m->m[3][0], m->m[3][1], m->m[3][2], m->m[3][3]);
 }
 
-void vecpr(struct vec4* v)
+void vecpr(vec4* v)
 {
 	printf("%.1f %.1f %.1f %.1f \n", v->x, v->y, v->z, v->w);
 }
@@ -103,25 +103,25 @@ int main()
 	float vt[3][2] = {{50.0f, 50.0f}, {300.0f, 100.0f}, {200.0f, 180.0f}};
 
 	// projection matrix
-	struct mat4 pm = projmat(PI*0.5f, 320.0f/200.0f, 100.0f, 0.1f);
+	mat4 pm = projmat(PI*0.5f, 320.0f/200.0f, 100.0f, 0.1f);
 	// camera matrix
-	struct mat4 cm = mat4(1.0);
+	mat4 cm = mat4(1.0);
 
-	struct vec4 v0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	struct vec4 v1 = vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	struct vec4 v2 = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+	vec4 v0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
+	vec4 v1 = vec4(-1.0f, 0.0f, 1.0f, 1.0f);
+	vec4 v2 = vec4(1.0f, 0.0f, 1.0f, 1.0f);
 
-	struct vec4 u0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	struct vec4 u1 = vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	struct vec4 u2 = vec4(0.0f, 0.0f, -1.4f, 1.0f);
+	vec4 u0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
+	vec4 u2 = vec4(-1.0f, 0.0f, 1.0f, 1.0f);
+	vec4 u1 = vec4(0.0f, 0.0f, -1.4f, 1.0f);
 
-	struct vec4 w0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	struct vec4 w1 = vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	struct vec4 w2 = vec4(0.0f, 0.0f, -1.4f, 1.0f);
+	vec4 w0 = vec4(0.0f, 2.0f, 0.0f, 1.0f);
+	vec4 w1 = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+	vec4 w2 = vec4(0.0f, 0.0f, -1.4f, 1.0f);
 
-	struct vec4 t0 = vec4(0.0f, 1.0f, 2.0f, 1.0f);
-	struct vec4 t1 = vec4(1.0f, 0.0f, 2.0f, 1.0f);
-	struct vec4 t2 = vec4(0.0f, 0.0f, 2.0f, 1.0f);
+	vec4 t0 = vec4(0.0f, 1.0f, 2.0f, 1.0f);
+	vec4 t1 = vec4(1.0f, 0.0f, 2.0f, 1.0f);
+	vec4 t2 = vec4(0.0f, 0.0f, 2.0f, 1.0f);
 
 	// camera position
 	struct vec4 cam;

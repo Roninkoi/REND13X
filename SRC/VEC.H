@@ -7,71 +7,71 @@
 
 #include <math.h>
 
-struct vec4 {
-	float x;
-	float y;
-	float z;
-	float w;
-};
+typedef struct {
+  float x;
+  float y;
+  float z;
+  float w;
+} vec4;
 
-struct vec3 {
-	float x;
-	float y;
-	float z;
-};
+typedef struct {
+  float x;
+  float y;
+  float z;
+} vec3;
 
-struct vec2 {
-	float x;
-	float y;
-};
+typedef struct {
+  float x;
+  float y;
+} vec2;
 
-struct mat4 {
-	float m[4][4];
-};
+typedef struct {
+  float m[4][4];
+} mat4;
 
-struct vec4 vec4(float x, float y, float z, float w);
+vec4 Vec4(float x, float y, float z, float w);
 
 // null vector
-struct vec4 nvec4();
+vec4 nvec4();
 
-struct vec3 vec3(float x, float y, float z);
+vec3 Vec3(float x, float y, float z);
 
-struct vec2 vec2(float x, float y);
+vec2 Vec2(float x, float y);
 
-struct mat4 mat4(float s);
+mat4 Mat4(float s);
 
-struct mat4 projmat(float fov, float ar, float fr, float nr);
+mat4 projmat(float fov, float ar, float fr, float nr);
 
-struct mat4 rotmatX(float a);
+mat4 rotmatX(float a);
 
-struct mat4 rotmatY(float a);
+mat4 rotmatY(float a);
 
 // dot product
-float v4dot(struct vec4* v0, struct vec4* v1);
+float v4dot(vec4 *v0, vec4 *v1);
 
 // cross product
-struct vec4 v4cross(struct vec4* v0, struct vec4* v1);
+vec4 v4cross(vec4 *v0, vec4 *v1);
 
 // vector addition
-struct vec4 v4a(struct vec4 v0, struct vec4 v1);
+vec4 v4a(vec4 v0, vec4 v1);
 
 // vector scaling
-struct vec4 v4s(struct vec4 v, float s);
+vec4 v4s(vec4 v, float s);
 
-float v4l(struct vec4 v);
+float v4l(vec4 v);
 
-struct mat4 rotateX(struct mat4* m, float a);
+mat4 rotateX(mat4 *m, float a);
 
-struct mat4 rotateY(struct mat4* m, float a);
+mat4 rotateY(mat4 *m, float a);
 
-struct mat4 translate(struct mat4* m, struct vec4 v);
+mat4 translate(mat4 *m, vec4 v);
 
 // mat4 get row
-struct vec4 m4gr(struct mat4 m, int r);
+vec4 m4gr(mat4 m, int r);
 
 // matrix multiplication, mat4 x vec4
-struct vec4 m4xv4(struct mat4* m, struct vec4* v);
+vec4 m4xv4(mat4 *m, vec4 *v);
 
-struct mat4 m4xm4(struct mat4* m0, struct mat4* m1);
+mat4 m4xm4(mat4 *m0, mat4 *m1);
 
 #endif

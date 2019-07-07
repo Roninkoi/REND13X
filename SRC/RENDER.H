@@ -42,9 +42,9 @@ extern char vmode;
 extern int pg;
 
 struct tri {
-	struct vec4 v0; // vertices
-	struct vec4 v1;
-	struct vec4 v2;
+	vec4 v0; // vertices
+	vec4 v1;
+	vec4 v2;
 
 	float fc; // face center distance
 
@@ -58,7 +58,7 @@ extern BYTE r_s[256]; // sorted
 extern BYTE r_n;
 
 // render matrix
-extern struct mat4 rm;
+extern mat4 rm;
 
 extern unsigned char keycode;
 extern unsigned char keycodeBuffer[256];
@@ -95,7 +95,7 @@ void r_drawlineh(int x0, int x1, int y, unsigned char c);
  */
 void r_drawtri(float (*v)[3][2], unsigned char c);
 
-void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned char c);
+void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, unsigned char c);
 
 void r_fill();
 

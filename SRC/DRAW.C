@@ -7,12 +7,12 @@ BYTE r_s[256]; // sorted
 BYTE r_n = 0;
 
 // render matrix
-struct mat4 rm;
+mat4 rm;
 
-void r_add(struct vec4* v0, struct vec4* v1, struct vec4* v2, BYTE c)
+void r_add(vec4 *v0, vec4 *v1, vec4 *v2, BYTE c)
 {
 	struct tri t;
-	struct vec4 fc;
+	vec4 fc;
 
 	t.v0 = m4xv4(&rm, v0); // transform vertices
 	t.v1 = m4xv4(&rm, v1);

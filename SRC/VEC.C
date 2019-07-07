@@ -1,8 +1,8 @@
 #include "SRC\VEC.H"
 
-struct vec4 vec4(float x, float y, float z, float w)
+vec4 vec4(float x, float y, float z, float w)
 {
-	struct vec4 v;
+	vec4 v;
 	v.x = x;
 	v.y = y;
 	v.z = z;
@@ -11,9 +11,9 @@ struct vec4 vec4(float x, float y, float z, float w)
 }
 
 // null vector
-struct vec4 nvec4()
+vec4 nvec4()
 {
-	struct vec4 v;
+	vec4 v;
 	v.x = 0.0f;
 	v.y = 0.0f;
 	v.z = 0.0f;
@@ -21,26 +21,26 @@ struct vec4 nvec4()
 	return v;
 }
 
-struct vec3 vec3(float x, float y, float z)
+vec3 vec3(float x, float y, float z)
 {
-	struct vec3 v;
+	vec3 v;
 	v.x = x;
 	v.y = y;
 	v.z = z;
 	return v;
 }
 
-struct vec2 vec2(float x, float y)
+vec2 vec2(float x, float y)
 {
-	struct vec2 v;
+	vec2 v;
 	v.x = x;
 	v.y = y;
 	return v;
 }
 
-struct mat4 mat4(float s)
+mat4 Mat4(float s)
 {
-	struct mat4 m;
+	mat4 m;
 
 	m.m[0][0] = 1.0f*s;
 	m.m[0][1] = 0.0f;
@@ -65,9 +65,9 @@ struct mat4 mat4(float s)
 	return m;
 }
 
-struct mat4 projmat(float fov, float ar, float fr, float nr)
+mat4 projmat(float fov, float ar, float fr, float nr)
 {
-	struct mat4 m;
+	mat4 m;
 
 	m.m[0][0] = 1.0f/(ar*tan(0.5f*fov));
 	m.m[0][1] = 0.0f;
@@ -92,7 +92,7 @@ struct mat4 projmat(float fov, float ar, float fr, float nr)
 	return m;
 }
 
-struct mat4 rotmatY(float a)
+mat4 rotmatY(float a)
 {
 	struct mat4 m;
 
@@ -119,9 +119,9 @@ struct mat4 rotmatY(float a)
 	return m;
 }
 
-struct mat4 rotmatX(float a)
+mat4 rotmatX(float a)
 {
-	struct mat4 m;
+	mat4 m;
 
 	m.m[0][0] = 1.0f;
 	m.m[0][1] = 0.0f;
@@ -147,7 +147,7 @@ struct mat4 rotmatX(float a)
 }
 
 // vector addition
-struct vec4 v4a(struct vec4 v0, struct vec4 v1)
+vec4 v4a(vec4 v0, vec4 v1)
 {
 	v0.x += v1.x;
 	v0.y += v1.y;
@@ -158,7 +158,7 @@ struct vec4 v4a(struct vec4 v0, struct vec4 v1)
 }
 
 // vector scaling
-struct vec4 v4s(struct vec4 v, float s)
+vec4 v4s(vec4 v, float s)
 {
 	v.x *= s;
 	v.y *= s;
@@ -168,16 +168,16 @@ struct vec4 v4s(struct vec4 v, float s)
 	return v;
 }
 
-float v4l(struct vec4 v)
+float v4l(vec4 v)
 {
 	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w);
 }
 
-struct mat4 translate(struct mat4* m, struct vec4 v)
+mat4 translate(mat4 *m, vec4 v)
 {
-	struct mat4 r;
+	mat4 r;
 
-	struct mat4 tm = mat4(1.0f);
+	mat4 tm = mat4(1.0f);
 
 	tm.m[0][3] = v.x; // col 2, 3 not guaranteed
 	tm.m[1][3] = v.y;
@@ -189,9 +189,9 @@ struct mat4 translate(struct mat4* m, struct vec4 v)
 }
 
 // mat4 get row
-struct vec4 m4gr(struct mat4 m, int r)
+vec4 m4gr(mat4 m, int r)
 {
-	struct vec4 v;
+	vec4 v;
 	v.x = m.m[r][0];
 	v.y = m.m[r][1];
 	v.z = m.m[r][2];
@@ -200,9 +200,9 @@ struct vec4 m4gr(struct mat4 m, int r)
 }
 
 // matrix multiplication, mat4 x vec4
-struct vec4 m4xv4(struct mat4* m, struct vec4* v)
+vec4 m4xv4(mat4 *m, vec4 *v)
 {
-	struct vec4 r = nvec4();
+	vec4 r = nvec4();
 /*
 	r = v4a(r, v4s(m4gr(*m, 0), v->x));
 	r = v4a(r, v4s(m4gr(*m, 1), v->y));
@@ -232,9 +232,9 @@ struct vec4 m4xv4(struct mat4* m, struct vec4* v)
 	return r;
 }
 
-struct mat4 m4xm4(struct mat4* m0, struct mat4* m1)
+mat4 m4xm4(mat4 *m0, mat4 *m1)
 {
-	struct mat4 r;
+	mat4 r;
 
 	// we don't use loops around here...
 
@@ -325,11 +325,11 @@ struct mat4 m4xm4(struct mat4* m0, struct mat4* m1)
 	return r;
 }
 
-struct mat4 rotateY(struct mat4* m, float a)
+mat4 rotateY(mat4 *m, float a)
 {
-	struct mat4 r;
+	mat4 r;
 
-	struct mat4 rm; // rotation matrix
+	mat4 rm; // rotation matrix
 
 	rm = rotmatY(a); // construct y rot mat
 
@@ -338,11 +338,11 @@ struct mat4 rotateY(struct mat4* m, float a)
 	return r;
 }
 
-struct mat4 rotateX(struct mat4* m, float a)
+mat4 rotateX(mat4 *m, float a)
 {
-	struct mat4 r;
+	mat4 r;
 
-	struct mat4 rm; // rotation matrix
+	mat4 rm; // rotation matrix
 
 	rm = rotmatX(a); // construct y rot mat
 
@@ -352,15 +352,15 @@ struct mat4 rotateX(struct mat4* m, float a)
 }
 
 // dot product
-float v4dot(struct vec4* v0, struct vec4* v1)
+float v4dot(vec4 *v0, vec4 *v1)
 {
 	return v0->x*v1->x + v0->y*v1->y + v0->z*v1->z + v0->w*v1->w;
 }
 
 // cross product
-struct vec4 v4cross(struct vec4* v0, struct vec4* v1)
+vec4 v4cross(vec4 *v0, vec4 *v1)
 {
-	struct vec4 v;
+	vec4 v;
 
 	v.x = v0->y*v1->z - v0->z*v1->y;
 	v.y = v0->z*v1->x - v0->x*v1->z;

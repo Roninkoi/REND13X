@@ -458,7 +458,7 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 }
 
 
-void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned char c)
+void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, unsigned char c)
 {
 	float to;
 	int i = 0;
@@ -498,8 +498,8 @@ void r_drawtri3d(struct vec4* v0, struct vec4* v1, struct vec4* v2, unsigned cha
 
 	char dc = c;
 
-	struct vec4 fv0;
-	struct vec4 fv1;
+	vec4 fv0;
+	vec4 fv1;
 
 	zdh = (z0 + z1 + z2) / ZFAR;
 
