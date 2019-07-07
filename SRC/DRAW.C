@@ -9,7 +9,7 @@ BYTE r_n = 0;
 // render matrix
 mat4 rm;
 
-void r_add(vec4 *v0, vec4 *v1, vec4 *v2, BYTE c)
+void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 {
 	struct tri t;
 	vec4 fc;

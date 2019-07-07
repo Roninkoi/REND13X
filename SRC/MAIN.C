@@ -4,7 +4,7 @@ unsigned char keycode = 0;
 unsigned char keycodeBuffer[256];
 unsigned char keycodeTail = 0;
 
-void matpr(mat4 *m)
+void matpr(mat4* m)
 {
 	printf("%.1f %.1f %.1f %.1f \n", m->m[0][0], m->m[0][1], m->m[0][2], m->m[0][3]);
 	printf("%.1f %.1f %.1f %.1f \n", m->m[1][0], m->m[1][1], m->m[1][2], m->m[1][3]);
@@ -12,7 +12,7 @@ void matpr(mat4 *m)
 	printf("%.1f %.1f %.1f %.1f \n", m->m[3][0], m->m[3][1], m->m[3][2], m->m[3][3]);
 }
 
-void vecpr(vec4 *v)
+void vecpr(vec4* v)
 {
 	printf("%.1f %.1f %.1f %.1f \n", v->x, v->y, v->z, v->w);
 }
@@ -47,7 +47,7 @@ void interrupt getKeys()
 	++keycodeTail;
 }
 
-char *getBitStr(BYTE b)
+char* getBitStr(BYTE b)
 {
 	int i;
 	BYTE o;

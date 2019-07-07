@@ -1,6 +1,6 @@
 #include "SRC\VEC.H"
 
-vec4 vec4(float x, float y, float z, float w)
+vec4 Vec4(float x, float y, float z, float w)
 {
 	vec4 v;
 	v.x = x;
@@ -21,7 +21,7 @@ vec4 nvec4()
 	return v;
 }
 
-vec3 vec3(float x, float y, float z)
+vec3 Vec3(float x, float y, float z)
 {
 	vec3 v;
 	v.x = x;
@@ -30,7 +30,7 @@ vec3 vec3(float x, float y, float z)
 	return v;
 }
 
-vec2 vec2(float x, float y)
+vec2 Vec2(float x, float y)
 {
 	vec2 v;
 	v.x = x;
@@ -94,7 +94,7 @@ mat4 projmat(float fov, float ar, float fr, float nr)
 
 mat4 rotmatY(float a)
 {
-	struct mat4 m;
+	mat4 m;
 
 	m.m[0][0] = cos(a);
 	m.m[0][1] = 0.0f;
@@ -177,7 +177,7 @@ mat4 translate(mat4 *m, vec4 v)
 {
 	mat4 r;
 
-	mat4 tm = mat4(1.0f);
+	mat4 tm = Mat4(1.0f);
 
 	tm.m[0][3] = v.x; // col 2, 3 not guaranteed
 	tm.m[1][3] = v.y;
@@ -200,7 +200,7 @@ vec4 m4gr(mat4 m, int r)
 }
 
 // matrix multiplication, mat4 x vec4
-vec4 m4xv4(mat4 *m, vec4 *v)
+vec4 m4xv4(mat4* m, vec4* v)
 {
 	vec4 r = nvec4();
 /*
@@ -232,7 +232,7 @@ vec4 m4xv4(mat4 *m, vec4 *v)
 	return r;
 }
 
-mat4 m4xm4(mat4 *m0, mat4 *m1)
+mat4 m4xm4(mat4* m0, mat4* m1)
 {
 	mat4 r;
 
@@ -325,7 +325,7 @@ mat4 m4xm4(mat4 *m0, mat4 *m1)
 	return r;
 }
 
-mat4 rotateY(mat4 *m, float a)
+mat4 rotateY(mat4* m, float a)
 {
 	mat4 r;
 
@@ -338,7 +338,7 @@ mat4 rotateY(mat4 *m, float a)
 	return r;
 }
 
-mat4 rotateX(mat4 *m, float a)
+mat4 rotateX(mat4* m, float a)
 {
 	mat4 r;
 
@@ -352,13 +352,13 @@ mat4 rotateX(mat4 *m, float a)
 }
 
 // dot product
-float v4dot(vec4 *v0, vec4 *v1)
+float v4dot(vec4* v0, vec4* v1)
 {
 	return v0->x*v1->x + v0->y*v1->y + v0->z*v1->z + v0->w*v1->w;
 }
 
 // cross product
-vec4 v4cross(vec4 *v0, vec4 *v1)
+vec4 v4cross(vec4* v0, vec4* v1)
 {
 	vec4 v;
 

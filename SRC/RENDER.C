@@ -458,7 +458,7 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 }
 
 
-void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, unsigned char c)
+void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c)
 {
 	float to;
 	int i = 0;
