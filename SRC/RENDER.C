@@ -67,13 +67,17 @@ void r_flip()
 
 void r_drawpixel(int x, int y, unsigned char c)
 {
-	//y *= 320;
-	y = (y + (y << 2)) << 6;
-	x += y;
 	asm {
-		mov ax, 0xa000
+		mov ax, VSTART
 		mov es, ax
-		mov di, x
+
+		mov dx, y
+		mov ax, W
+		imul dx
+		add ax, x
+
+		mov di, ax
+
 		mov dl, c
 		mov [es:di], dl
 	}
@@ -104,23 +108,21 @@ void r_drawrect(int x, int y, int w, int h, unsigned char c)
 	h += y;
 	w += x;
 
-	x = clamp(x, 0, 320);
-	y = clamp(y, 0, 200);
-	w = clamp(w, 0, 320);
-	h = clamp(h, 0, 200);
+	x = clamp(x, L, R);
+	y = clamp(y, L, R);
+	w = clamp(w, L, R);
+	h = clamp(h, L, R);
 
 	if (w <= x || h <= y) {
 		return;
 	}
 
-	//h *= 320;
-	h = (h + (h << 2)) << 6;
-	//y *= 320;
-	y = (y + (y << 2)) << 6;
+	h *= W;
+	y *= W;
 
 	asm {
 		push bp
-		mov ax, 0xa000
+		mov ax, VSTART
 		mov es, ax
 
 		mov dl, c
@@ -139,7 +141,7 @@ void r_drawrect(int x, int y, int w, int h, unsigned char c)
 		inc ax
 		cmp ax, cx
 		jb draw
-		add bx, 320
+		add bx, W
 		mov ax, si
 		cmp bx, bp
 		jb draw
@@ -184,11 +186,11 @@ void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
 	for (i = 0; i <= diff; i += 1) {
 		x = vx0 + (float)i*s*kx;
 		y = vy0 + (float)i*s*ky;
-		//r_drawpixel(x, y, c);
-		y = (y + (y << 2)) << 6;
+
+		y *= 320;
 		x += y;
 		asm {
-			mov ax, 0xa000
+			mov ax, VSTART
 			mov es, ax
 			mov di, x
 			mov dl, c
@@ -202,10 +204,10 @@ void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c)
 	float v0[2];
 	float v1[2];
 
-	x0 = clamp(x0, 0, 320);
-	x1 = clamp(x1, 0, 320);
-	y0 = clamp(y0, 0, 200);
-	y1 = clamp(y1, 0, 200);
+	x0 = clamp(x0, L, R);
+	x1 = clamp(x1, L, R);
+	y0 = clamp(y0, L, R);
+	y1 = clamp(y1, L, R);
 
 	v0[0] = x0;
 	v0[1] = y0;
@@ -226,34 +228,26 @@ void r_drawlineh(int x0, int x1, int y, unsigned char c)
 		x1 = to;
 	}
 
-	/*y = (y + (y << 2)) << 6;
-	x0 += y;
-	x1 += y;*/
-
 	asm {
-		mov ax, 0xa000
+		mov ax, VSTART
 		mov es, ax
-		/*mov ax, x1
-		mov dl, c
-		mov di, x0*/
-		mov dx, y
-		mov ax, dx
-		shl ax, 2
-		add dx, ax
-		shl dx, 6
 
-		mov ax, x1
+		mov dx, y
+		mov ax, W
+		imul dx
+
+		mov bx, x1
 		mov di, x0
-		add ax, dx
-		add di, dx
-		
+		add bx, ax
+		add di, ax
+
 		mov dl, c
 	}
 	draw:
 	asm {
 		mov [es:di], dl
 		inc di
-		cmp di, ax
+		cmp di, bx
 		jb draw
 	}
 }
@@ -263,11 +257,10 @@ void r_drawlineh(int x0, int x1, int y, unsigned char c)
  * same as opengl with origin [0.0f, 0.0f]
  * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
 */
-void r_drawtri(float (*v)[3][2], unsigned char c)
+void r_drawtri(float v[3][2], unsigned char c)
 {
 	float to;
 	int i = 0;
-	int cl = 0;
 	int xl0;
 	int xl1;
 	int yl;
@@ -282,24 +275,27 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 	float dy1;
 	float dy2;
 
-	float x0;
-	float y0;
-
-	float x1;
-	float y1;
-
-	float x2;
-	float y2;
+	char dc = c;
 
 	// transform from gl to pix
-	x0 = ((*v)[0][0]+1.0f)*160.0f;
-	y0 = (-(*v)[0][1]+1.0f)*100.0f;
+	float x0 = (v[0][0]+1.0f)*W*0.5f;
+	float y0 = (-v[0][1]+1.0f)*H*0.5f;
 
-	x1 = ((*v)[1][0]+1.0f)*160.0f;
-	y1 = (-(*v)[1][1]+1.0f)*100.0f;
+	float x1 = (v[1][0]+1.0f)*W*0.5f;
+	float y1 = (-v[1][1]+1.0f)*H*0.5f;
 
-	x2 = ((*v)[2][0]+1.0f)*160.0f;
-	y2 = (-(*v)[2][1]+1.0f)*100.0f;
+	float x2 = (v[2][0]+1.0f)*W*0.5f;
+	float y2 = (-v[2][1]+1.0f)*H*0.5f;
+
+	// bounds
+	if (x0 > R && x1 > R && x2 > R)
+		return;
+	if (x0 < L && x1 < L && x2 < L)
+		return;
+	if (y0 > B && y1 > B && y2 > B)
+		return;
+	if (y0 < T && y1 < T && y2 < T)
+		return;
 
 	// sort vertices
 	if (y0 > y2) {
@@ -367,40 +363,35 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 		xl1 = (int)x1;
 		yl = (int)y0;
 
-		// clipping
-		cl = xl1 < 0 || yl < 8;
-		cl = cl || xl0 > 319 || yl > 199;
-		if (cl)
-			continue;
-		xl0 = clamp(xl0, 0, 320);
-		xl1 = clamp(xl1, 0, 320);
+		xl0 = clamp(xl0, L, R);
+		xl1 = clamp(xl1, L, R);
+		yl = clamp(yl, T, B);
 
 		asm {
-			mov ax, 0xa000
+			mov ax, VSTART
 			mov es, ax
+
 			mov dx, yl
-			mov ax, dx
-			shl ax, 2
-			add dx, ax
-			shl dx, 6
+			mov ax, W
+			imul dx
 
-			mov ax, xl1
+			mov bx, xl1
 			mov di, xl0
-			add ax, dx
-			add di, dx
+			add bx, ax
+			add di, ax
 
-			mov dl, c
+			mov dl, dc
 		}
 		draw1:
 		asm {
 			mov [es:di], dl
-			inc di
-			cmp di, ax
+			add di, 1
+			cmp di, bx
 			jb draw1
 		}
 	}
 
-	if (fabs(k2) <= 0.0031f)
+	if (fabs(k2) <= EPSILON)
 		return;
 
 	k0 = to;
@@ -423,35 +414,30 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 		xl1 = (int)x2;
 		yl = (int)y2;
 
-		// clipping
-		cl = xl1 < 0 || yl < 8;
-		cl = cl || xl0 > 319 || yl > 199;
-		if (cl)
-			continue;
-		xl0 = clamp(xl0, 0, 320);
-		xl1 = clamp(xl1, 0, 320);
+		xl0 = clamp(xl0, L, R);
+		xl1 = clamp(xl1, L, R);
+		yl = clamp(yl, T, B);
 
 		asm {
-			mov ax, 0xa000
+			mov ax, VSTART
 			mov es, ax
+
 			mov dx, yl
-			mov ax, dx
-			shl ax, 2
-			add dx, ax
-			shl dx, 6
+			mov ax, W
+			imul dx
 
-			mov ax, xl1
+			mov si, xl1
 			mov di, xl0
-			add ax, dx
-			add di, dx
+			add si, ax // calculate memory location
+			add di, ax
 
-			mov dl, c
+			mov dl, dc
 		}
 		draw2:
 		asm {
 			mov [es:di], dl
-			inc di
-			cmp di, ax
+			add di, 1
+			cmp di, si
 			jb draw2
 		}
 	}
@@ -460,71 +446,11 @@ void r_drawtri(float (*v)[3][2], unsigned char c)
 
 void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c)
 {
-	float to;
-	int i = 0;
-	int cl = 0;
-	int xl0;
-	int xl1;
-	int yl;
+	float t[3][2];
 
-	int isz = 0;
-
-	float k0;
-	float k1;
-	float k2;
-
-	float dx1;
-	float dx2;
-
-	float dy1;
-	float dy2;
-
-	float x0;
-	float y0;
-	float z0;
-
-	float x1;
-	float y1;
-	float z1;
-
-	float x2;
-	float y2;
-	float z2;
-
-	int zp = 0;
-	int za = 0;
-	float zd = 0.0f;
-	float zdh = 0.0f;
-
-	char dc = c;
-
-	vec4 fv0;
-	vec4 fv1;
-
-	zdh = (z0 + z1 + z2) / ZFAR;
-
-	if (c < 32 || 1) {
-		dc = c;
-	}
-	else if (zdh <= 2.5f) {
-		dc = 72 * ((int)(zdh) % 3) + (int)c;
-	}
-	else {
-		dc = 17;
-	}
-
-	// face culling
-/*	fv0 = v4s(*v0, -1.0f);
-	fv0 = v4a(*v0, *v1);
-	fv1 = v4s(*v0, -1.0f);
-	fv1 = v4a(*v0, *v2);
-	fv1 = v4cross(&fv0, &fv1);
-	if (fv1.z < 0)
-		return;                 */
-
-	z0 = v0->z;
-	z1 = v1->z;
-	z2 = v2->z;
+	float z0 = v0->z;
+	float z1 = v1->z;
+	float z2 = v2->z;
 
 	if (z0 <= ZNEAR || z1 <= ZNEAR || z2 <= ZNEAR)
 		return;
@@ -533,208 +459,22 @@ void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c)
 		return;
 
 	// projection
-	x0 = v0->x;
-	x0 /= z0;
-	y0 = v0->y;
-	y0 /= z0;
+	t[0][0] = v0->x;
+	t[0][0] /= z0;
+	t[0][1] = v0->y;
+	t[0][1] /= z0;
 
-	x1 = v1->x;
-	x1 /= z1;
-	y1 = v1->y;
-	y1 /= z1;
+	t[1][0] = v1->x;
+	t[1][0] /= z1;
+	t[1][1] = v1->y;
+	t[1][1] /= z1;
 
-	x2 = v2->x;
-	x2 /= z2;
-	y2 = v2->y;
-	y2 /= z2;
+	t[2][0] = v2->x;
+	t[2][0] /= z2;
+	t[2][1] = v2->y;
+	t[2][1] /= z2;
 
-//	if ((x1-x0)*(y2-y0) - (y1-y0)*(x2-x0) > 0.0f)
-//		return;
-
-	// transform from gl to pix
-	x0 = (x0+1.0f)*160.0f;
-	y0 = (-y0+1.0f)*100.0f;
-
-	x1 = (x1+1.0f)*160.0f;
-	y1 = (-y1+1.0f)*100.0f;
-
-	x2 = (x2+1.0f)*160.0f;
-	y2 = (-y2+1.0f)*100.0f;
-
-	// bounds
-	if (x0 > 320 && x1 > 320 && x2 > 320)
-		return;
-	if (x0 < 0 && x1 < 0 && x2 < 0)
-		return;
-	if (y0 > 200 && y1 > 200 && y2 > 200)
-		return;
-	if (y0 < 0 && y1 < 0 && y2 < 0)
-		return;
-
-	// sort vertices
-	if (y0 > y2) {
-		to = y0;
-		y0 = y2;
-		y2 = to;
-		to = x0;
-		x0 = x2;
-		x2 = to;
-	}
-	if (y1 > y2) {
-		to = y1;
-		y1 = y2;
-		y2 = to;
-		to = x1;
-		x1 = x2;
-		x2 = to;
-	}
-	if (y0 > y1) {
-		to = y0;
-		y0 = y1;
-		y1 = to;
-		to = x0;
-		x0 = x1;
-		x1 = to;
-	}
-
-	// first - last
-	dx1 = x2 - x0;
-	dy1 = y2 - y0;
-	k0 = dx1/dy1;
-	if (dy1 == 0) k0 = 0;
-
-	// first - mid
-	dx1 = x1 - x0;
-	dy1 = y1 - y0;
-	k1 = dx1/dy1;
-	if (dy1 == 0) k1 = 0;
-
-	// mid - last
-	dx2 = x2 - x1;
-	dy2 = y2 - y1;
-	k2 = dx2/dy2;
-	if (dy2 == 0) k2 = 0;
-
-	dy1 = fabs(dy1);
-	dy2 = fabs(dy2);
-
-	y2 -= 1.0f; // float offs
-
-	x1 = x0;
-	to = k0;
-	if (k0 > k1) {
-		k0 = k1;
-		k1 = to;
-	}
-
-	// top
-	for (i = 0; i < dy1 - 1.0f; i += 1) {
-		x0 += k0;
-		x1 += k1;
-		y0 += 1;
-
-		xl0 = (int)x0;
-		xl1 = (int)x1;
-		yl = (int)y0;
-
-/*		zdh = (dy1 - y1) / dy1; // 0 -> 1
-		zdh = zdh * z1 + (1.0f - zdh) * z0;
-		zdh = zdh/ZFAR;
-	*/
-		// view clipping
-		cl = xl1 < 0 || yl < 8;
-		cl = cl || xl0 > 319 || yl > 199;
-		if (cl)
-			continue;
-		xl0 = clamp(xl0, 0, 320);
-		xl1 = clamp(xl1, 0, 320);
-		asm {
-			mov ax, 0xa000
-			mov es, ax
-			mov dx, yl
-			mov ax, dx
-			shl ax, 2
-			add dx, ax
-			shl dx, 6
-
-			mov bx, xl1
-			mov di, xl0
-			add bx, dx
-			add di, dx
-
-			mov dl, dc
-		}
-		draw1:
-		asm {
-			mov [es:di], dl
-			add di, 1
-			mov zp, di
-			cmp di, bx
-			jb draw1
-		}
-	}
-
-	if (fabs(k2) <= 0.0031f)
-		return;
-
-	k0 = to;
-	if (k0 < k2) {
-			to = k0;
-			k0 = k2;
-			k2 = to;
-	}
-	x1 = x2 - k0*(dy2+1.0f);
-	x2 = x2 - k2*(dy2+1.0f);
-	y2 = y2 - dy2;
-
-	// bottom
-	for (i = 0; i < dy2-0.5f; i += 1) {
-		x1 += k0;
-		x2 += k2;
-		y2 += 1;
-
-		xl0 = (int)x1;
-		xl1 = (int)x2;
-		yl = (int)y2;
-
-/*		zdh = (dy2 - y2) / dy2; // 0 -> 1
-		zdh = zdh * z2 + (1.0f - zdh) * z1;
-		zdh = zdh/ZFAR;*/
-
-		// view clipping
-		cl = xl1 < 0 || yl < 8;
-		cl = cl || xl0 > 319 || yl > 199;
-		if (cl)
-			continue;
-		xl0 = clamp(xl0, 0, 320);
-		xl1 = clamp(xl1, 0, 320);
-
-		asm {
-			mov ax, 0xa000
-			mov es, ax
-			mov dx, yl
-			mov ax, dx
-			shl ax, 2
-			add dx, ax
-			shl dx, 6 // * 320
-
-			mov si, xl1
-			mov di, xl0
-			add si, dx // calculate memory location
-			add di, dx
-			mov za, si
-
-			mov dl, dc
-		}
-		draw2: // ax reg used
-		asm {
-			mov [es:di], dl
-			add di, 1
-			mov zp, di
-			cmp di, si
-			jb draw2
-		}
-	}
+	r_drawtri(t, c);
 }
 
 void r_fill()
@@ -756,19 +496,6 @@ void r_fill()
 
 void r_clear()
 {
-	/*asm {
-		mov ax, 0xa0a0 // +16 pix
-		mov es, ax
-		mov dl, c
-		xor di, di
-	}
-	draw:
-	asm {
-		mov [es:di], dl
-		add di, 1
-		cmp di, 0xfa00
-		jb draw
-	}*/
 	asm {
 		mov ax, 0xa0a0
 		mov es, ax

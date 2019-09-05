@@ -21,7 +21,13 @@ typedef unsigned char BYTE;
 #define W 320
 #define H 200
 #define T 8
-#define B 0
+#define B 199
+#define L 0
+#define R 319
+
+#define VSTART 0xa000
+
+#define EPSILON 0.0031f
 
 #define ZNEAR 0.2
 
@@ -93,7 +99,7 @@ void r_drawlineh(int x0, int x1, int y, unsigned char c);
  * same as opengl with origin [0.0f, 0.0f]
  * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
  */
-void r_drawtri(float (*v)[3][2], unsigned char c);
+void r_drawtri(float v[3][2], unsigned char c);
 
 void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c);
 
