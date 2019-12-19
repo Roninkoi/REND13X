@@ -1,6 +1,6 @@
 # CRENDER DOS software renderer
 
-![cube](https://giphy.com/gifs/cube-dos-mode13h-S57czNBuL5ZxcZmrbN)
+![cube](https://media.giphy.com/media/S57czNBuL5ZxcZmrbN/giphy.gif)
 
 DOS software renderer written in C (mode 13h, 320x200, 256 colors)
 
