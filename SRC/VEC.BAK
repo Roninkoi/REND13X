@@ -94,7 +94,7 @@ mat4 projmat(float fov, float ar, float fr, float nr)
 
 mat4 rotmatY(float a)
 {
-	struct mat4 m;
+	mat4 m;
 
 	m.m[0][0] = cos(a);
 	m.m[0][1] = 0.0f;
@@ -177,7 +177,7 @@ mat4 translate(mat4 *m, vec4 v)
 {
 	mat4 r;
 
-	mat4 tm = mat4(1.0f);
+	mat4 tm = Mat4(1.0f);
 
 	tm.m[0][3] = v.x; // col 2, 3 not guaranteed
 	tm.m[1][3] = v.y;

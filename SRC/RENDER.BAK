@@ -1,106 +1,779 @@
-/*
- * DOS Software renderer by Ronin748 2018
- * Draw routines written in x86 assembly, mode 13h
- * 320x200, 256 colors
- */
+#include "SRC\RENDER.H"
 
-#ifndef RENDER_H
-#define RENDER_H
+int redraw = 0;
+int itime = 0;
+char vmode = 0;
 
-#include <stdio.h>
-//#include <bios.h>
-#include <math.h>
-#include <time.h>
-#include <dos.h>
+int pg = 0;
 
-#include "SRC\VEC.H"
+int wireframe = 0;
+int faceculling = 1;
+int zsort = 1;
 
-typedef unsigned char BYTE;
+void interrupt getTime()
+{
+	itime += 1;
+	redraw = 1;
+}
 
-// viewport dimensions
-#define W 320
-#define H 200
-#define T 8
-#define B 0
+unsigned now() {
+	return (unsigned)time(NULL);
+}
 
-#define ZNEAR 0.2
+void r_init()
+{
+	char p;
+	p = pg;
 
-#define ZFAR 10.0
+	asm {
+		mov ah, 0x0f
+		int 0x10
+		mov vmode, al // get current video mode
 
-#define clamp(x, min, max) x > max ? max : (x < min ? min : x)
+		mov ah, 0
+		mov bh, p
+		mov al, 0x13 // set 13
+		int 0x10
 
-#define sign(x) (x) >= 0 ? 1 : -1;
+		mov ah, 0x48
+		mov bx, 0x10 // 64k
+		int 0x21
+	}
+}
 
-#define abs(x) x < 0 ? -x : x
+void r_exit()
+{
+	asm {
+		mov ah, 0
+		mov bh, 0
+		mov bx, 0
+		mov al, vmode // return original video mode
+		int 0x10
+	}
+}
 
-#define PI 3.1415926
+void r_flip()
+{
+	char p;
+	p = pg;
 
-extern int redraw;
-extern int itime;
-extern char vmode;
+	asm {
+		mov ah, 05h
+		mov al, p
+		int 10h
+	}
+}
 
-extern int pg;
+void r_drawpixel(int x, int y, unsigned char c)
+{
+	asm {
+		mov ax, VSTART
+		mov es, ax
 
-struct tri {
-	vec4 v0; // vertices
-	vec4 v1;
-	vec4 v2;
+		mov dx, y
+		mov ax, W
+		imul dx
+		add ax, x
 
-	float fc; // face center distance
+		mov di, ax
 
-	BYTE c; // color
-};
+		mov dl, c
+		mov [es:di], dl
+	}
+}
 
-extern struct tri r_buffer[256];
+void r_swap()
+{
+	asm {
+		mov ax, 0xa0a0
+		mov bx, 0xd0a0
+		mov es, ax
+		mov ds, bx
+		mov di, 0
+		mov dl, 2
+	}
+	draw:
+	asm {
+		mov dl, [ds:di]
+		mov [es:di], dl
+		add di, 1
+		cmp di, 0xf960
+		jb draw
+	}
+}
 
-extern BYTE r_s[256]; // sorted
+void r_drawrect(int x, int y, int w, int h, unsigned char c)
+{
+	h += y;
+	w += x;
 
-extern BYTE r_n;
+	x = clamp(x, L, R);
+	y = clamp(y, L, R);
+	w = clamp(w, L, R);
+	h = clamp(h, L, R);
 
-// render matrix
-extern mat4 rm;
+	if (w <= x || h <= y) {
+		return;
+	}
 
-extern unsigned char keycode;
-extern unsigned char keycodeBuffer[256];
-extern unsigned char keycodeTail;
+	h *= W;
+	y *= W;
 
-void interrupt getTime();
+	asm {
+		push bp
+		mov ax, VSTART
+		mov es, ax
 
-unsigned now();
+		mov dl, c
 
-void r_init();
-
-void r_exit();
-
-void r_flip();
-
-void r_drawpixel(int x, int y, unsigned char c);
-
-void r_swap();
-
-void r_drawrect(int x, int y, int w, int h, unsigned char c);
+		mov si, x
+		mov ax, si
+		mov bx, y
+		mov cx, w
+		mov bp, h
+	}
+	draw:
+	asm {
+		mov di, ax
+		add di, bx
+		mov [es:di], dl
+		inc ax
+		cmp ax, cx
+		jb draw
+		add bx, W
+		mov ax, si
+		cmp bx, bp
+		jb draw
+	}
+	asm pop bp
+}
 
 // line draw, pretty slow, implement in asm
-void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c);
+void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
+{
+	int x;
+	int y;
+	int vx0 = (*v0)[0];
+	int vy0 = (*v0)[1];
+	float dx;
+	float dy;
+	float k;
+	int i;
+	int s;
+	float kx;
+	float ky;
+	float diff;
 
-void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c);
+	dx = (*v1)[0] - vx0;
+	dy = (*v1)[1] - vy0;
+
+	k = dy/dx;
+
+	if (fabs(k) <= 1) {
+		s = sign(dx);
+		ky = k;
+		kx = 1.0f;
+		diff = fabs(dx);
+	}
+	else {
+		s = sign(dy);
+		kx = 1.0f/k;
+		ky = 1.0f;
+		diff = fabs(dy);
+	}
+
+	for (i = 0; i <= diff; i += 1) {
+		x = vx0 + (float)i*s*kx;
+		y = vy0 + (float)i*s*ky;
+
+		x = clamp(x, L, R);//distortion
+		y = clamp(y, T, B);
+
+		y *= 320;
+		x += y;
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+			mov di, x
+			mov dl, c
+			mov [es:di], dl
+		}
+	}
+}
+
+void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c)
+{
+	float v0[2];
+	float v1[2];
+
+	x0 = clamp(x0, L, R);
+	x1 = clamp(x1, L, R);
+	y0 = clamp(y0, L, R);
+	y1 = clamp(y1, L, R);
+
+	v0[0] = x0;
+	v0[1] = y0;
+
+	v1[0] = x1;
+	v1[1] = y1;
+
+	r_drawline(&v0, &v1, c);
+}
 
 // horizontal line draw with x sort, usually fast
-void r_drawlineh(int x0, int x1, int y, unsigned char c);
+void r_drawlineh(int x0, int x1, int y, unsigned char c)
+{
+	int to;
+	if (x0 > x1) {
+		to = x0;
+		x0 = x1;
+		x1 = to;
+	}
+
+	asm {
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W
+		imul dx
+
+		mov bx, x1
+		mov di, x0
+		add bx, ax
+		add di, ax
+
+		mov dl, c
+	}
+	draw:
+	asm {
+		mov [es:di], dl
+		inc di
+		cmp di, bx
+		jb draw
+	}
+}
 
 /*
  * triangle draw coordinate system
  * same as opengl with origin [0.0f, 0.0f]
  * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
- */
-void r_drawtri(float (*v)[3][2], unsigned char c);
+*/
+void r_drawtri(float v[3][2], unsigned char c)
+{
+	float to;
+	int i = 0;
+	int xl0;
+	int xl1;
+	int yl;
 
-void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c);
+	float k0;
+	float k1;
+	float k2;
 
-void r_fill();
+	float dx1;
+	float dx2;
 
-void r_clear();
+	float dy1;
+	float dy2;
 
-void r_scr();
+	char dc = c;
 
-#endif
+	float px = 0.5f;
+	//float bd = 0.001f;
+
+	// transform from gl to pix
+	float x0 = (v[0][0]+1.0f)*W*0.5f;
+	float y0 = (-v[0][1]+1.0f)*H*0.5f;
+
+	float x1 = (v[1][0]+1.0f)*W*0.5f;
+	float y1 = (-v[1][1]+1.0f)*H*0.5f;
+
+	float x2 = (v[2][0]+1.0f)*W*0.5f;
+	float y2 = (-v[2][1]+1.0f)*H*0.5f;
+
+/*	x0 -= ((x1 + x2) * 0.5f - x0)*bd;
+	x1 -= ((x0 + x2) * 0.5f - x1)*bd;
+	x2 -= ((x0 + x1) * 0.5f - x2)*bd;
+
+	y0 -= ((y1 + y2) * 0.5f - y0)*bd;
+	y1 -= ((y0 + y2) * 0.5f - y1)*bd;
+	y2 -= ((y0 + y1) * 0.5f - y2)*bd;*/
+
+	// sort vertices
+	if (y0 > y2) {
+		to = y0;
+		y0 = y2;
+		y2 = to;
+		to = x0;
+		x0 = x2;
+		x2 = to;
+	}
+	if (y1 > y2) {
+		to = y1;
+		y1 = y2;
+		y2 = to;
+		to = x1;
+		x1 = x2;
+		x2 = to;
+	}
+	if (y0 > y1) {
+		to = y0;
+		y0 = y1;
+		y1 = to;
+		to = x0;
+		x0 = x1;
+		x1 = to;
+	}
+
+	x0 = round(x0);
+	x1 = round(x1);
+	x2 = round(x2);
+
+	y0 = round(y0);
+	y1 = round(y1);
+	y2 = round(y2);
+
+	// bounds
+	if (x0 > R && x1 > R && x2 > R)
+		return;
+	if (x0 < L && x1 < L && x2 < L)
+		return;
+	if (y0 > B && y1 > B && y2 > B)
+		return;
+	if (y0 < T && y1 < T && y2 < T)
+		return;
+
+	if (wireframe) {
+		r_drawlinef(x0, y0, x1, y1, c);
+		r_drawlinef(x1, y1, x2, y2, c);
+		r_drawlinef(x0, y0, x2, y2, c);
+
+		return;
+	}
+
+	// first - last
+	dx1 = (x2 - x0);
+	dy1 = (y2 - y0);
+	k0 = (dx1/dy1);
+	if (dy1 == 0) k0 = 0;
+
+	// first - mid
+	dx1 = (x1 - x0);
+	dy1 = (y1 - y0);
+	k1 = (dx1/dy1);
+	if (dy1 == 0) k1 = 0;
+
+	// mid - last
+	dx2 = (x2 - x1);
+	dy2 = (y2 - y1);
+	k2 = (dx2/dy2);
+	if (dy2 == 0) k2 = 0;
+
+	dy1 = fabs(dy1);
+	dy2 = fabs(dy2);
+
+	//y2 -= 1.0f; // float offs
+
+	x1 = x0;
+	to = k0;
+	if (k0 > k1) {
+		k0 = k1;
+		k1 = to;
+	}
+
+	// top
+	for (i = 0; i < ceil(dy1 - 1.0f); i += 1) {
+		x0 += k0;
+		x1 += k1;
+		y0 += 1.0f;
+
+		xl0 = round(x0 - px);
+		xl1 = round(x1 + px);
+		yl = round(y0);
+
+		xl0 = clamp(xl0, L, R);
+		xl1 = clamp(xl1, L, R);
+		//yl = clamp(yl, T, B);
+		if (yl <= T) continue;
+		if (yl >= B) break;
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+
+			mov dx, yl
+			mov ax, W
+			imul dx
+
+			mov bx, xl1
+			mov di, xl0
+			add bx, ax
+			add di, ax
+
+			mov dl, dc
+		}
+		draw1:
+		asm {
+			mov [es:di], dl
+			add di, 1
+			cmp di, bx
+			jb draw1
+		}
+	}
+
+	//if (fabs(k2) <= EPSILON)
+	//	return;
+
+	k0 = to;
+	if (k0 < k2) {
+			to = k0;
+			k0 = k2;
+			k2 = to;
+	}
+	dy2 += 1.0f;
+	y2 = y2 - dy2;
+	x1 = x2 - k0*(dy2);
+	x2 = x2 - k2*(dy2);
+
+	// bottom
+	for (i = 0; i < ceil(dy2 - 1.0f); i += 1) {
+		x1 += k0;
+		x2 += k2;
+		y2 += 1.0f;
+
+		xl0 = round(x1 - px);
+		xl1 = round(x2 + px);
+		yl = round(y2);
+
+		xl0 = clamp(xl0, L, R);
+		xl1 = clamp(xl1, L, R);
+		//yl = clamp(yl, T, B);
+		if (yl <= T) continue;
+		if (yl >= B) break;
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+
+			mov dx, yl
+			mov ax, W
+			imul dx
+
+			mov si, xl1
+			mov di, xl0
+			add si, ax
+			add di, ax
+
+			mov dl, dc
+		}
+		draw2:
+		asm {
+			mov [es:di], dl
+			add di, 1
+			cmp di, si
+			jb draw2
+		}
+	}
+}
+
+void r_halftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										unsigned char c)
+{
+	int i, xi0, xi1;
+	for (i = 0; i < dy; i += 1) {
+		x0 += k0;
+		x1 += k1;
+		y += 1;
+
+		xi0 = (int) clamp(x0 - 0.5f, L, R);
+		xi1 = (int) clamp(x1 + 0.5f, L, R);
+
+//		xi0 = (int) (x0 + 0.5f);
+//		xi1 = (int) (x1 + 0.5f);
+
+		if (y <= T) continue;
+		if (y >= B) return;
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+
+			mov dx, y
+			mov ax, W
+			imul dx
+
+			mov si, xi1
+			mov di, xi0
+			add si, ax
+			add di, ax
+
+			mov dl, c
+		}
+		drawt:
+		asm {
+			mov [es:di], dl
+			add di, 1
+			cmp di, si
+			jb drawt
+		}
+	}
+}
+
+
+void r_fasthalftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										unsigned char c)
+{
+	int i, xi0, xi1;
+	int c0 = dy, c1 = dy;
+
+	if (k0 != 0)
+		c0 = (int)(1.0f/k0);
+
+	if (k1 != 0)
+		c1 = (int)(1.0f/k1);
+
+	for (i = 0; i < dy; i += 1) {
+		if (i % (abs(c0) + 1) == 0) {
+			x0 += k0;
+		}
+		if (i % (abs(c1) + 1) == 0) {
+			x1 += k1;
+		}
+		//x0 += (k0);
+		//x1 += (k1);
+		y += 1;
+
+		xi0 = (int) (x0 + 0.5f);
+		xi1 = (int) (x1 + 0.5f);
+
+		if (y <= T) continue;
+		if (y >= B) return;
+		/*asm {
+
+		}*/
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+
+			mov dx, y
+			mov ax, W
+			imul dx
+
+			mov si, xi1
+			mov di, xi0
+			add si, ax
+			add di, ax
+
+			mov dl, c
+		}
+		drawt:
+		asm {
+			mov [es:di], dl
+			add di, 1
+			cmp di, si
+			jb drawt
+		}
+	}
+	fin:
+}
+
+// optimized
+void r_fastdrawtri(float v[3][2], unsigned char c)
+{
+	float to;
+	int xl0;
+	int xl1;
+	int yl;
+
+	float k0;
+	float k1;
+	float k2;
+
+	float dx1;
+	float dx2;
+
+	float dy1;
+	float dy2;
+
+	// transform from gl to pix
+	float x0 = (v[0][0]+1.0f)*W*0.5f;
+	float y0 = (-v[0][1]+1.0f)*H*0.5f;
+
+	float x1 = (v[1][0]+1.0f)*W*0.5f;
+	float y1 = (-v[1][1]+1.0f)*H*0.5f;
+
+	float x2 = (v[2][0]+1.0f)*W*0.5f;
+	float y2 = (-v[2][1]+1.0f)*H*0.5f;
+
+	// sort vertices by y
+	if (y0 > y2) {
+		to = y0;
+		y0 = y2;
+		y2 = to;
+		to = x0;
+		x0 = x2;
+		x2 = to;
+	}
+	if (y1 > y2) {
+		to = y1;
+		y1 = y2;
+		y2 = to;
+		to = x1;
+		x1 = x2;
+		x2 = to;
+	}
+	if (y0 > y1) {
+		to = y0;
+		y0 = y1;
+		y1 = to;
+		to = x0;
+		x0 = x1;
+		x1 = to;
+	}
+
+	x0 = round(x0);
+	x1 = round(x1);
+	x2 = round(x2);
+
+	y0 = round(y0);
+	y1 = round(y1);
+	y2 = round(y2);
+
+	// bounds
+	if (x0 > R && x1 > R && x2 > R)
+		return;
+	if (x0 < L && x1 < L && x2 < L)
+		return;
+	if (y0 > B && y1 > B && y2 > B)
+		return;
+	if (y0 < T && y1 < T && y2 < T)
+		return;
+
+	if (wireframe) {
+		r_drawlinef(x0, y0, x1, y1, c);
+		r_drawlinef(x1, y1, x2, y2, c);
+		r_drawlinef(x0, y0, x2, y2, c);
+
+		return;
+	}
+
+	// first - last
+	dx1 = (x2 - x0);
+	dy1 = (y2 - y0);
+	k0 = (dx1/dy1);
+
+	// first - mid
+	dx1 = (x1 - x0);
+	dy1 = (y1 - y0);
+	k1 = (dx1/dy1);
+
+	// mid - last
+	dx2 = (x2 - x1);
+	dy2 = (y2 - y1);
+	k2 = (dx2/dy2);
+
+	x1 = x0; // sort x
+	to = k0;
+	if (k0 > k1) {
+		k0 = k1;
+		k1 = to;
+	}
+
+	// top
+	r_halftrifill(x0, x1, (int) y0, (int)dy1 - 1, k0, k1, c);
+
+	k0 = to;
+	if (k0 < k2) {
+			to = k0;
+			k0 = k2;
+			k2 = to;
+	}
+	dy2 += 1.0f;
+	y2 = y2 - dy2;
+	x1 = x2 - k0*(dy2);
+	x2 = x2 - k2*(dy2);
+
+	// bottom
+	r_halftrifill(x1, x2, (int) y2, (int)dy2 - 1, k0, k2, c);
+}
+
+
+void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c)
+{
+	float t[3][2];
+
+	float z0 = v0->z;
+	float z1 = v1->z;
+	float z2 = v2->z;
+
+	if (z0 <= ZNEAR || z1 <= ZNEAR || z2 <= ZNEAR)
+		return;
+
+	if (z0 >= ZFAR && z1 >= ZFAR && z2 >= ZFAR)
+		return;
+
+	// projection
+	t[0][0] = v0->x;
+	t[0][0] /= z0;
+	t[0][1] = v0->y;
+	t[0][1] /= z0;
+
+	t[1][0] = v1->x;
+	t[1][0] /= z1;
+	t[1][1] = v1->y;
+	t[1][1] /= z1;
+
+	t[2][0] = v2->x;
+	t[2][0] /= z2;
+	t[2][1] = v2->y;
+	t[2][1] /= z2;
+
+	r_fastdrawtri(t, c);
+}
+
+void r_fill()
+{
+	asm {
+		mov ax, 0xa000
+		mov es, ax
+		mov dl, 2
+		mov di, 0xfa00
+	}
+	draw:
+	asm {
+		sub di, 1
+		mov [es:di], dl
+		cmp di, 0
+		ja draw
+	}
+}
+
+void r_clear()
+{
+	asm {
+		mov ax, 0xa0a0
+		mov es, ax
+		xor di, di
+		mov cx, 0xf960
+		mov ax, 0
+		rep stosw
+	}
+}
+
+void r_scr()
+{
+	asm {
+		mov ah, 0x6
+		xor al, al
+		mov bh, 0x3
+		mov cx, 0x0100
+		mov dx, 0x182a
+		int 10h
+	}
+}
+

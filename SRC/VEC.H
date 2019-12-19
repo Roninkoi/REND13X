@@ -74,4 +74,7 @@ vec4 m4xv4(mat4 *m, vec4 *v);
 
 mat4 m4xm4(mat4 *m0, mat4 *m1);
 
+void matpr(mat4* m);
+void vecpr(vec4* v);
+
 #endif

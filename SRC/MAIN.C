@@ -4,19 +4,6 @@ unsigned char keycode = 0;
 unsigned char keycodeBuffer[256];
 unsigned char keycodeTail = 0;
 
-void matpr(mat4* m)
-{
-	printf("%.1f %.1f %.1f %.1f \n", m->m[0][0], m->m[0][1], m->m[0][2], m->m[0][3]);
-	printf("%.1f %.1f %.1f %.1f \n", m->m[1][0], m->m[1][1], m->m[1][2], m->m[1][3]);
-	printf("%.1f %.1f %.1f %.1f \n", m->m[2][0], m->m[2][1], m->m[2][2], m->m[2][3]);
-	printf("%.1f %.1f %.1f %.1f \n", m->m[3][0], m->m[3][1], m->m[3][2], m->m[3][3]);
-}
-
-void vecpr(vec4* v)
-{
-	printf("%.1f %.1f %.1f %.1f \n", v->x, v->y, v->z, v->w);
-}
-
 void interrupt (*oldkb) ();
 
 void interrupt (*oldtime) ();
@@ -47,28 +34,11 @@ void interrupt getKeys()
 	++keycodeTail;
 }
 
-char* getBitStr(BYTE b)
-{
-	int i;
-	BYTE o;
-	unsigned int s = sizeof(BYTE) * 8; // in bits
-	char* bits = malloc(s); // not freed
-
-	for (i = 0; i < s; ++i) {
-		o = b << i; // shift to high
-		o >>= s - 1; // shift to low, fills w zeroes
-
-		i[bits] = (o ? 1 : 0) + 48; // calculate char code
-	}
-
-	return bits; // bits left hanging around
-}
-
 void waitRetrace()
 {
 	while (inportb(0x3da) & 8); // wait around
 	while (!(inportb(0x3da) & 8));
-	r_clear();
+	//r_clear();
 	//r_scr();
 }
 
@@ -123,6 +93,16 @@ int main()
 	vec4 t1 = Vec4(1.0f, 0.0f, 2.0f, 1.0f);
 	vec4 t2 = Vec4(0.0f, 0.0f, 2.0f, 1.0f);
 
+	vec4 cube00 = Vec4(-0.5f, -0.5f, -0.5f, 1.0f);
+	vec4 cube01 = Vec4(0.5f, -0.5f, -0.5f, 1.0f);
+	vec4 cube02 = Vec4(0.5f, 0.5f, -0.5f, 1.0f);
+	vec4 cube03 = Vec4(-0.5f, 0.5f, -0.5f, 1.0f);
+
+	vec4 cube10 = Vec4(-0.5f, -0.5f, 0.5f, 1.0f);
+	vec4 cube11 = Vec4(0.5f, -0.5f, 0.5f, 1.0f);
+	vec4 cube12 = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
+	vec4 cube13 = Vec4(-0.5f, 0.5f, 0.5f, 1.0f);
+
 	// camera position
 	vec4 cam;
 
@@ -165,6 +145,7 @@ int main()
 
 		waitRetrace();
 		//r_clear();
+		r_scr();
 
 		rs -= itime;
 
@@ -178,15 +159,44 @@ int main()
 
 		rm = translate(&rm, cam);
 
-		rm = rotateY(&rm, t*0.01f);
+		/*r_add(&v0, &v1, &v2, 64 + 3);
+		r_add(&u0, &u1, &u2, 16 - 2);
+		r_add(&w0, &w1, &w2, 64 + 4);
+		r_add(&v1, &u1, &w1, 112 + 4);
+		*/
+		rm = translate(&rm, Vec4(0.0f, 0.0f, -2.0f, 0.0f));
+
+		rm = rotateY(&rm, t*0.03f/1.0f);
+		rm = rotateX(&rm, t*0.02f/1.0f);
+
+		//rm = translate(&rm, Vec4(0.0f, 0.0f, 2.2f, 0.0f));
 
 		//matpr(&rm);
 
-		r_add(&v0, &v1, &v2, 32);
+		r_add(&cube00, &cube02, &cube01, 48);
+		r_add(&cube00, &cube03, &cube02, 48);
 
-		r_add(&u0, &u1, &u2, 42);
+		r_add(&cube10, &cube11, &cube12, 38);
+		r_add(&cube10, &cube12, &cube13, 38);
 
-		r_add(&w0, &w1, &w2, 48);
+		r_add(&cube00, &cube11, &cube10, 45);
+		r_add(&cube00, &cube01, &cube11, 45);
+
+		r_add(&cube01, &cube12, &cube11, 35);
+		r_add(&cube01, &cube02, &cube12, 35);
+
+		r_add(&cube02, &cube13, &cube12, 55);
+		r_add(&cube02, &cube03, &cube13, 55);
+
+		r_add(&cube03, &cube10, &cube13, 42);
+		r_add(&cube03, &cube00, &cube10, 42);
+
+		//r_add(&cube00, &cube01, &cube02, 45);
+		//r_add(&cube00, &cube02, &cube03, 45);
+
+		wireframe = 0;
+		faceculling = 1;
+		zsort = 1;
 
 		r_sort();
 

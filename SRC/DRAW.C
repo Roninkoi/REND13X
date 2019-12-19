@@ -19,8 +19,8 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 	t.v2 = m4xv4(&rm, v2);
 
 	//face culling
-	if ((t.v1.x-t.v0.x)*(t.v2.y-t.v0.y) -
-		(t.v1.y-t.v0.y)*(t.v2.x-t.v0.x) > 1.0f)
+	if ((t.v1.x/t.v1.z-t.v0.x/t.v0.z)*(t.v2.y/t.v2.z-t.v0.y/t.v0.z) -
+		(t.v1.y/t.v1.z-t.v0.y/t.v0.z)*(t.v2.x/t.v2.z-t.v0.x/t.v0.z) > 0.0f && faceculling)
 		return;
 
 	fc = t.v0;
@@ -36,7 +36,7 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 	++r_n; // triangle index
 }
 
-void r_sort() // selection sort of something
+void r_sort() // selection sort or something
 {
 	int i;
 	int j;
@@ -47,6 +47,8 @@ void r_sort() // selection sort of something
 	for (i = 0; i < r_n; ++i) {
 		r_s[i] = i;
 	}
+
+	if (!zsort) return;
 
 	for (i = 0; i < r_n; ++i) {
 		largest = i;

@@ -6,13 +6,12 @@ char vmode = 0;
 
 int pg = 0;
 
+int wireframe = 0;
+int faceculling = 1;
+int zsort = 1;
+
 void interrupt getTime()
 {
-	asm cli
-
-	asm {
-		sti
-	}
 	itime += 1;
 	redraw = 1;
 }
@@ -187,8 +186,12 @@ void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
 		x = vx0 + (float)i*s*kx;
 		y = vy0 + (float)i*s*ky;
 
+		x = clamp(x, L, R);//distortion
+		y = clamp(y, T, B);
+
 		y *= 320;
 		x += y;
+
 		asm {
 			mov ax, VSTART
 			mov es, ax
@@ -277,6 +280,9 @@ void r_drawtri(float v[3][2], unsigned char c)
 
 	char dc = c;
 
+	float px = 0.5f;
+	//float bd = 0.001f;
+
 	// transform from gl to pix
 	float x0 = (v[0][0]+1.0f)*W*0.5f;
 	float y0 = (-v[0][1]+1.0f)*H*0.5f;
@@ -287,15 +293,13 @@ void r_drawtri(float v[3][2], unsigned char c)
 	float x2 = (v[2][0]+1.0f)*W*0.5f;
 	float y2 = (-v[2][1]+1.0f)*H*0.5f;
 
-	// bounds
-	if (x0 > R && x1 > R && x2 > R)
-		return;
-	if (x0 < L && x1 < L && x2 < L)
-		return;
-	if (y0 > B && y1 > B && y2 > B)
-		return;
-	if (y0 < T && y1 < T && y2 < T)
-		return;
+/*	x0 -= ((x1 + x2) * 0.5f - x0)*bd;
+	x1 -= ((x0 + x2) * 0.5f - x1)*bd;
+	x2 -= ((x0 + x1) * 0.5f - x2)*bd;
+
+	y0 -= ((y1 + y2) * 0.5f - y0)*bd;
+	y1 -= ((y0 + y2) * 0.5f - y1)*bd;
+	y2 -= ((y0 + y1) * 0.5f - y2)*bd;*/
 
 	// sort vertices
 	if (y0 > y2) {
@@ -323,28 +327,54 @@ void r_drawtri(float v[3][2], unsigned char c)
 		x1 = to;
 	}
 
+	x0 = round(x0);
+	x1 = round(x1);
+	x2 = round(x2);
+
+	y0 = round(y0);
+	y1 = round(y1);
+	y2 = round(y2);
+
+	// bounds
+	if (x0 > R && x1 > R && x2 > R)
+		return;
+	if (x0 < L && x1 < L && x2 < L)
+		return;
+	if (y0 > B && y1 > B && y2 > B)
+		return;
+	if (y0 < T && y1 < T && y2 < T)
+		return;
+
+	if (wireframe) {
+		r_drawlinef(x0, y0, x1, y1, c);
+		r_drawlinef(x1, y1, x2, y2, c);
+		r_drawlinef(x0, y0, x2, y2, c);
+
+		return;
+	}
+
 	// first - last
-	dx1 = x2 - x0;
-	dy1 = y2 - y0;
-	k0 = dx1/dy1;
+	dx1 = (x2 - x0);
+	dy1 = (y2 - y0);
+	k0 = (dx1/dy1);
 	if (dy1 == 0) k0 = 0;
 
 	// first - mid
-	dx1 = x1 - x0;
-	dy1 = y1 - y0;
-	k1 = dx1/dy1;
+	dx1 = (x1 - x0);
+	dy1 = (y1 - y0);
+	k1 = (dx1/dy1);
 	if (dy1 == 0) k1 = 0;
 
 	// mid - last
-	dx2 = x2 - x1;
-	dy2 = y2 - y1;
-	k2 = dx2/dy2;
+	dx2 = (x2 - x1);
+	dy2 = (y2 - y1);
+	k2 = (dx2/dy2);
 	if (dy2 == 0) k2 = 0;
 
 	dy1 = fabs(dy1);
 	dy2 = fabs(dy2);
 
-	y2 -= 1.0f; // float offs
+	//y2 -= 1.0f; // float offs
 
 	x1 = x0;
 	to = k0;
@@ -354,18 +384,20 @@ void r_drawtri(float v[3][2], unsigned char c)
 	}
 
 	// top
-	for (i = 0; i < dy1 - 1.0f; i += 1) {
+	for (i = 0; i < ceil(dy1 - 1.0f); i += 1) {
 		x0 += k0;
 		x1 += k1;
-		y0 += 1;
+		y0 += 1.0f;
 
-		xl0 = (int)x0;
-		xl1 = (int)x1;
-		yl = (int)y0;
+		xl0 = round(x0 - px);
+		xl1 = round(x1 + px);
+		yl = round(y0);
 
 		xl0 = clamp(xl0, L, R);
 		xl1 = clamp(xl1, L, R);
-		yl = clamp(yl, T, B);
+		//yl = clamp(yl, T, B);
+		if (yl <= T) continue;
+		if (yl >= B) break;
 
 		asm {
 			mov ax, VSTART
@@ -391,8 +423,8 @@ void r_drawtri(float v[3][2], unsigned char c)
 		}
 	}
 
-	if (fabs(k2) <= EPSILON)
-		return;
+	//if (fabs(k2) <= EPSILON)
+	//	return;
 
 	k0 = to;
 	if (k0 < k2) {
@@ -400,23 +432,26 @@ void r_drawtri(float v[3][2], unsigned char c)
 			k0 = k2;
 			k2 = to;
 	}
-	x1 = x2 - k0*(dy2+1.0f);
-	x2 = x2 - k2*(dy2+1.0f);
+	dy2 += 1.0f;
 	y2 = y2 - dy2;
+	x1 = x2 - k0*(dy2);
+	x2 = x2 - k2*(dy2);
 
 	// bottom
-	for (i = 0; i < dy2-0.5f; i += 1) {
+	for (i = 0; i < ceil(dy2 - 1.0f); i += 1) {
 		x1 += k0;
 		x2 += k2;
-		y2 += 1;
+		y2 += 1.0f;
 
-		xl0 = (int)x1;
-		xl1 = (int)x2;
-		yl = (int)y2;
+		xl0 = round(x1 - px);
+		xl1 = round(x2 + px);
+		yl = round(y2);
 
 		xl0 = clamp(xl0, L, R);
 		xl1 = clamp(xl1, L, R);
-		yl = clamp(yl, T, B);
+		//yl = clamp(yl, T, B);
+		if (yl <= T) continue;
+		if (yl >= B) break;
 
 		asm {
 			mov ax, VSTART
@@ -428,7 +463,7 @@ void r_drawtri(float v[3][2], unsigned char c)
 
 			mov si, xl1
 			mov di, xl0
-			add si, ax // calculate memory location
+			add si, ax
 			add di, ax
 
 			mov dl, dc
@@ -441,6 +476,230 @@ void r_drawtri(float v[3][2], unsigned char c)
 			jb draw2
 		}
 	}
+}
+
+void r_halftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										unsigned char c)
+{
+	int i, xi0, xi1;
+	for (i = 0; i < dy; i += 1) {
+		x0 += k0;
+		x1 += k1;
+		y += 1;
+
+		xi0 = (int) clamp(x0 - 0.5f, L, R);
+		xi1 = (int) clamp(x1 + 0.5f, L, R);
+
+//		xi0 = (int) (x0 + 0.5f);
+//		xi1 = (int) (x1 + 0.5f);
+
+		if (y <= T) continue;
+		if (y >= B) return;
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+
+			mov dx, y
+			mov ax, W
+			imul dx
+
+			mov si, xi1
+			mov di, xi0
+			add si, ax
+			add di, ax
+
+			mov dl, c
+		}
+		drawt:
+		asm {
+			mov [es:di], dl
+			add di, 1
+			cmp di, si
+			jb drawt
+		}
+	}
+}
+
+
+void r_fasthalftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										unsigned char c)
+{
+	int i, xi0, xi1;
+	int c0 = dy, c1 = dy;
+
+	if (k0 != 0)
+		c0 = (int)(1.0f/k0);
+
+	if (k1 != 0)
+		c1 = (int)(1.0f/k1);
+
+	for (i = 0; i < dy; i += 1) {
+		if (i % (abs(c0) + 1) == 0) {
+			x0 += k0;
+		}
+		if (i % (abs(c1) + 1) == 0) {
+			x1 += k1;
+		}
+		//x0 += (k0);
+		//x1 += (k1);
+		y += 1;
+
+		xi0 = (int) (x0 + 0.5f);
+		xi1 = (int) (x1 + 0.5f);
+
+		if (y <= T) continue;
+		if (y >= B) return;
+		/*asm {
+
+		}*/
+
+		asm {
+			mov ax, VSTART
+			mov es, ax
+
+			mov dx, y
+			mov ax, W
+			imul dx
+
+			mov si, xi1
+			mov di, xi0
+			add si, ax
+			add di, ax
+
+			mov dl, c
+		}
+		drawt:
+		asm {
+			mov [es:di], dl
+			add di, 1
+			cmp di, si
+			jb drawt
+		}
+	}
+	fin:
+}
+
+// optimized
+void r_fastdrawtri(float v[3][2], unsigned char c)
+{
+	float to;
+	int xl0;
+	int xl1;
+	int yl;
+
+	float k0;
+	float k1;
+	float k2;
+
+	float dx1;
+	float dx2;
+
+	float dy1;
+	float dy2;
+
+	// transform from gl to pix
+	float x0 = (v[0][0]+1.0f)*W*0.5f;
+	float y0 = (-v[0][1]+1.0f)*H*0.5f;
+
+	float x1 = (v[1][0]+1.0f)*W*0.5f;
+	float y1 = (-v[1][1]+1.0f)*H*0.5f;
+
+	float x2 = (v[2][0]+1.0f)*W*0.5f;
+	float y2 = (-v[2][1]+1.0f)*H*0.5f;
+
+	// sort vertices by y
+	if (y0 > y2) {
+		to = y0;
+		y0 = y2;
+		y2 = to;
+		to = x0;
+		x0 = x2;
+		x2 = to;
+	}
+	if (y1 > y2) {
+		to = y1;
+		y1 = y2;
+		y2 = to;
+		to = x1;
+		x1 = x2;
+		x2 = to;
+	}
+	if (y0 > y1) {
+		to = y0;
+		y0 = y1;
+		y1 = to;
+		to = x0;
+		x0 = x1;
+		x1 = to;
+	}
+
+	x0 = round(x0);
+	x1 = round(x1);
+	x2 = round(x2);
+
+	y0 = round(y0);
+	y1 = round(y1);
+	y2 = round(y2);
+
+	// bounds
+	if (x0 > R && x1 > R && x2 > R)
+		return;
+	if (x0 < L && x1 < L && x2 < L)
+		return;
+	if (y0 > B && y1 > B && y2 > B)
+		return;
+	if (y0 < T && y1 < T && y2 < T)
+		return;
+
+	if (wireframe) {
+		r_drawlinef(x0, y0, x1, y1, c);
+		r_drawlinef(x1, y1, x2, y2, c);
+		r_drawlinef(x0, y0, x2, y2, c);
+
+		return;
+	}
+
+	// first - last
+	dx1 = (x2 - x0);
+	dy1 = (y2 - y0);
+	k0 = (dx1/dy1);
+
+	// first - mid
+	dx1 = (x1 - x0);
+	dy1 = (y1 - y0);
+	k1 = (dx1/dy1);
+
+	// mid - last
+	dx2 = (x2 - x1);
+	dy2 = (y2 - y1);
+	k2 = (dx2/dy2);
+
+	x1 = x0; // sort x
+	to = k0;
+	if (k0 > k1) {
+		k0 = k1;
+		k1 = to;
+	}
+
+	// top
+	r_halftrifill(x0, x1, (int) y0, (int)dy1 - 1, k0, k1, c);
+
+	k0 = to;
+	if (k0 < k2) {
+			to = k0;
+			k0 = k2;
+			k2 = to;
+	}
+	dy2 += 1.0f;
+	y2 = y2 - dy2;
+	x1 = x2 - k0*(dy2);
+	x2 = x2 - k2*(dy2);
+
+	// bottom
+	r_halftrifill(x1, x2, (int) y2, (int)dy2 - 1, k0, k2, c);
 }
 
 
@@ -474,7 +733,7 @@ void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c)
 	t[2][1] = v2->y;
 	t[2][1] /= z2;
 
-	r_drawtri(t, c);
+	r_fastdrawtri(t, c);
 }
 
 void r_fill()

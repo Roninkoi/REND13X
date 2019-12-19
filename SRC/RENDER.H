@@ -31,7 +31,7 @@ typedef unsigned char BYTE;
 
 #define ZNEAR 0.2
 
-#define ZFAR 10.0
+#define ZFAR 20.0
 
 #define clamp(x, min, max) x > max ? max : (x < min ? min : x)
 
@@ -39,11 +39,16 @@ typedef unsigned char BYTE;
 
 #define abs(x) x < 0 ? -x : x
 
+#define round(x) floor(x + 0.5f)
+
 #define PI 3.1415926
 
 extern int redraw;
 extern int itime;
 extern char vmode;
+extern int wireframe;
+extern int faceculling;
+extern int zsort;
 
 extern int pg;
 
