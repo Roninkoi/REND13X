@@ -159,6 +159,33 @@ mat4 rotmatX(float a)
 	return m;
 }
 
+mat4 scalemat(float s)
+{
+	mat4 m;
+
+	m.m[0][0] = s;
+	m.m[0][1] = 0.0f;
+	m.m[0][2] = 0.0f;
+	m.m[0][3] = 0.0f;
+
+	m.m[1][0] = 0.0f;
+	m.m[1][1] = s;
+	m.m[1][2] = 0.0f;
+	m.m[1][3] = 0.0f;
+
+	m.m[2][0] = 0.0f;
+	m.m[2][1] = 0.0f;
+	m.m[2][2] = s;
+	m.m[2][3] = 0.0f;
+
+	m.m[3][0] = 0.0f;
+	m.m[3][1] = 0.0f;
+	m.m[3][2] = 0.0f;
+	m.m[3][3] = 1.0f;
+
+	return m;
+}
+
 // vector addition
 vec4 v4a(vec4 v0, vec4 v1)
 {
@@ -360,6 +387,19 @@ mat4 rotateX(mat4* m, float a)
 	rm = rotmatX(a); // construct y rot mat
 
 	r = m4xm4(m, &rm); // mul
+
+	return r;
+}
+
+mat4 scale(mat4 *m, float s)
+{
+	mat4 r;
+
+	mat4 sm;
+
+	sm = scalemat(s);
+
+	r = m4xm4(m, &sm);
 
 	return r;
 }

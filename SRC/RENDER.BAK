@@ -189,7 +189,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
 		x = clamp(x, L, R);//distortion
 		y = clamp(y, T, B);
 
-		y *= 320;
+		y *= W;
 		x += y;
 
 		asm {
@@ -281,7 +281,6 @@ void r_drawtri(float v[3][2], unsigned char c)
 	char dc = c;
 
 	float px = 0.5f;
-	//float bd = 0.001f;
 
 	// transform from gl to pix
 	float x0 = (v[0][0]+1.0f)*W*0.5f;
@@ -292,14 +291,6 @@ void r_drawtri(float v[3][2], unsigned char c)
 
 	float x2 = (v[2][0]+1.0f)*W*0.5f;
 	float y2 = (-v[2][1]+1.0f)*H*0.5f;
-
-/*	x0 -= ((x1 + x2) * 0.5f - x0)*bd;
-	x1 -= ((x0 + x2) * 0.5f - x1)*bd;
-	x2 -= ((x0 + x1) * 0.5f - x2)*bd;
-
-	y0 -= ((y1 + y2) * 0.5f - y0)*bd;
-	y1 -= ((y0 + y2) * 0.5f - y1)*bd;
-	y2 -= ((y0 + y1) * 0.5f - y2)*bd;*/
 
 	// sort vertices
 	if (y0 > y2) {
@@ -478,21 +469,23 @@ void r_drawtri(float v[3][2], unsigned char c)
 	}
 }
 
+/*
+	Triangle fill using floats
+	Perfect clipping and small error
+*/
 void r_halftrifill(float x0, float x1, int y,
 										int dy, float k0, float k1,
 										unsigned char c)
 {
 	int i, xi0, xi1;
+
 	for (i = 0; i < dy; i += 1) {
 		x0 += k0;
 		x1 += k1;
 		y += 1;
 
-		xi0 = (int) clamp(x0 - 0.5f, L, R);
-		xi1 = (int) clamp(x1 + 0.5f, L, R);
-
-//		xi0 = (int) (x0 + 0.5f);
-//		xi1 = (int) (x1 + 0.5f);
+		xi0 = (int) clamp(x0 - 0.1f, L, R);
+		xi1 = (int) clamp(x1 + 0.1f, L, R);
 
 		if (y <= T) continue;
 		if (y >= B) return;
@@ -522,64 +515,161 @@ void r_halftrifill(float x0, float x1, int y,
 	}
 }
 
-
+/*
+	Asm triangle fill using integers
+	fast, but bad clipping and precision
+*/
 void r_fasthalftrifill(float x0, float x1, int y,
 										int dy, float k0, float k1,
 										unsigned char c)
 {
-	int i, xi0, xi1;
-	int c0 = dy, c1 = dy;
+	int xi0, xi1, ki0, ki1, ye;
 
-	if (k0 != 0)
-		c0 = (int)(1.0f/k0);
+	xi0 = (int)(x0*64.0f);
+	xi1 = (int)(x1*64.0f);
+	ki0 = (int)(k0*64.0f);
+	ki1 = (int)(k1*64.0f);
 
-	if (k1 != 0)
-		c1 = (int)(1.0f/k1);
+	ye = clamp(y + dy, T, B); // clip bottom
+	dy = y;
+	y = clamp(y, T, B);
 
-	for (i = 0; i < dy; i += 1) {
-		if (i % (abs(c0) + 1) == 0) {
-			x0 += k0;
-		}
-		if (i % (abs(c1) + 1) == 0) {
-			x1 += k1;
-		}
-		//x0 += (k0);
-		//x1 += (k1);
-		y += 1;
+	if (y >= ye) return;
 
-		xi0 = (int) (x0 + 0.5f);
-		xi1 = (int) (x1 + 0.5f);
+	xi0 += ki0 * (y - dy); // clip top
+	xi1 += ki1 * (y - dy);
 
-		if (y <= T) continue;
-		if (y >= B) return;
-		/*asm {
+	y *= W;
+	ye *= W;
 
-		}*/
+	asm {
+		mov ax, VSTART // video memory start
+		mov es, ax
 
-		asm {
-			mov ax, VSTART
-			mov es, ax
-
-			mov dx, y
-			mov ax, W
-			imul dx
-
-			mov si, xi1
-			mov di, xi0
-			add si, ax
-			add di, ax
-
-			mov dl, c
-		}
-		drawt:
-		asm {
-			mov [es:di], dl
-			add di, 1
-			cmp di, si
-			jb drawt
-		}
+		mov bx, xi0 // initial points
+		mov cx, xi1
+		mov dx, y
 	}
-	fin:
+	drawt:
+	asm {
+		add bx, ki0 // x0 += k0
+		add cx, ki1 // x1 += k1
+		add dx, W // y += 1
+	}
+	asm {
+		mov di, bx
+		sub di, 32 // correction
+		sar di, 6 // divide by 128
+
+		mov si, cx
+		add si, 32
+		sar si, 6
+	}
+	asm { // clip left
+		mov ax, L
+		cmp di, ax
+		jg nlc
+		mov di, L
+
+		//mov ax, L
+		cmp si, ax
+		jg nlc
+		mov si, L
+	}
+	nlc:
+	asm { // clip right
+		mov ax, R
+		cmp si, ax
+		jl nrc
+		mov si, R
+
+		//mov ax, R
+		cmp di, ax
+		jl nrc
+		mov di, R
+	}
+	nrc:
+	asm {
+		add si, dx // calculate final addresses
+		add di, dx
+
+		mov al, c // color
+	}
+	drawl: // line draw
+	asm {
+		mov [es:di], al // write to screen
+		add di, 1
+		cmp di, si
+		jb drawl // x < x1?
+
+		mov ax, ye
+		cmp dx, ax
+		jb drawt // lines left?
+	}
+}
+
+/*
+	Asm triangle fill using integers
+	no clipping, but higher precision
+*/
+void r_ncfasthalftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										unsigned char c)
+{
+	int xi0, xi1, ki0, ki1, ye;
+
+	xi0 = (int)(x0*128.0f);
+	xi1 = (int)(x1*128.0f);
+	ki0 = (int)(k0*128.0f);
+	ki1 = (int)(k1*128.0f);
+
+	ye = y + dy;
+
+	if (y >= ye) return;
+
+	y *= W;
+	ye *= W;
+
+	asm {
+		mov ax, VSTART // video memory start
+		mov es, ax
+
+		mov bx, xi0 // initial points
+		mov cx, xi1
+		mov dx, y
+	}
+	drawt:
+	asm {
+		add bx, ki0 // x0 += k0
+		add cx, ki1 // x1 += k1
+		add dx, W // y += 1
+	}
+	asm {
+		mov di, bx
+		sub di, 32 // correction
+		sar di, 7 // divide by 128
+
+		mov si, cx
+		add si, 32
+		sar si, 7
+	}
+	asm {
+		add si, dx // calculate final addresses
+		add di, dx
+
+		mov al, c // color
+	}
+	drawl: // line draw
+	asm {
+		mov [es:di], al // write to screen
+		add di, 1
+		cmp di, si
+		jb drawl // x < x1?
+
+		mov ax, ye
+		cmp dx, ax
+		jb drawt // lines left?
+	}
 }
 
 // optimized
@@ -685,13 +775,14 @@ void r_fastdrawtri(float v[3][2], unsigned char c)
 	}
 
 	// top
-	r_halftrifill(x0, x1, (int) y0, (int)dy1 - 1, k0, k1, c);
+	r_fasthalftrifill(x0, x1, (int) y0,
+		(int) (dy1 - 1), k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
-			to = k0;
-			k0 = k2;
-			k2 = to;
+		to = k0;
+		k0 = k2;
+		k2 = to;
 	}
 	dy2 += 1.0f;
 	y2 = y2 - dy2;
@@ -699,7 +790,8 @@ void r_fastdrawtri(float v[3][2], unsigned char c)
 	x2 = x2 - k2*(dy2);
 
 	// bottom
-	r_halftrifill(x1, x2, (int) y2, (int)dy2 - 1, k0, k2, c);
+	r_fasthalftrifill(x1, x2, (int) y2,
+		(int) (dy2 - 1), k0, k2, c);
 }
 
 

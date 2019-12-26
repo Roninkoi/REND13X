@@ -46,6 +46,8 @@ mat4 rotmatX(float a);
 
 mat4 rotmatY(float a);
 
+mat4 scalemat(float s);
+
 // dot product
 float v4dot(vec4 *v0, vec4 *v1);
 
@@ -65,6 +67,8 @@ mat4 rotateX(mat4 *m, float a);
 mat4 rotateY(mat4 *m, float a);
 
 mat4 translate(mat4 *m, vec4 v);
+
+mat4 scale(mat4 *m, float s);
 
 // mat4 get row
 vec4 m4gr(mat4 m, int r);

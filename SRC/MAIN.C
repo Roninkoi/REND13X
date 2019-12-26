@@ -4,16 +4,21 @@ unsigned char keycode = 0;
 unsigned char keycodeBuffer[256];
 unsigned char keycodeTail = 0;
 
+int running = 1;
+
+int key;
+int keydown[256];
+
 void interrupt (*oldkb) ();
 
 void interrupt (*oldtime) ();
 
+// get code from keyboard
 void interrupt getKeys()
 {
-	// get code from keyboard
-	asm cli
-
 	asm {
+		cli
+
 		in al, 0x060	// read code
 		mov keycode, al
 		in al, 0x061	// status
@@ -34,6 +39,80 @@ void interrupt getKeys()
 	++keycodeTail;
 }
 
+void getInput()
+{
+	int i;
+	for (i = 0; i < 256; ++i) {
+		key = keycodeBuffer[i];
+		keycodeBuffer[i] = 0;
+
+		if (key == 1) {
+			running = 0; // halt program
+		}
+			// key press and release
+		if (key == 17) {
+			keydown[(int)'w'] = 1;
+		}
+		if (key == 145) {
+			keydown[(int)'w'] = 0;
+		}
+		if (key == 30) {
+			keydown[(int)'a'] = 1;
+		}
+		if (key == 158) {
+			keydown[(int)'a'] = 0;
+		}
+		if (key == 31) {
+			keydown[(int)'s'] = 1;
+		}
+		if (key == 159) {
+			keydown[(int)'s'] = 0;
+		}
+		if (key == 32) {
+			keydown[(int)'d'] = 1;
+		}
+		if (key == 160) {
+			keydown[(int)'d'] = 0;
+		}
+		if (key == 77) {
+			keydown[(int)'0'] = 1; // right
+		}
+		if (key == 205) {
+			keydown[(int)'0'] = 0;
+		}
+		if (key == 75) {
+			keydown[(int)'1'] = 1; // left
+		}
+		if (key == 203) {
+			keydown[(int)'1'] = 0;
+		}
+		if (key == 72) {
+			keydown[(int)'2'] = 1; // up
+		}
+		if (key == 200) {
+			keydown[(int)'2'] = 0;
+		}
+		if (key == 80) {
+			keydown[(int)'3'] = 1; // down
+		}
+		if (key == 208) {
+			keydown[(int)'3'] = 0;
+		}
+		if (key == 19) {
+			keydown[(int)'r'] = 1;
+		}
+		if (key == 147) {
+			keydown[(int)'r'] = 0;
+		}
+		if (key == 33) {
+			keydown[(int)'f'] = 1;
+		}
+		if (key == 161) {
+			keydown[(int)'f'] = 0;
+		}
+	}
+}
+
 void waitRetrace()
 {
 	while (inportb(0x3da) & 8); // wait around
@@ -42,12 +121,23 @@ void waitRetrace()
 	//r_scr();
 }
 
+void addf(
+float v0x, float v0y, float v0z,
+float v1x, float v1y, float v1z,
+float v2x, float v2y, float v2z, BYTE c)
+{
+	vec4 v0 = Vec4(v0x, v0y, v0z, 1.0f);
+	vec4 v1 = Vec4(v1x, v1y, v1z, 1.0f);
+	vec4 v2 = Vec4(v2x, v2y, v2z, 1.0f);
+
+	r_add(&v0, &v1, &v2, c);
+}
+
 int main()
 {
 	unsigned i;
 
 	long int t;
-	int running;
 	unsigned lt;
 	unsigned nt;
 
@@ -61,37 +151,16 @@ int main()
 	float rotx;
 	float roty;
 
-	int key;
-	int keydown[256];
-
 	float dt;
 	float rt;
 	int rs;
 
 	float walk_spd;
 
-	float vt[3][2] = {{50.0f, 50.0f}, {300.0f, 100.0f}, {200.0f, 180.0f}};
-
 	// projection matrix
-	mat4 pm = projmat(PI*0.5f, 320.0f/200.0f, 100.0f, 0.1f);
+	//mat4 pm = projmat(PI*0.5f, 320.0f/200.0f, 100.0f, 0.1f);
 	// camera matrix
 	mat4 cm = Mat4(1.0);
-
-	vec4 v0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	vec4 v1 = Vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	vec4 v2 = Vec4(1.0f, 0.0f, 1.0f, 1.0f);
-
-	vec4 u0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	vec4 u2 = Vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	vec4 u1 = Vec4(0.0f, 0.0f, -1.4f, 1.0f);
-
-	vec4 w0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	vec4 w1 = Vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	vec4 w2 = Vec4(0.0f, 0.0f, -1.4f, 1.0f);
-
-	vec4 t0 = Vec4(0.0f, 1.0f, 2.0f, 1.0f);
-	vec4 t1 = Vec4(1.0f, 0.0f, 2.0f, 1.0f);
-	vec4 t2 = Vec4(0.0f, 0.0f, 2.0f, 1.0f);
 
 	vec4 cube00 = Vec4(-0.5f, -0.5f, -0.5f, 1.0f);
 	vec4 cube01 = Vec4(0.5f, -0.5f, -0.5f, 1.0f);
@@ -151,48 +220,56 @@ int main()
 
 		cam = Vec4(-posx, -posy, -posz, 0.0f);
 
+		cm = Mat4(1.0f);
+		cm = rotateX(&cm, rotx);
+		cm = rotateY(&cm, roty);
+		cm = translate(&cm, cam);
+
+		for (i = 0; i < 1; ++i) {
+		rm = cm;
+
+		//rm = scale(&rm, 1.0f);
+
+		rm = translate(&rm, Vec4(i, 0.0f, -2.0f, 0.0f));
+
+		rm = rotateY(&rm, t*0.03f/7.0f);
+		rm = rotateX(&rm, t*0.02f/7.0f);
+
+		r_add(&cube00, &cube01, &cube02, 48);
+		r_add(&cube00, &cube02, &cube03, 48);
+
+		r_add(&cube10, &cube12, &cube11, 38);
+		r_add(&cube10, &cube13, &cube12, 38);
+
+		r_add(&cube00, &cube10, &cube11, 45);
+		r_add(&cube00, &cube11, &cube01, 45);
+
+		r_add(&cube01, &cube11, &cube12, 35);
+		r_add(&cube01, &cube12, &cube02, 35);
+
+		r_add(&cube02, &cube12, &cube13, 55);
+		r_add(&cube02, &cube13, &cube03, 55);
+
+		r_add(&cube03, &cube13, &cube10, 42);
+		r_add(&cube03, &cube10, &cube00, 42);
+		}
 		rm = Mat4(1.0f);
 
-		rm = rotateX(&cm, rotx);
-
-		rm = rotateY(&rm, roty);
-
-		rm = translate(&rm, cam);
-
-		/*r_add(&v0, &v1, &v2, 64 + 3);
-		r_add(&u0, &u1, &u2, 16 - 2);
-		r_add(&w0, &w1, &w2, 64 + 4);
-		r_add(&v1, &u1, &w1, 112 + 4);
-		*/
-		rm = translate(&rm, Vec4(0.0f, 0.0f, -2.0f, 0.0f));
-
-		rm = rotateY(&rm, t*0.03f/1.0f);
-		rm = rotateX(&rm, t*0.02f/1.0f);
-
-		//rm = translate(&rm, Vec4(0.0f, 0.0f, 2.2f, 0.0f));
-
-		//matpr(&rm);
-
-		r_add(&cube00, &cube02, &cube01, 48);
-		r_add(&cube00, &cube03, &cube02, 48);
-
-		r_add(&cube10, &cube11, &cube12, 38);
-		r_add(&cube10, &cube12, &cube13, 38);
-
-		r_add(&cube00, &cube11, &cube10, 45);
-		r_add(&cube00, &cube01, &cube11, 45);
-
-		r_add(&cube01, &cube12, &cube11, 35);
-		r_add(&cube01, &cube02, &cube12, 35);
-
-		r_add(&cube02, &cube13, &cube12, 55);
-		r_add(&cube02, &cube03, &cube13, 55);
-
-		r_add(&cube03, &cube10, &cube13, 42);
-		r_add(&cube03, &cube00, &cube10, 42);
-
-		//r_add(&cube00, &cube01, &cube02, 45);
-		//r_add(&cube00, &cube02, &cube03, 45);
+		/*addf(
+		0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		42);*/
+		/*addf(
+		-1.0f, -1.0f*0.0f + sin(t*0.01f), 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		42);*/  /*
+		addf(
+		-1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		42);*/
 
 		wireframe = 0;
 		faceculling = 1;
@@ -201,8 +278,6 @@ int main()
 		r_sort();
 
 		r_draw();
-
-		//r_drawtri3d(&t0, &t1, &t2, 5);
 
 		rs += itime;
 
@@ -216,81 +291,10 @@ int main()
 			dt = 60.0f/((float)fps);
 		}
 
-		printf("fps: %u, key: %i, rt: %.1f  \r",
-		 fps, keycode, rt);
+		printf("fps: %u, key: %i, rt: %.1f, rn: %i  \r",
+		 fps, keycode, rt, drawcount);
 
-		//getKeys();
-
-		for (i = 0; i < 256; ++i) {
-			key = keycodeBuffer[i];
-			keycodeBuffer[i] = 0;
-
-			if (key == 1) {
-				running = 0; // halt program
-			}
-
-			// key press and release
-			if (key == 17) {
-				keydown[(int)'w'] = 1;
-			}
-			if (key == 145) {
-				keydown[(int)'w'] = 0;
-			}
-			if (key == 30) {
-				keydown[(int)'a'] = 1;
-			}
-			if (key == 158) {
-				keydown[(int)'a'] = 0;
-			}
-			if (key == 31) {
-				keydown[(int)'s'] = 1;
-			}
-			if (key == 159) {
-				keydown[(int)'s'] = 0;
-			}
-			if (key == 32) {
-				keydown[(int)'d'] = 1;
-			}
-			if (key == 160) {
-				keydown[(int)'d'] = 0;
-			}
-			if (key == 77) {
-				keydown[(int)'0'] = 1; // right
-			}
-			if (key == 205) {
-				keydown[(int)'0'] = 0;
-			}
-			if (key == 75) {
-				keydown[(int)'1'] = 1; // left
-			}
-			if (key == 203) {
-				keydown[(int)'1'] = 0;
-			}
-			if (key == 72) {
-				keydown[(int)'2'] = 1; // up
-			}
-			if (key == 200) {
-				keydown[(int)'2'] = 0;
-			}
-			if (key == 80) {
-				keydown[(int)'3'] = 1; // down
-			}
-			if (key == 208) {
-				keydown[(int)'3'] = 0;
-			}
-			if (key == 19) {
-				keydown[(int)'r'] = 1;
-			}
-			if (key == 147) {
-				keydown[(int)'r'] = 0;
-			}
-			if (key == 33) {
-				keydown[(int)'f'] = 1;
-			}
-			if (key == 161) {
-				keydown[(int)'f'] = 0;
-			}
-		}
+		getInput();
 
 		walk_spd = 0.04f;
 

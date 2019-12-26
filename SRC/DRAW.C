@@ -6,6 +6,8 @@ BYTE r_s[256]; // sorted
 
 BYTE r_n = 0;
 
+int drawcount = 0;
+
 // render matrix
 mat4 rm;
 
@@ -20,7 +22,8 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 
 	//face culling
 	if ((t.v1.x/t.v1.z-t.v0.x/t.v0.z)*(t.v2.y/t.v2.z-t.v0.y/t.v0.z) -
-		(t.v1.y/t.v1.z-t.v0.y/t.v0.z)*(t.v2.x/t.v2.z-t.v0.x/t.v0.z) > 0.0f && faceculling)
+		(t.v1.y/t.v1.z-t.v0.y/t.v0.z)*(t.v2.x/t.v2.z-t.v0.x/t.v0.z) < 0.0f
+		&& faceculling)
 		return;
 
 	fc = t.v0;
@@ -76,6 +79,8 @@ void r_draw()
 			&r_buffer[r_s[i]].v2,
 			r_buffer[r_s[i]].c);
 	}
+
+	drawcount = r_n;
 
 	r_n = 0;
 }
