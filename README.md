@@ -19,13 +19,13 @@ development and x86 assembly graphics programming
 
 ## CONTROLS
 
-Move - WASD
+WASD - Move 
 
-Rotate - Arrows
+Arrows - Rotate camera
 
-Up - R
+R - Fly up
 
-Down - F
+F - Fly down
 
 Esc - Exit to DOS
 

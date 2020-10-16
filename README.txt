@@ -1,5 +1,6 @@
 CRENDER DOS software renderer
 =============================
+By Roninkoi 2020
 
 DOS software renderer written in C (mode 13h, 320x200, 256 colors)
 

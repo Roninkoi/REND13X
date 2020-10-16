@@ -1,5 +1,5 @@
 /*
- * DOS Software renderer by Roninkoi 2019
+ * DOS Software renderer by Roninkoi 2020
  * Draw routines written in x86 assembly, mode 13h
  * 320x200, 256 colors
  */
@@ -31,13 +31,13 @@ typedef unsigned char BYTE;
 
 #define ZNEAR 0.2
 
-#define ZFAR 100.0
+#define ZFAR 20.0
 
-#define clamp(x, min, max) x > max ? max : (x < min ? min : x)
+#define clamp(x, min, max) (x > max ? max : (x < min ? min : x))
 
-#define sign(x) (x) >= 0 ? 1 : -1;
+#define sign(x) (x >= 0 ? 1 : -1)
 
-#define abs(x) x < 0 ? -x : x
+#define abs(x) (x < 0 ? -x : x)
 
 #define round(x) floor(x + 0.5f)
 
@@ -49,7 +49,6 @@ extern char vmode;
 extern int wireframe;
 extern int faceculling;
 extern int zsort;
-extern int drawcount;
 
 extern int pg;
 
@@ -120,5 +119,7 @@ void r_scr();
 void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c);
 void r_sort();
 void r_draw();
+
+void r_waitRetrace();
 
 #endif
