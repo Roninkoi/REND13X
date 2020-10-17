@@ -336,115 +336,24 @@ void r_halftrifill(float x0, float x1, int y,
 
 /*
 	Asm triangle fill using integers
-	fast, but bad clipping and precision
-*/
-void r_fasthalftrifill(float x0, float x1, int y,
-										int dy, float k0, float k1,
-										unsigned char c)
-{
-	int xi0, xi1, ki0, ki1, ye;
-
-	xi0 = (int)(x0*64.0f);
-	xi1 = (int)(x1*64.0f);
-	ki0 = (int)(k0*64.0f);
-	ki1 = (int)(k1*64.0f);
-
-	ye = clamp(y + dy, T, B); // clip bottom
-	dy = y;
-	y = clamp(y, T, B);
-
-	if (y >= ye) return;
-
-	xi0 += ki0 * (y - dy); // clip top
-	xi1 += ki1 * (y - dy);
-
-	y *= W;
-	ye *= W;
-
-	asm {
-		mov ax, VSTART // video memory start
-		mov es, ax
-
-		mov bx, xi0 // initial points
-		mov cx, xi1
-		mov dx, y
-	}
-	drawt:
-	asm {
-		add bx, ki0 // x0 += k0
-		add cx, ki1 // x1 += k1
-		add dx, W // y += 1
-	}
-	asm {
-		mov di, bx
-		sub di, 32 // correction
-		sar di, 6 // divide by 128
-
-		mov si, cx
-		add si, 32
-		sar si, 6
-	}
-	asm { // clip left
-		mov ax, L
-		cmp di, ax
-		jg nlc
-		mov di, L
-
-		//mov ax, L
-		cmp si, ax
-		jg nlc
-		mov si, L
-	}
-	nlc:
-	asm { // clip right
-		mov ax, R
-		cmp si, ax
-		jl nrc
-		mov si, R
-
-		//mov ax, R
-		cmp di, ax
-		jl nrc
-		mov di, R
-	}
-	nrc:
-	asm {
-		add si, dx // calculate final addresses
-		add di, dx
-
-		mov al, c // color
-	}
-	drawl: // line draw
-	asm {
-		mov [es:di], al // write to screen
-		add di, 1
-		cmp di, si
-		jb drawl // x < x1?
-
-		mov ax, ye
-		cmp dx, ax
-		jb drawt // lines left?
-	}
-}
-
-/*
-	Asm triangle fill using integers
 	no clipping, but higher precision
 */
-void r_ncfasthalftrifill(float x0, float x1, int y,
+void r_nchalftrifill(float x0, float x1, int y,
 										int dy, float k0, float k1,
 										unsigned char c)
 {
 	unsigned int xi0, xi1, ki0, ki1, ye;
+	unsigned int err = 40; // correction
 
 	xi0 = (unsigned int)(x0*128.0f);
 	xi1 = (unsigned int)(x1*128.0f);
 	ki0 = (unsigned int)(k0*128.0f);
 	ki1 = (unsigned int)(k1*128.0f);
 
-	ye = y + dy;
+	if (dy <= 0)
+		return;
 
-	if (y >= ye) return;
+	ye = y + dy;
 
 	y *= W;
 	ye *= W;
@@ -454,6 +363,7 @@ void r_ncfasthalftrifill(float x0, float x1, int y,
 		mov es, ax
 
 		mov bx, xi0 // initial points
+		add bx, err
 		mov cx, xi1
 		mov dx, y
 	}
@@ -465,11 +375,11 @@ void r_ncfasthalftrifill(float x0, float x1, int y,
 	}
 	asm {
 		mov di, bx
-		sub di, 20 // correction
+		sub di, err // correction
 		shr di, 7 // divide by 128
 
 		mov si, cx
-		add si, 20
+		add si, err
 		shr si, 7
 	}
 	asm {
@@ -598,7 +508,7 @@ void r_drawtri(float v[3][2], unsigned char c)
 	}
 
 	// top
-	r_halftrifill(x0, x1, (int) y0, (int)dy1 - 1, k0, k1, c);
+	r_nchalftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
@@ -612,7 +522,7 @@ void r_drawtri(float v[3][2], unsigned char c)
 	x2 = x2 - k2*(dy2);
 
 	// bottom
-	r_halftrifill(x1, x2, (int) y2, (int)dy2 - 1, k0, k2, c);
+	r_nchalftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 }
 
 

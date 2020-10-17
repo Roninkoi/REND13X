@@ -39,6 +39,17 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 	++r_n; // triangle index
 }
 
+void r_addf(float v0x, float v0y, float v0z,
+		  float v1x, float v1y, float v1z,
+		  float v2x, float v2y, float v2z, BYTE c)
+{
+	vec4 v0 = Vec4(v0x, v0y, v0z, 1.0f);
+	vec4 v1 = Vec4(v1x, v1y, v1z, 1.0f);
+	vec4 v2 = Vec4(v2x, v2y, v2z, 1.0f);
+
+	r_add(&v0, &v1, &v2, c);
+}
+
 void r_sort() // selection sort or something
 {
 	int i;

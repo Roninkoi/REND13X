@@ -37,7 +37,7 @@ typedef unsigned char BYTE;
 
 #define sign(x) (x >= 0 ? 1 : -1)
 
-#define abs(x) (x < 0 ? -x : x)
+#define abs(x) (x < 0 ? -(x) : x)
 
 #define round(x) floor(x + 0.5f)
 
@@ -117,6 +117,9 @@ void r_scr();
 // DRAW
 
 void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c);
+void r_addf(float v0x, float v0y, float v0z,
+		  float v1x, float v1y, float v1z,
+		  float v2x, float v2y, float v2z, BYTE c);
 void r_sort();
 void r_draw();
 

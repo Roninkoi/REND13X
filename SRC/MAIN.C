@@ -141,6 +141,7 @@ void demo(long int t)
 	int i;
 	float ln;
 	float lf;
+	int cn;
 
 /*	vec4 v0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
 	vec4 v1 = Vec4(-1.0f, 0.0f, 1.0f, 1.0f);
@@ -172,15 +173,24 @@ void demo(long int t)
 
 	mat4 rm0 = rm;
 
-	rm = rotateY(&rm, t*0.03f/3.0f);
-	rm = rotateX(&rm, t*0.02f/3.0f);
-
-	for (i = 0; i < 1; ++i) {
+	cn = 6;
+	for (i = 0; i < cn; ++i) {
 		rm = rm0;
+		rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
-		rm = translate(&rm, Vec4(i, 0.0f, 0.0f, 0.0f));
-		rm = rotateY(&rm, t*0.03f/7.0f);
-		rm = rotateX(&rm, t*0.02f/7.0f);
+		rm = translate(&rm, Vec4(sin(t*0.03f/2.0f+3*i/PI)*2.0f,
+			cos(t*0.03f/4.0f+3*i/PI)*2.0f,
+			sin(i/PI*2.0f)*2.0f + 2.5f, 1.0f));
+		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t*0.03f/2.0f);
+		rm = rotateX(&rm, t*0.03f);
+
+		cube00.x += sin(t*0.02f+i/cn) * 0.1f;
+		cube10.x -= cos(t*0.06f+i/cn) * 0.1f;
+		cube01.x += sin(t*0.08f+i/cn) * 0.1f;
+		cube11.x -= cos(t*0.02f+i/cn) * 0.1f;
+		cube02.x -= sin(t*0.05f+i/cn) * 0.1f;
+		cube03.x -= sin(t*0.05f+i/cn) * 0.1f;
+		cube13.x += sin(t*0.02f+i/cn) * 0.1f;
 
 		r_add(&cube00, &cube01, &cube02, 48);
 		r_add(&cube00, &cube02, &cube03, 50);
@@ -200,6 +210,20 @@ void demo(long int t)
 		r_add(&cube03, &cube13, &cube10, 42);
 		r_add(&cube03, &cube10, &cube00, 44);
 	}
+
+	rm = Mat4(1.0f);
+
+/*	r_addf(
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		44);
+
+		r_addf(
+		-1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		48);*/
 
 	ln = 16.0;
 	for (i = 0; i <= ln; ++i) {

@@ -6,6 +6,8 @@ BYTE r_s[256]; // sorted
 
 BYTE r_n = 0;
 
+int drawcount = 0;
+
 // render matrix
 mat4 rm;
 
@@ -20,7 +22,8 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 
 	//face culling
 	if ((t.v1.x/t.v1.z-t.v0.x/t.v0.z)*(t.v2.y/t.v2.z-t.v0.y/t.v0.z) -
-		(t.v1.y/t.v1.z-t.v0.y/t.v0.z)*(t.v2.x/t.v2.z-t.v0.x/t.v0.z) > 0.0f && faceculling)
+		(t.v1.y/t.v1.z-t.v0.y/t.v0.z)*(t.v2.x/t.v2.z-t.v0.x/t.v0.z) < 0.0f
+		&& faceculling)
 		return;
 
 	fc = t.v0;
@@ -34,6 +37,17 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 	r_buffer[r_n] = t; // render buffer
 
 	++r_n; // triangle index
+}
+
+void addf(float v0x, float v0y, float v0z,
+		  float v1x, float v1y, float v1z,
+		  float v2x, float v2y, float v2z, BYTE c)
+{
+	vec4 v0 = Vec4(v0x, v0y, v0z, 1.0f);
+	vec4 v1 = Vec4(v1x, v1y, v1z, 1.0f);
+	vec4 v2 = Vec4(v2x, v2y, v2z, 1.0f);
+
+	r_add(&v0, &v1, &v2, c);
 }
 
 void r_sort() // selection sort or something
@@ -76,6 +90,8 @@ void r_draw()
 			&r_buffer[r_s[i]].v2,
 			r_buffer[r_s[i]].c);
 	}
+
+	drawcount = r_n;
 
 	r_n = 0;
 }
