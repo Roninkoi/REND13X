@@ -17,7 +17,7 @@ Esc to exit
 
 - Simple vector/matrix math and transforms
 
-- 3D perspective projected triangle draw
+- 3D perspective projected triangle draw with sorting, face culling
 
 - Keyboard interrupt handler for smooth multi-key input
 

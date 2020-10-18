@@ -43,6 +43,8 @@ typedef unsigned char BYTE;
 
 #define PI 3.1415926
 
+extern unsigned vstart;
+
 extern int redraw;
 extern int itime;
 extern char vmode;
@@ -71,9 +73,9 @@ extern BYTE r_n;
 // render matrix
 extern mat4 rm;
 
-extern unsigned char keycode;
-extern unsigned char keycodeBuffer[256];
-extern unsigned char keycodeTail;
+extern BYTE keycode;
+extern BYTE keycodeBuffer[256];
+extern BYTE keycodeTail;
 
 void interrupt getTime();
 
@@ -85,28 +87,21 @@ void r_exit();
 
 void r_flip();
 
-void r_drawpixel(int x, int y, unsigned char c);
+void r_drawpixel(int x, int y, BYTE c);
 
 void r_swap();
 
-void r_drawrect(int x, int y, int w, int h, unsigned char c);
+void r_drawrect(int x, int y, int w, int h, BYTE c);
 
-// line draw, pretty slow, implement in asm
-void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c);
+void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c);
 
-void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c);
+void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c);
 
-// horizontal line draw with x sort, usually fast
-void r_drawlineh(int x0, int x1, int y, unsigned char c);
+void r_drawlineh(int x0, int x1, int y, BYTE c);
 
-/*
- * triangle draw coordinate system
- * same as opengl with origin [0.0f, 0.0f]
- * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
- */
-void r_drawtri(float v[3][2], unsigned char c);
+void r_drawtri(float v[3][2], BYTE c);
 
-void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c);
+void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c);
 
 void r_fill();
 
@@ -118,11 +113,13 @@ void r_scr();
 
 void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c);
 void r_addf(float v0x, float v0y, float v0z,
-		  float v1x, float v1y, float v1z,
-		  float v2x, float v2y, float v2z, BYTE c);
+			float v1x, float v1y, float v1z,
+			float v2x, float v2y, float v2z, BYTE c);
 void r_sort();
 void r_draw();
 
 void r_waitRetrace();
+
+void r_flipDouble(BYTE *fb);
 
 #endif

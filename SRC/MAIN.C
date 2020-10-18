@@ -1,8 +1,8 @@
 #include "SRC\RENDER.H"
 
-unsigned char keycode = 0;
-unsigned char keycodeBuffer[256];
-unsigned char keycodeTail = 0;
+BYTE keycode = 0;
+BYTE keycodeBuffer[256];
+BYTE keycodeTail = 0;
 
 int running = 1;
 
@@ -136,7 +136,7 @@ void getInput()
 	}
 }
 
-void demo(long int t)
+void demo(long t)
 {
 	int i;
 	float ln;
@@ -213,20 +213,22 @@ void demo(long int t)
 
 	rm = Mat4(1.0f);
 
-/*	r_addf(
+	if (0) {
+	r_addf(
 		-1.0f, -1.0f, 1.0f,
 		1.0f, -1.0f, 1.0f,
 		1.0f, 1.0f, 1.0f,
 		44);
 
-		r_addf(
+	r_addf(
 		-1.0f, -1.0f, 1.0f,
 		1.0f, 1.0f, 1.0f,
 		-1.0f, 1.0f, 1.0f,
-		48);*/
+		48);
+	}
 
 	ln = 16.0;
-	for (i = 0; i <= ln; ++i) {
+	for (i = 0; i <= ln && 1; ++i) {
 		lf = ((float)i/ln);
 		r_drawlinef(
 					(cos(t*0.05f*lf+(float)i/ln)+1.0f)*W*0.5f,
@@ -253,7 +255,7 @@ int main()
 {
 	unsigned i;
 
-	long int t;
+	long t;
 	unsigned lt;
 	unsigned nt;
 
@@ -314,6 +316,7 @@ int main()
 		++frames;
 
 		r_waitRetrace();
+		//r_flipDouble(frameBuffer);
 		//r_clear();
 		r_scr();
 

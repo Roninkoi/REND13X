@@ -1,5 +1,7 @@
 #include "SRC\RENDER.H"
 
+unsigned vstart = VSTART;
+
 int redraw = 0;
 int itime = 0;
 char vmode = 0;
@@ -24,6 +26,11 @@ void r_waitRetrace()
 {
 	while (inportb(0x3da) & 8); // wait around
 	while (!(inportb(0x3da) & 8));
+}
+
+void r_flipDouble(BYTE *fb)
+{
+	memcpy(VSTART, fb, W*H);
 }
 
 void r_init()
@@ -70,10 +77,10 @@ void r_flip()
 	}
 }
 
-void r_drawpixel(int x, int y, unsigned char c)
+void r_drawpixel(int x, int y, BYTE c)
 {
 	asm {
-		mov ax, VSTART
+		mov ax, vstart
 		mov es, ax
 
 		mov dx, y
@@ -108,7 +115,7 @@ void r_swap()
 	}
 }
 
-void r_drawrect(int x, int y, int w, int h, unsigned char c)
+void r_drawrect(int x, int y, int w, int h, BYTE c)
 {
 	h += y;
 	w += x;
@@ -127,7 +134,7 @@ void r_drawrect(int x, int y, int w, int h, unsigned char c)
 
 	asm {
 		push bp
-		mov ax, VSTART
+		mov ax, vstart
 		mov es, ax
 
 		mov dl, c
@@ -155,7 +162,7 @@ void r_drawrect(int x, int y, int w, int h, unsigned char c)
 }
 
 // line draw, pretty slow, implement in asm
-void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
+void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 {
 	int x;
 	int y;
@@ -225,7 +232,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
 		x += y;
 
 		asm {
-			mov ax, VSTART
+			mov ax, vstart
 			mov es, ax
 			mov di, x
 			mov dl, c
@@ -234,7 +241,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], unsigned char c)
 	}
 }
 
-void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c)
+void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
 {
 	float v0[2];
 	float v1[2];
@@ -249,7 +256,7 @@ void r_drawlinef(float x0, float y0, float x1, float y1, unsigned char c)
 }
 
 // horizontal line draw with x sort, usually fast
-void r_drawlineh(int x0, int x1, int y, unsigned char c)
+void r_drawlineh(int x0, int x1, int y, BYTE c)
 {
 	int to;
 	if (x0 > x1) {
@@ -259,7 +266,7 @@ void r_drawlineh(int x0, int x1, int y, unsigned char c)
 	}
 
 	asm {
-		mov ax, VSTART
+		mov ax, vstart
 		mov es, ax
 
 		mov dx, y
@@ -284,7 +291,7 @@ void r_drawlineh(int x0, int x1, int y, unsigned char c)
 
 void r_halftrifill(float x0, float x1, int y,
 										int dy, float k0, float k1,
-										unsigned char c)
+										BYTE c)
 {
 	int i, xi0, xi1;
 	for (i = 0; i < dy; ++i) {
@@ -310,7 +317,7 @@ void r_halftrifill(float x0, float x1, int y,
 			xi1 = R;
 
 		asm {
-			mov ax, VSTART
+			mov ax, vstart
 			mov es, ax
 
 			mov dx, y
@@ -340,15 +347,15 @@ void r_halftrifill(float x0, float x1, int y,
 */
 void r_nchalftrifill(float x0, float x1, int y,
 										int dy, float k0, float k1,
-										unsigned char c)
+										BYTE c)
 {
-	unsigned int xi0, xi1, ki0, ki1, ye;
-	unsigned int err = 40; // correction
+	unsigned xi0, xi1, ki0, ki1, ye;
+	unsigned err = 40; // correction
 
-	xi0 = (unsigned int)(x0*128.0f);
-	xi1 = (unsigned int)(x1*128.0f);
-	ki0 = (unsigned int)(k0*128.0f);
-	ki1 = (unsigned int)(k1*128.0f);
+	xi0 = (unsigned)(x0*128.0f);
+	xi1 = (unsigned)(x1*128.0f);
+	ki0 = (unsigned)(k0*128.0f);
+	ki1 = (unsigned)(k1*128.0f);
 
 	if (dy <= 0)
 		return;
@@ -359,7 +366,7 @@ void r_nchalftrifill(float x0, float x1, int y,
 	ye *= W;
 
 	asm {
-		mov ax, VSTART // video memory start
+		mov ax, vstart // video memory start
 		mov es, ax
 
 		mov bx, xi0 // initial points
@@ -406,7 +413,7 @@ void r_nchalftrifill(float x0, float x1, int y,
  * same as opengl with origin [0.0f, 0.0f]
  * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
 */
-void r_drawtri(float v[3][2], unsigned char c)
+void r_drawtri(float v[3][2], BYTE c)
 {
 	float to;
 	int xl0;
@@ -508,7 +515,7 @@ void r_drawtri(float v[3][2], unsigned char c)
 	}
 
 	// top
-	r_nchalftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+	r_halftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
@@ -522,11 +529,11 @@ void r_drawtri(float v[3][2], unsigned char c)
 	x2 = x2 - k2*(dy2);
 
 	// bottom
-	r_nchalftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+	r_halftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 }
 
 
-void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, unsigned char c)
+void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 {
 	float t[3][2];
 
