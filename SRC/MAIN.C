@@ -168,9 +168,9 @@ void demo(long t)
 	vec4 t0 = Vec4(0.0f, 1.0f, 2.0f, 1.0f);
 	vec4 t1 = Vec4(1.0f, 0.0f, 2.0f, 1.0f);
 	vec4 t2 = Vec4(0.0f, 0.0f, 2.0f, 1.0f);
-
-	float vt[3][2] = {{50.0f, 50.0f}, {300.0f, 100.0f}, {200.0f, 180.0f}};
 */
+	float vt[3][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
+
 	vec4 cube00 = Vec4(-0.5f, -0.5f, -0.5f, 1.0f);
 	vec4 cube01 = Vec4(0.5f, -0.5f, -0.5f, 1.0f);
 	vec4 cube02 = Vec4(0.5f, 0.5f, -0.5f, 1.0f);
