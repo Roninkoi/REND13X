@@ -40,8 +40,8 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 }
 
 void r_addf(float v0x, float v0y, float v0z,
-		  float v1x, float v1y, float v1z,
-		  float v2x, float v2y, float v2z, BYTE c)
+			float v1x, float v1y, float v1z,
+			float v2x, float v2y, float v2z, BYTE c)
 {
 	vec4 v0 = Vec4(v0x, v0y, v0z, 1.0f);
 	vec4 v1 = Vec4(v1x, v1y, v1z, 1.0f);
@@ -84,14 +84,14 @@ void r_draw()
 {
 	int i;
 
+	drawcount = 0;
+
 	for (i = 0; i < r_n; ++i) {
 		r_drawtri3d(&r_buffer[r_s[i]].v0,
 			&r_buffer[r_s[i]].v1,
 			&r_buffer[r_s[i]].v2,
 			r_buffer[r_s[i]].c);
 	}
-
-	drawcount = r_n;
 
 	r_n = 0;
 }

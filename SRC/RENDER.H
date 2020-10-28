@@ -17,6 +17,9 @@
 
 typedef unsigned char BYTE;
 
+#define MODE13 1
+#define MODEX 0
+
 // viewport dimensions
 #define W 320
 #define H 200
@@ -52,7 +55,7 @@ extern int wireframe;
 extern int faceculling;
 extern int zsort;
 
-extern int pg;
+extern BYTE pg;
 
 struct tri {
 	vec4 v0; // vertices
@@ -70,6 +73,8 @@ extern BYTE r_s[256]; // sorted
 
 extern BYTE r_n;
 
+extern int drawcount;
+
 // render matrix
 extern mat4 rm;
 
@@ -82,32 +87,28 @@ void interrupt getTime();
 unsigned now();
 
 void r_init();
-
 void r_exit();
-
+void r_scr();
 void r_flip();
+void r_clear();
 
 void r_drawpixel(int x, int y, BYTE c);
-
-void r_swap();
 
 void r_drawrect(int x, int y, int w, int h, BYTE c);
 
 void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c);
-
 void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c);
-
 void r_drawlineh(int x0, int x1, int y, BYTE c);
 
 void r_drawtri(float v[3][2], BYTE c);
-
 void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c);
+void r_halftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										BYTE c);
+void r_nchalftrifill(float x0, float x1, int y,
+										int dy, float k0, float k1,
+										BYTE c);
 
-void r_fill();
-
-void r_clear();
-
-void r_scr();
 
 // DRAW
 
@@ -119,7 +120,5 @@ void r_sort();
 void r_draw();
 
 void r_waitRetrace();
-
-void r_flipDouble(BYTE *fb);
 
 #endif

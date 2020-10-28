@@ -13,6 +13,16 @@ void interrupt (*oldkb) ();
 
 void interrupt (*oldtime) ();
 
+void interrupt getTime()
+{
+	itime += 1;
+	redraw = 1;
+}
+
+unsigned now() {
+	return (unsigned) time(NULL);
+}
+
 void interrupt getKeys()
 {
 	// get code from keyboard
@@ -174,7 +184,7 @@ void demo(long t)
 	mat4 rm0 = rm;
 
 	cn = 6;
-	for (i = 0; i < cn; ++i) {
+	for (i = 0; i < cn && 1; ++i) {
 		rm = rm0;
 		rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
@@ -228,7 +238,7 @@ void demo(long t)
 	}
 
 	ln = 16.0;
-	for (i = 0; i <= ln && 1; ++i) {
+	for (i = 0; i <= ln && 0; ++i) {
 		lf = ((float)i/ln);
 		r_drawlinef(
 					(cos(t*0.05f*lf+(float)i/ln)+1.0f)*W*0.5f,
@@ -238,7 +248,7 @@ void demo(long t)
 	}
 }
 
-// these have to be macros
+// these have to be macros?
 #define init() \
 	r_init(); \
 	oldkb = getvect(9); \
@@ -316,7 +326,7 @@ int main()
 		++frames;
 
 		r_waitRetrace();
-		//r_flipDouble(frameBuffer);
+		//r_flip();
 		//r_clear();
 		r_scr();
 
@@ -355,8 +365,8 @@ int main()
 			dt = 60.0f/((float)fps);
 		}
 
-		printf("fps: %u, key: %i, rt: %.1f  \r",
-				 fps, keycode, rt);
+		printf("fps: %u, key: %i, rt: %.1f, dc: %i  \r",
+				 fps, keycode, rt, drawcount);
 
 		getInput();
 
