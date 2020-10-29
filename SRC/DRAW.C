@@ -1,15 +1,12 @@
 #include "SRC\RENDER.H"
 
 struct tri r_buffer[256];
-
-BYTE r_s[256]; // sorted
-
+BYTE r_s[256];
 BYTE r_n = 0;
 
-int drawcount = 0;
-
-// render matrix
 mat4 rm;
+
+int drawcount = 0;
 
 void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 {

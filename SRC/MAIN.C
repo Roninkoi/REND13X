@@ -184,7 +184,7 @@ void demo(long t)
 	mat4 rm0 = rm;
 
 	cn = 6;
-	for (i = 0; i < cn && 1; ++i) {
+	for (i = 0; i < cn && 0; ++i) {
 		rm = rm0;
 		rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
@@ -201,6 +201,31 @@ void demo(long t)
 		cube02.x -= sin(t*0.05f+i/cn) * 0.1f;
 		cube03.x -= sin(t*0.05f+i/cn) * 0.1f;
 		cube13.x += sin(t*0.02f+i/cn) * 0.1f;
+
+		r_add(&cube00, &cube01, &cube02, 48);
+		r_add(&cube00, &cube02, &cube03, 50);
+
+		r_add(&cube10, &cube12, &cube11, 38);
+		r_add(&cube10, &cube13, &cube12, 40);
+
+		r_add(&cube00, &cube10, &cube11, 45);
+		r_add(&cube00, &cube11, &cube01, 47);
+
+		r_add(&cube01, &cube11, &cube12, 35);
+		r_add(&cube01, &cube12, &cube02, 37);
+
+		r_add(&cube02, &cube12, &cube13, 55);
+		r_add(&cube02, &cube13, &cube03, 57);
+
+		r_add(&cube03, &cube13, &cube10, 42);
+		r_add(&cube03, &cube10, &cube00, 44);
+	}
+
+	if (1) {
+		rm = rm0;
+		rm = scale(&rm, 1.2f);
+		rm = rotateY(&rm, t*0.002);
+		rm = rotateX(&rm, t*0.007f);
 
 		r_add(&cube00, &cube01, &cube02, 48);
 		r_add(&cube00, &cube02, &cube03, 50);
@@ -327,8 +352,9 @@ int main()
 
 		r_waitRetrace();
 		//r_flip();
-		//r_clear();
-		r_scr();
+		//r_clear(3);
+		r_scr(3);
+		//r_vfill(100, 100, 2);
 
 		rs -= itime;
 

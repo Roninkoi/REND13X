@@ -182,20 +182,6 @@ void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 	}
 }
 
-void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
-{
-	float v0[2];
-	float v1[2];
-
-	v0[0] = x0;
-	v0[1] = y0;
-
-	v1[0] = x1;
-	v1[1] = y1;
-
-	r_drawline(&v0, &v1, c);
-}
-
 // horizontal line draw with x sort, usually fast
 void r_drawlineh(int x0, int x1, int y, BYTE c)
 {

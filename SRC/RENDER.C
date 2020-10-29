@@ -18,6 +18,20 @@ void r_waitRetrace()
 	while (!(inportb(0x3da) & 8));
 }
 
+void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
+{
+	float v0[2];
+	float v1[2];
+
+	v0[0] = x0;
+	v0[1] = y0;
+
+	v1[0] = x1;
+	v1[1] = y1;
+
+	r_drawline(&v0, &v1, c);
+}
+
 /*
  * triangle draw coordinate system
  * same as opengl with origin [0.0f, 0.0f]
@@ -125,7 +139,7 @@ void r_drawtri(float v[3][2], BYTE c)
 	}
 
 	// top
-	r_halftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+	r_nchalftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
@@ -139,7 +153,7 @@ void r_drawtri(float v[3][2], BYTE c)
 	x2 = x2 - k2*(dy2);
 
 	// bottom
-	r_halftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+	r_nchalftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 
 	++drawcount;
 }

@@ -88,9 +88,10 @@ unsigned now();
 
 void r_init();
 void r_exit();
-void r_scr();
+void r_scr(BYTE c);
 void r_flip();
-void r_clear();
+void r_clear(int c);
+void r_vfill(int y0, int h, int c);
 
 void r_drawpixel(int x, int y, BYTE c);
 

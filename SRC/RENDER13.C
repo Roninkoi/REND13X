@@ -49,6 +49,7 @@ void r_drawpixel(int x, int y, BYTE c)
 	}
 }
 
+// TODO: rep stosb
 void r_drawrect(int x, int y, int w, int h, BYTE c)
 {
 	h += y;
@@ -175,21 +176,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 	}
 }
 
-void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
-{
-	float v0[2];
-	float v1[2];
-
-	v0[0] = x0;
-	v0[1] = y0;
-
-	v1[0] = x1;
-	v1[1] = y1;
-
-	r_drawline(&v0, &v1, c);
-}
-
-// horizontal line draw with x sort, usually fast
+// horizontal line draw with x sort
 void r_drawlineh(int x0, int x1, int y, BYTE c)
 {
 	int to;
@@ -252,30 +239,27 @@ void r_halftrifill(float x0, float x1, int y,
 			xi1 = R;
 
 		asm {
-			mov ax, vstart
-			mov es, ax
+			mov es, vstart
 
 			mov dx, y
 			mov ax, W
-			imul dx
+			imul dx // y offset
 
-			mov si, xi1
+			mov cx, xi1
 			mov di, xi0
-			add si, ax
-			add di, ax
 
-			mov dl, c
-		}
-		drawt:
-		asm {
-			mov [es:di], dl
-			add di, 1
-			cmp di, si
-			jbe drawt
+			sub cx, di
+			add di, ax // calculate address
+
+			xor ax, ax
+			mov al, c // color
+
+			rep stosb
 		}
 	}
 }
 
+#define TERR 64 // correction
 /*
 	Asm triangle fill using integers
 	no clipping, but slightly faster
@@ -285,7 +269,6 @@ void r_nchalftrifill(float x0, float x1, int y,
 										BYTE c)
 {
 	unsigned xi0, xi1, ki0, ki1, ye;
-	unsigned err = 40; // correction
 
 	xi0 = (unsigned)(x0*128.0f);
 	xi1 = (unsigned)(x1*128.0f);
@@ -301,41 +284,40 @@ void r_nchalftrifill(float x0, float x1, int y,
 	ye *= W;
 
 	asm {
-		mov ax, vstart // video memory start
-		mov es, ax
+		mov es, vstart // video memory start
 
 		mov bx, xi0 // initial points
-		add bx, err
-		mov cx, xi1
+#ifdef TERR
+		add bx, TERR
+#endif
+		mov si, xi1
 		mov dx, y
 	}
 	drawt:
 	asm {
 		add bx, ki0 // x0 += k0
-		add cx, ki1 // x1 += k1
+		add si, ki1 // x1 += k1
 		add dx, W // y += 1
-	}
-	asm {
+
 		mov di, bx
-		sub di, err // correction
+#ifdef TERR
+		sub di, TERR // correction
+#endif
 		shr di, 7 // divide by 128
 
-		mov si, cx
-		add si, err
-		shr si, 7
-	}
-	asm {
-		add si, dx // calculate final addresses
-		add di, dx
+		mov cx, si
+#ifdef TERR
+		add cx, TERR
+#endif
+		shr cx, 7
 
+		sub cx, di
+		add di, dx // calculate final addresses
+
+		xor ax, ax
 		mov al, c // color
-	}
-	drawl: // line draw
-	asm {
-		mov [es:di], al // write to screen
-		add di, 1
-		cmp di, si
-		jb drawl // x < x1?
+
+		rep stosb
 
 		mov ax, ye
 		cmp dx, ax
@@ -343,24 +325,36 @@ void r_nchalftrifill(float x0, float x1, int y,
 	}
 }
 
-void r_clear()
+void r_clear(int c)
 {
 	asm {
-		mov ax, vstart
-		mov es, ax
+		mov es, vstart
 		xor di, di
 		mov cx, W*H
-		mov ax, 0
-		rep stosw
+		mov ax, c
+		rep stosb
 	}
 }
 
-void r_scr()
+void r_vfill(int y0, int h, int c)
+{
+	y0 *= W;
+	h *= W;
+	asm {
+		mov es, vstart
+		mov di, y0
+		mov cx, h
+		mov ax, c
+		rep stosb
+	}
+}
+
+void r_scr(BYTE c)
 {
 	asm {
 		mov ah, 0x6
 		xor al, al
-		mov bh, 0x3
+		mov bh, c
 		mov cx, 0x0100
 		mov dx, 0x182a
 		int 10h
