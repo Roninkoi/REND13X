@@ -183,7 +183,7 @@ void demo(long t)
 
 	mat4 rm0 = rm;
 
-	cn = 3;
+	cn = 6;
 	for (i = 0; i < cn && 0; ++i) {
 		rm = rm0;
 		rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
@@ -221,7 +221,8 @@ void demo(long t)
 		r_add(&cube03, &cube10, &cube00, 44);
 	}
 
-	//r_drawrect(sin(t*0.01f)*150+125, cos(t*0.0231)*80+75, 80, 50, t % 32 + 64);
+	r_drawrect(sin(t*0.01f)*150+125, cos(t*0.0231)*80+75, 80, 50,
+	t % 32 + 64);
 
 	if (1) {
 		rm = rm0;

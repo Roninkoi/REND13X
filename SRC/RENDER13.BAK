@@ -51,16 +51,14 @@ void r_drawpixel(int x, int y, BYTE c)
 
 void r_drawrect(int x, int y, int w, int h, BYTE c)
 {
-	w = clamp(w + x, 0, W);
-	h = clamp(h + y, 0, H);
 	x = clamp(x, L, R);
 	y = clamp(y, T, B);
+	w = clamp(w + x, 0, W) - x;
+	h = clamp(h + y, 0, H);
 
-	if (w <= x || h <= y) {
+	if (w <= 0 || h <= y) {
 		return;
 	}
-
-	w -= x;
 
 	h *= W;
 	y *= W;
