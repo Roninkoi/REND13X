@@ -11,11 +11,13 @@ char vmode = 0;
 int wireframe = 0;
 int faceculling = 1;
 int zsort = 1;
+int clearscr = 1;
+int clearcol = 0;
 
 void r_waitRetrace()
 {
-	while (inportb(0x3da) & 8); // wait around
-	while (!(inportb(0x3da) & 8));
+	TRACESTART; // wait around
+	TRACEEND;
 }
 
 void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)

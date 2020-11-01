@@ -6,7 +6,7 @@ BYTE r_n = 0;
 
 mat4 rm;
 
-int drawcount = 0;
+unsigned drawcount = 0;
 
 void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 {

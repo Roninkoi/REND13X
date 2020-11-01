@@ -46,6 +46,9 @@ typedef unsigned char BYTE;
 
 #define PI 3.1415926
 
+#define TRACESTART while (inportb(0x3da) & 8)
+#define TRACEEND while (!(inportb(0x3da) & 8))
+
 extern unsigned vstart;
 
 extern int redraw;
@@ -54,6 +57,8 @@ extern char vmode;
 extern int wireframe;
 extern int faceculling;
 extern int zsort;
+extern int clearscr;
+extern int clearcol;
 
 extern BYTE pg;
 
@@ -73,7 +78,7 @@ extern BYTE r_s[256]; // sorted
 
 extern BYTE r_n;
 
-extern int drawcount;
+extern unsigned drawcount;
 
 // render matrix
 extern mat4 rm;

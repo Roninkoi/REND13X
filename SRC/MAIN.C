@@ -1,5 +1,7 @@
 #include "SRC\RENDER.H"
 
+#define RANDF ((rand() % 10000) / 10000.0f)
+
 BYTE keycode = 0;
 BYTE keycodeBuffer[256];
 BYTE keycodeTail = 0;
@@ -144,6 +146,37 @@ void getInput()
 				break;
 		}
 	}
+}
+
+int tricount = 0;
+
+void tridemo(long t)
+{
+	float vt[3][2];
+						 /*
+	vt[0][0] = rand();
+	vt[0][1] = rand();
+
+	vt[1][0] = rand();
+	vt[1][1] = rand();
+
+	vt[2][0] = rand();
+	vt[2][1] = rand();*/
+
+	vt[0][0] = RANDF * 2.0f - 1.0f;
+	vt[0][1] = RANDF * 2.0f - 1.0f;
+
+	vt[1][0] = RANDF * 2.0f - 1.0f;
+	vt[1][1] = RANDF * 2.0f - 1.0f;
+
+	vt[2][0] = RANDF * 2.0f - 1.0f;
+	vt[2][1] = RANDF * 2.0f - 1.0f;
+
+	r_drawtri(&vt, (BYTE) (RANDF * 256.0f));
+
+	++tricount;
+
+	drawcount = tricount;
 }
 
 void demo(long t)
@@ -348,15 +381,18 @@ int main()
 	// initialize renderer, hook up keyboard
 	init();
 
+	clearscr = 1;
+	clearcol = 3;
+
 	while (running) {
 		++t;
 		++frames;
 
 		r_waitRetrace();
-		//r_flip();
-		//r_clear(3);
-		r_scr(3);
-		//r_vfill(100, 100, 2);
+
+		if (clearscr) {
+			r_scr(clearcol);
+		}
 
 		rs -= itime;
 
@@ -381,6 +417,8 @@ int main()
 
 		r_draw();
 
+		//tridemo(t);
+
 		rs += itime;
 
 		nt = itime;
@@ -393,7 +431,7 @@ int main()
 			dt = 60.0f/((float)fps);
 		}
 
-		printf("fps: %u, key: %i, rt: %.1f, dc: %i  \r",
+		printf("fps: %u, key: %i, rt: %.1f, dc: %u  \r",
 				 fps, keycode, rt, drawcount);
 
 		getInput();

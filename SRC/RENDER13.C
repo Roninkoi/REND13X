@@ -247,7 +247,6 @@ void r_halftrifill(float x0, float x1, int y,
 			sub cx, di
 			add di, ax // calculate address
 
-			xor ax, ax
 			mov al, c // color
 
 			rep stosb
@@ -310,7 +309,6 @@ void r_nchalftrifill(float x0, float x1, int y,
 		sub cx, di
 		add di, dx // calculate final addresses
 
-		xor ax, ax
 		mov al, c // color
 
 		rep stosb
