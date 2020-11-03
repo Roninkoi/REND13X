@@ -191,6 +191,6 @@ void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 	t[2][1] = v2->y;
 	t[2][1] /= z2;
 
-	r_drawtri(&t, c);
+	r_drawtri(t, c);
 }
 
