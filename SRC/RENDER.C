@@ -141,7 +141,7 @@ void r_drawtri(float v[3][2], BYTE c)
 	}
 
 	// top
-	r_nchalftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+	r_halftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
@@ -155,7 +155,7 @@ void r_drawtri(float v[3][2], BYTE c)
 	x2 = x2 - k2*(dy2);
 
 	// bottom
-	r_nchalftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+	r_halftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 
 	++drawcount;
 }
@@ -191,6 +191,6 @@ void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 	t[2][1] = v2->y;
 	t[2][1] /= z2;
 
-	r_drawtri(t, c);
+	r_drawtri(&t, c);
 }
 

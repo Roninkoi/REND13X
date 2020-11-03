@@ -172,7 +172,7 @@ void tridemo(long t)
 	vt[2][0] = RANDF * 2.0f - 1.0f;
 	vt[2][1] = RANDF * 2.0f - 1.0f;
 
-	r_drawtri(&vt, (BYTE) (RANDF * 256.0f));
+	r_drawtri(vt, (BYTE) (RANDF * 256.0f));
 
 	++tricount;
 

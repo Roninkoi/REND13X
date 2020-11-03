@@ -245,6 +245,7 @@ void r_halftrifill(float x0, float x1, int y,
 			mov di, xi0
 
 			sub cx, di
+			add cx, 1 // n = x1 - x0 + 1
 			add di, ax // calculate address
 
 			mov al, c // color

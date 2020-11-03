@@ -104,7 +104,6 @@ void r_drawrect(int x, int y, int w, int h, BYTE c);
 
 void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c);
 void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c);
-void r_drawlineh(int x0, int x1, int y, BYTE c);
 
 void r_drawtri(float v[3][2], BYTE c);
 void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c);
