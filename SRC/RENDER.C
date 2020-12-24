@@ -66,6 +66,22 @@ void r_drawtri(float v[3][2], BYTE c)
 	float x2 = (v[2][0]+1.0f)*W*0.5f;
 	float y2 = (-v[2][1]+1.0f)*H*0.5f;
 
+	int x0out = x0 > R || x0 < L;
+	int x1out = x1 > R || x1 < L;
+	int x2out = x2 > R || x2 < L;
+	int y0out = y0 > B || y0 < T;
+	int y1out = y1 > B || y1 < T;
+	int y2out = y2 > B || y2 < T;
+
+	int clipping = x0out || x1out || x2out;
+	clipping = clipping || y0out || y1out || y2out;
+
+	// bounds
+	if (x0out && x1out && x2out)
+		return;
+	if (y0out && y1out && y2out)
+		return;
+
 	// sort vertices by y
 	if (y0 > y2) {
 		to = y0;
@@ -100,16 +116,6 @@ void r_drawtri(float v[3][2], BYTE c)
 	y1 = round(y1);
 	y2 = round(y2);
 
-	// bounds
-	if (x0 > R && x1 > R && x2 > R)
-		return;
-	if (x0 < L && x1 < L && x2 < L)
-		return;
-	if (y0 > B && y1 > B && y2 > B)
-		return;
-	if (y0 < T && y1 < T && y2 < T)
-		return;
-
 	if (wireframe) {
 		r_drawlinef(x0, y0, x1, y1, c);
 		r_drawlinef(x1, y1, x2, y2, c);
@@ -141,7 +147,10 @@ void r_drawtri(float v[3][2], BYTE c)
 	}
 
 	// top
-	r_halftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+	if (clipping)
+		r_halftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+	else
+		r_nchalftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
@@ -155,7 +164,10 @@ void r_drawtri(float v[3][2], BYTE c)
 	x2 = x2 - k2*(dy2);
 
 	// bottom
-	r_halftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+	if (clipping)
+		r_halftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+	else
+		r_nchalftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 
 	++drawcount;
 }

@@ -217,13 +217,13 @@ void demo(long t)
 	mat4 rm0 = rm;
 
 	cn = 3;
-	for (i = 0; i < cn && 0; ++i) {
+	for (i = 0; i < cn && 1; ++i) {
 		rm = rm0;
 		rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
 		rm = translate(&rm, Vec4(sin(t*0.03f/2.0f+3*i/PI)*2.0f,
 			cos(t*0.03f/4.0f+3*i/PI)*2.0f,
-			sin(i/PI*2.0f)*2.0f + 2.5f, 1.0f));
+			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));
 		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t*0.03f/2.0f);
 		rm = rotateX(&rm, t*0.03f);
 
@@ -256,29 +256,39 @@ void demo(long t)
 
 	//r_drawrect(sin(t*0.01f)*150+125, cos(t*0.0231)*80+75, 80, 50, t % 32 + 64);
 
-	if (1) {
-		rm = rm0;
-		rm = scale(&rm, 1.2f);
-		rm = rotateY(&rm, t*0.002);
-		rm = rotateX(&rm, t*0.007f);
 
-		r_add(&cube00, &cube01, &cube02, 48);
-		r_add(&cube00, &cube02, &cube03, 50);
+	if (0) {
+		for (i = 0; i < 2; ++i) {
+			rm = rm0;
+			rm = scale(&rm, 0.5f);
+			rm = translate(&rm, Vec4(0.0f, 0.0f, 9.0f, 0.0f));
+			rm = rotateX(&rm, t*0.05/2.0f);
+			rm = rotateY(&rm, t*0.01/2.0f);
+			rm = translate(&rm, Vec4((float) i * 14.0f - 7.0f, 0.0f, 0.0f, 0.0f));
+			rm = rotateX(&rm, t*0.07f * (1.0f - 2.0f * (float) i));
 
-		r_add(&cube10, &cube12, &cube11, 38);
-		r_add(&cube10, &cube13, &cube12, 40);
+			cube00 = cube02;
+			cube01 = cube03;
 
-		r_add(&cube00, &cube10, &cube11, 45);
-		r_add(&cube00, &cube11, &cube01, 47);
+			cube10 = cube13;
+			//r_add(&cube00, &cube01, &cube02, 47);
+			//r_add(&cube00, &cube02, &cube03, 47);
 
-		r_add(&cube01, &cube11, &cube12, 35);
-		r_add(&cube01, &cube12, &cube02, 37);
+			r_add(&cube10, &cube12, &cube11, 47);
+			r_add(&cube10, &cube13, &cube12, 49);
 
-		r_add(&cube02, &cube12, &cube13, 55);
-		r_add(&cube02, &cube13, &cube03, 57);
+			r_add(&cube00, &cube10, &cube11, 47);
+			r_add(&cube00, &cube11, &cube01, 47);
 
-		r_add(&cube03, &cube13, &cube10, 42);
-		r_add(&cube03, &cube10, &cube00, 44);
+			r_add(&cube01, &cube11, &cube12, 47);
+			r_add(&cube01, &cube12, &cube02, 47);
+
+			r_add(&cube02, &cube12, &cube13, 47);
+			r_add(&cube02, &cube13, &cube03, 47);
+
+			r_add(&cube03, &cube13, &cube10, 47);
+			r_add(&cube03, &cube10, &cube00, 47);
+		}
 	}
 
 	rm = Mat4(1.0f);
