@@ -126,7 +126,10 @@ void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 	dx = vx1 - vx0;
 	dy = vy1 - vy0;
 
-	k = dy/dx;
+	if (dx != 0.0f)
+		k = dy/dx;
+	else
+		k = 1.0f / EPSILON;
 
 	if (fabs(k) <= 1) {
 		s = sign(dx);

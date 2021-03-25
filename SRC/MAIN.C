@@ -153,15 +153,8 @@ int tricount = 0;
 void tridemo(long t)
 {
 	float vt[3][2];
-						 /*
-	vt[0][0] = rand();
-	vt[0][1] = rand();
 
-	vt[1][0] = rand();
-	vt[1][1] = rand();
-
-	vt[2][0] = rand();
-	vt[2][1] = rand();*/
+	clearscr = 0;
 
 	vt[0][0] = RANDF * 2.0f - 1.0f;
 	vt[0][1] = RANDF * 2.0f - 1.0f;
@@ -185,24 +178,6 @@ void demo(long t)
 	float ln;
 	float lf;
 	int cn;
-
-/*	vec4 v0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	vec4 v1 = Vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	vec4 v2 = Vec4(1.0f, 0.0f, 1.0f, 1.0f);
-
-	vec4 u0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	vec4 u2 = Vec4(-1.0f, 0.0f, 1.0f, 1.0f);
-	vec4 u1 = Vec4(0.0f, 0.0f, -1.4f, 1.0f);
-
-	vec4 w0 = Vec4(0.0f, 2.0f, 0.0f, 1.0f);
-	vec4 w1 = Vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	vec4 w2 = Vec4(0.0f, 0.0f, -1.4f, 1.0f);
-
-	vec4 t0 = Vec4(0.0f, 1.0f, 2.0f, 1.0f);
-	vec4 t1 = Vec4(1.0f, 0.0f, 2.0f, 1.0f);
-	vec4 t2 = Vec4(0.0f, 0.0f, 2.0f, 1.0f);
-*/
-	float vt[3][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
 
 	vec4 cube00 = Vec4(-0.5f, -0.5f, -0.5f, 1.0f);
 	vec4 cube01 = Vec4(0.5f, -0.5f, -0.5f, 1.0f);
@@ -252,69 +227,6 @@ void demo(long t)
 
 		r_add(&cube03, &cube13, &cube10, 42);
 		r_add(&cube03, &cube10, &cube00, 44);
-	}
-
-	//r_drawrect(sin(t*0.01f)*150+125, cos(t*0.0231)*80+75, 80, 50, t % 32 + 64);
-
-
-	if (0) {
-		for (i = 0; i < 2; ++i) {
-			rm = rm0;
-			rm = scale(&rm, 0.5f);
-			rm = translate(&rm, Vec4(0.0f, 0.0f, 9.0f, 0.0f));
-			rm = rotateX(&rm, t*0.05/2.0f);
-			rm = rotateY(&rm, t*0.01/2.0f);
-			rm = translate(&rm, Vec4((float) i * 14.0f - 7.0f, 0.0f, 0.0f, 0.0f));
-			rm = rotateX(&rm, t*0.07f * (1.0f - 2.0f * (float) i));
-
-			cube00 = cube02;
-			cube01 = cube03;
-
-			cube10 = cube13;
-			//r_add(&cube00, &cube01, &cube02, 47);
-			//r_add(&cube00, &cube02, &cube03, 47);
-
-			r_add(&cube10, &cube12, &cube11, 47);
-			r_add(&cube10, &cube13, &cube12, 49);
-
-			r_add(&cube00, &cube10, &cube11, 47);
-			r_add(&cube00, &cube11, &cube01, 47);
-
-			r_add(&cube01, &cube11, &cube12, 47);
-			r_add(&cube01, &cube12, &cube02, 47);
-
-			r_add(&cube02, &cube12, &cube13, 47);
-			r_add(&cube02, &cube13, &cube03, 47);
-
-			r_add(&cube03, &cube13, &cube10, 47);
-			r_add(&cube03, &cube10, &cube00, 47);
-		}
-	}
-
-	rm = Mat4(1.0f);
-
-	if (0) {
-	r_addf(
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		44);
-
-	r_addf(
-		-1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		48);
-	}
-
-	ln = 16.0;
-	for (i = 0; i <= ln && 0; ++i) {
-		lf = ((float)i/ln);
-		r_drawlinef(
-					(cos(t*0.05f*lf+(float)i/ln)+1.0f)*W*0.5f,
-					(sin(sin(t*0.0001f)*t*0.05f*lf+lf)+1.0f)*H*0.5f,
-					(cos(t*0.05f*lf+(float)(i*2)/ln)+1.0f)*W*0.5f,
-					(sin(sin(t*0.0001f)*t*0.05f*lf+3.0f*lf)+1.0f)*H*0.5f, i % 16 + 32);
 	}
 }
 

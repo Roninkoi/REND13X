@@ -127,17 +127,26 @@ void r_drawtri(float v[3][2], BYTE c)
 	// first - last
 	dx1 = (x2 - x0);
 	dy1 = (y2 - y0);
-	k0 = (dx1/dy1);
+	if (dy1 != 0.0f)
+		k0 = (dx1/dy1);
+	else
+		k0 = 1.0f / EPSILON;
 
 	// first - mid
 	dx1 = (x1 - x0);
 	dy1 = (y1 - y0);
-	k1 = (dx1/dy1);
+	if (dy1 != 0.0f)
+		k1 = (dx1/dy1);
+	else
+		k1 = 1.0f / EPSILON;
 
 	// mid - last
 	dx2 = (x2 - x1);
 	dy2 = (y2 - y1);
-	k2 = (dx2/dy2);
+	if (dy2 != 0.0f)
+		k2 = (dx2/dy2);
+	else
+		k2 = 1.0f / EPSILON;
 
 	x1 = x0; // sort x
 	to = k0;
