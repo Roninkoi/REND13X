@@ -66,12 +66,13 @@ void r_drawtri(float v[3][2], BYTE c)
 	float x2 = (v[2][0]+1.0f)*W*0.5f;
 	float y2 = (-v[2][1]+1.0f)*H*0.5f;
 
-	int x0out = x0 > R || x0 < L;
-	int x1out = x1 > R || x1 < L;
-	int x2out = x2 > R || x2 < L;
-	int y0out = y0 > B || y0 < T;
-	int y1out = y1 > B || y1 < T;
-	int y2out = y2 > B || y2 < T;
+	int mar = 2; // margin
+	int x0out = x0 > R-mar || x0 < L+mar;
+	int x1out = x1 > R-mar || x1 < L+mar;
+	int x2out = x2 > R-mar || x2 < L+mar;
+	int y0out = y0 > B-mar || y0 < T+mar;
+	int y1out = y1 > B-mar || y1 < T+mar;
+	int y2out = y2 > B-mar || y2 < T+mar;
 
 	int clipping = x0out || x1out || x2out;
 	clipping = clipping || y0out || y1out || y2out;
@@ -129,24 +130,18 @@ void r_drawtri(float v[3][2], BYTE c)
 	dy1 = (y2 - y0);
 	if (dy1 != 0.0f)
 		k0 = (dx1/dy1);
-	else
-		k0 = 1.0f / EPSILON;
 
 	// first - mid
 	dx1 = (x1 - x0);
 	dy1 = (y1 - y0);
 	if (dy1 != 0.0f)
 		k1 = (dx1/dy1);
-	else
-		k1 = 1.0f / EPSILON;
 
 	// mid - last
 	dx2 = (x2 - x1);
 	dy2 = (y2 - y1);
 	if (dy2 != 0.0f)
 		k2 = (dx2/dy2);
-	else
-		k2 = 1.0f / EPSILON;
 
 	x1 = x0; // sort x
 	to = k0;

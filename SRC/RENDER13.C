@@ -129,7 +129,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 	if (dx != 0.0f)
 		k = dy/dx;
 	else
-		k = 1.0f / EPSILON;
+		k = dy;
 
 	if (fabs(k) <= 1) {
 		s = sign(dx);
@@ -286,10 +286,11 @@ void r_nchalftrifill(float x0, float x1, int y,
 		mov es, vstart // video memory start
 
 		mov bx, xi0 // initial points
-#ifdef TERR
-		add bx, TERR
-#endif
 		mov si, xi1
+#ifdef TERR
+		sub bx, TERR/4
+		add si, TERR/4
+#endif
 		mov dx, y
 	}
 	drawt:

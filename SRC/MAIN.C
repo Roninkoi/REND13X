@@ -194,21 +194,21 @@ void demo(long t)
 	cn = 3;
 	for (i = 0; i < cn && 1; ++i) {
 		rm = rm0;
-		rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
+		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
 		rm = translate(&rm, Vec4(sin(t*0.03f/2.0f+3*i/PI)*2.0f,
 			cos(t*0.03f/4.0f+3*i/PI)*2.0f,
 			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));
-		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t*0.03f/2.0f);
-		rm = rotateX(&rm, t*0.03f);
+		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t*0.03f/4.0f);
+		rm = rotateX(&rm, t*0.03f/2.0f);
 
-		cube00.x += sin(t*0.02f+i/cn) * 0.1f;
+/*		cube00.x += sin(t*0.02f+i/cn) * 0.1f;
 		cube10.x -= cos(t*0.06f+i/cn) * 0.1f;
 		cube01.x += sin(t*0.08f+i/cn) * 0.1f;
 		cube11.x -= cos(t*0.02f+i/cn) * 0.1f;
 		cube02.x -= sin(t*0.05f+i/cn) * 0.1f;
 		cube03.x -= sin(t*0.05f+i/cn) * 0.1f;
-		cube13.x += sin(t*0.02f+i/cn) * 0.1f;
+		cube13.x += sin(t*0.02f+i/cn) * 0.1f;*/
 
 		r_add(&cube00, &cube01, &cube02, 48);
 		r_add(&cube00, &cube02, &cube03, 50);
