@@ -5,11 +5,11 @@
 void r_init()
 {
 	asm {
-		mov ah, 0x0f
+		xor ah, ah
 		int 0x10
 		mov vmode, al // get current video mode
 
-		mov ah, 0
+		xor ah, ah
 		mov bh, pg
 		mov al, 0x13 // set 13
 		int 0x10
@@ -23,9 +23,9 @@ void r_init()
 void r_exit()
 {
 	asm {
-		mov ah, 0
-		mov bh, 0
-		mov bx, 0
+		xor ah, ah
+		xor bh, bh
+		xor bx, bx
 		mov al, vmode // return original video mode
 		int 0x10
 	}
@@ -288,8 +288,8 @@ void r_nchalftrifill(float x0, float x1, int y,
 		mov bx, xi0 // initial points
 		mov si, xi1
 #ifdef TERR
-		sub bx, TERR/4
-		add si, TERR/4
+		sub bx, TERR/2
+		add si, TERR/2
 #endif
 		mov dx, y
 	}

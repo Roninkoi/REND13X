@@ -192,7 +192,7 @@ void demo(long t)
 	mat4 rm0 = rm;
 
 	cn = 3;
-	for (i = 0; i < cn && 1; ++i) {
+	for (i = 0; i < cn; ++i) {
 		rm = rm0;
 		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 

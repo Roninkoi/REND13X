@@ -2,7 +2,7 @@ CRENDER DOS software renderer
 =============================
 By Roninkoi 2020
 
-DOS software renderer written in C (mode 13h, 320x200, 256 colors)
+DOS software renderer written in ANSI C (mode 13h, 320x200, 256 colors)
 
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming
