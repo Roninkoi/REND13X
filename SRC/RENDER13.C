@@ -31,7 +31,7 @@ void r_exit()
 	}
 }
 
-void r_drawpixel(int x, int y, BYTE c)
+void r_putpixel(int x, int y, BYTE c)
 {
 	asm {
 		mov ax, vstart
@@ -49,7 +49,7 @@ void r_drawpixel(int x, int y, BYTE c)
 	}
 }
 
-void r_drawrect(int x, int y, int w, int h, BYTE c)
+void r_rectfill(int x, int y, int w, int h, BYTE c)
 {
 	w = clamp(w + x, 0, W);
 	h = clamp(h + y, 0, H);
@@ -176,7 +176,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 }
 
 // horizontal line draw with x sort
-void r_drawlineh(int x0, int x1, int y, BYTE c)
+void r_hlinefill(int x0, int x1, int y, BYTE c)
 {
 	int to;
 	if (x0 > x1) {

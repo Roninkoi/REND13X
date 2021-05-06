@@ -7,6 +7,8 @@ DOS software renderer written in ANSI C (mode 13h, 320x200, 256 colors)
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming
 
+Compiled using Turbo C++ 3.0 (.PRJ included)
+
 ## FEATURES
 
 - "Fast" x86 assembly draw routines for line drawing and triangle fills
