@@ -5,7 +5,7 @@
 void r_init()
 {
 	asm {
-		xor ah, ah
+		mov ah, 0x0f
 		int 0x10
 		mov vmode, al // get current video mode
 
