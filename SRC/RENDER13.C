@@ -31,6 +31,7 @@ void r_exit()
 	}
 }
 
+// put pixel of color c at (x, y)
 void r_putpixel(int x, int y, BYTE c)
 {
 	asm {
@@ -49,6 +50,46 @@ void r_putpixel(int x, int y, BYTE c)
 	}
 }
 
+// fill screen area starting from vstart with color c
+void r_clear(int c)
+{
+	asm {
+		mov es, vstart
+		xor di, di
+		mov cx, W*H
+		mov ax, c
+		rep stosb
+	}
+}
+
+// vertical fill from top y0, height h, color c
+void r_vfill(int y0, int h, int c)
+{
+	y0 *= W;
+	h *= W;
+	asm {
+		mov es, vstart
+		mov di, y0
+		mov cx, h
+		mov ax, c
+		rep stosb
+	}
+}
+
+// clear screen with color c
+void r_scr(BYTE c)
+{
+	asm {
+		mov ah, 0x6
+		xor al, al
+		mov bh, c
+		mov cx, 0x0100
+		mov dx, 0x182a
+		int 10h
+	}
+}
+
+// rectangle fill, left corner (x, y), size (w, h), color c
 void r_rectfill(int x, int y, int w, int h, BYTE c)
 {
 	w = clamp(w + x, 0, W);
@@ -92,89 +133,6 @@ void r_rectfill(int x, int y, int w, int h, BYTE c)
 	}
 }
 
-// line draw, pretty slow, implement in asm
-void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
-{
-	int x;
-	int y;
-	int vx0;
-	int vy0;
-	int vx1;
-	int vy1;
-	float dx;
-	float dy;
-	float k;
-	int i;
-	int s;
-	float kx;
-	float ky;
-	float diff;
-
-	if ((*v0)[1] < (*v1)[1]) {
-		vx0 = (*v0)[0];
-		vy0 = (*v0)[1];
-		vx1 = (*v1)[0];
-		vy1 = (*v1)[1];
-	}
-	else {
-		vx1 = (*v0)[0];
-		vy1 = (*v0)[1];
-		vx0 = (*v1)[0];
-		vy0 = (*v1)[1];
-	}
-
-	dx = vx1 - vx0;
-	dy = vy1 - vy0;
-
-	if (dx != 0.0f)
-		k = dy/dx;
-	else
-		k = dy;
-
-	if (fabs(k) <= 1) {
-		s = sign(dx);
-		ky = k;
-		kx = 1.0f;
-		diff = fabs(dx);
-	}
-	else {
-		s = sign(dy);
-		kx = 1.0f/k;
-		ky = 1.0f;
-		diff = fabs(dy);
-	}
-
-	for (i = 0; i <= diff; i += 1) {
-		x = vx0 + (float)i*s*kx;
-		y = vy0 + (float)i*s*ky;
-
-		if (y > B)
-			return;
-		if (y < T)
-			continue;
-		if (x > R)
-			continue;
-		if (x < L)
-			continue;
-
-		if (x < L)
-			x = L;
-		if (x > R)
-			x = R;
-
-		y *= W;
-		x += y;
-
-		asm {
-			mov ax, vstart
-			mov es, ax
-			mov di, x
-			mov dl, c
-			mov [es:di], dl
-		}
-	}
-}
-
 // horizontal line draw with x sort
 void r_hlinefill(int x0, int x1, int y, BYTE c)
 {
@@ -209,6 +167,7 @@ void r_hlinefill(int x0, int x1, int y, BYTE c)
 	}
 }
 
+// half triangle fill with clipping
 void r_halftrifill(float x0, float x1, int y,
 										int dy, float k0, float k1,
 										BYTE c)
@@ -260,7 +219,7 @@ void r_halftrifill(float x0, float x1, int y,
 
 #define TERR 64 // correction
 /*
-	Asm triangle fill using integers
+	asm triangle fill using integers
 	no clipping, but slightly faster
 */
 void r_nchalftrifill(float x0, float x1, int y,
@@ -321,42 +280,6 @@ void r_nchalftrifill(float x0, float x1, int y,
 		mov ax, ye
 		cmp dx, ax
 		jb drawt // lines left?
-	}
-}
-
-void r_clear(int c)
-{
-	asm {
-		mov es, vstart
-		xor di, di
-		mov cx, W*H
-		mov ax, c
-		rep stosb
-	}
-}
-
-void r_vfill(int y0, int h, int c)
-{
-	y0 *= W;
-	h *= W;
-	asm {
-		mov es, vstart
-		mov di, y0
-		mov cx, h
-		mov ax, c
-		rep stosb
-	}
-}
-
-void r_scr(BYTE c)
-{
-	asm {
-		mov ah, 0x6
-		xor al, al
-		mov bh, c
-		mov cx, 0x0100
-		mov dx, 0x182a
-		int 10h
 	}
 }
 

@@ -14,9 +14,10 @@ int zsort = 1;
 int clearscr = 1;
 int clearcol = 0;
 
+// wait for screen retrace to sync
 void r_waitRetrace()
 {
-	TRACESTART; // wait around
+	TRACESTART;
 	TRACEEND;
 }
 
@@ -32,6 +33,80 @@ void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
 	v1[1] = y1;
 
 	r_drawline(&v0, &v1, c);
+}
+
+// line draw between v0 and v1, color c
+void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
+{
+	int x;
+	int y;
+	int vx0;
+	int vy0;
+	int vx1;
+	int vy1;
+	float dx;
+	float dy;
+	float k;
+	int i;
+	int s;
+	float kx;
+	float ky;
+	float diff;
+
+	if ((*v0)[1] < (*v1)[1]) {
+		vx0 = (*v0)[0];
+		vy0 = (*v0)[1];
+		vx1 = (*v1)[0];
+		vy1 = (*v1)[1];
+	}
+	else {
+		vx1 = (*v0)[0];
+		vy1 = (*v0)[1];
+		vx0 = (*v1)[0];
+		vy0 = (*v1)[1];
+	}
+
+	dx = vx1 - vx0;
+	dy = vy1 - vy0;
+
+	if (dx != 0.0f)
+		k = dy/dx;
+	else
+		k = dy;
+
+	if (fabs(k) <= 1) {
+		s = sign(dx);
+		ky = k;
+		kx = 1.0f;
+		diff = fabs(dx);
+	}
+	else {
+		s = sign(dy);
+		kx = 1.0f/k;
+		ky = 1.0f;
+		diff = fabs(dy);
+	}
+
+	for (i = 0; i <= diff; i += 1) {
+		x = vx0 + (float)i*s*kx;
+		y = vy0 + (float)i*s*ky;
+
+		if (y > B)
+			return;
+		if (y < T)
+			continue;
+		if (x > R)
+			continue;
+		if (x < L)
+			continue;
+
+		if (x < L)
+			x = L;
+		if (x > R)
+			x = R;
+
+		r_putpixel(x, y, c);
+	}
 }
 
 /*

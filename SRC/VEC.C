@@ -384,7 +384,7 @@ mat4 rotateX(mat4* m, float a)
 
 	mat4 rm; // rotation matrix
 
-	rm = rotmatX(a); // construct y rot mat
+	rm = rotmatX(a); // construct x rot mat
 
 	r = m4xm4(m, &rm); // mul
 
