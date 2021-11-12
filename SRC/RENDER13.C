@@ -175,6 +175,31 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 	}
 }
 
+// horizontal line fill two pixels at a time
+void r_hlinefill2(int x0, int x1, int y, byte c)
+{
+	asm {
+		mov es, vstart
+
+		mov dx, y
+		mov ax, W
+		mul dx // y offset
+
+		mov cx, x1
+		mov di, x0
+
+		sub cx, di
+		shr cx, 1 // divide by 2, discard odd
+		add cx, 1 // n = x1 - x0 + 1
+		add di, ax // calculate address
+
+		mov al, c // color
+		mov ah, c
+
+		rep stosw
+	}
+}
+
 #define TRIMAR 64 // correction
 /*
 	asm half triangle fill using integers
