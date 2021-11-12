@@ -15,27 +15,36 @@
 
 #include "SRC\VEC.H"
 
-typedef unsigned char BYTE;
+typedef unsigned char byte;
 
 #define MODE13 1
 #define MODEX 0
 
 // viewport dimensions
 #define W 320
-#define H 200
-#define T 8
-#define B 199
 #define L 0
 #define R 319
 
-#define VSTART 0xa000
+#if MODE13
+#define H 200
+#define T 8
+#define B 199
+#endif
 
+#if MODEX
+#define H 240
+#define T 0
+#define B 239
+#endif
+
+#define VSTART 0xa000
 #define EPSILON 0.0031f
 
 #define ZNEAR 0.2
-
 #define ZFAR 20.0
 
+#define min(x, y) (x > y ? y : x)
+#define max(x, y) (x < y ? y : x)
 #define clamp(x, min, max) (x > max ? max : (x < min ? min : x))
 
 #define sign(x) (x >= 0 ? 1 : -1)
@@ -60,7 +69,8 @@ extern int zsort;
 extern int clearscr;
 extern int clearcol;
 
-extern BYTE pg;
+extern byte pg;
+extern int pgoffs;
 
 struct tri {
 	vec4 v0; // vertices
@@ -69,23 +79,22 @@ struct tri {
 
 	float fc; // face center distance
 
-	BYTE c; // color
+	byte c; // color
 };
 
 extern struct tri r_buffer[256];
 
-extern BYTE r_s[256]; // sorted
-
-extern BYTE r_n;
+extern byte r_s[256]; // sorted
+extern byte r_n;
 
 extern unsigned drawcount;
 
 // render matrix
 extern mat4 rm;
 
-extern BYTE keycode;
-extern BYTE keycodeBuffer[256];
-extern BYTE keycodeTail;
+extern byte keycode;
+extern byte keycodeBuffer[256];
+extern byte keycodeTail;
 
 void interrupt getTime();
 
@@ -93,34 +102,29 @@ unsigned now();
 
 void r_init();
 void r_exit();
-void r_scr(BYTE c);
+void r_scr(byte c);
 void r_flip();
 void r_clear(int c);
 void r_vfill(int y0, int h, int c);
 
-void r_drawpixel(int x, int y, BYTE c);
+void r_drawpixel(int x, int y, byte c);
 
-void r_drawrect(int x, int y, int w, int h, BYTE c);
+void r_drawrect(int x, int y, int w, int h, byte c);
 
-void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c);
-void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c);
+void r_drawline(float (*v0)[2], float (*v1)[2], byte c);
+void r_drawlinef(float x0, float y0, float x1, float y1, byte c);
 
-void r_drawtri(float v[3][2], BYTE c);
-void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c);
-void r_halftrifill(float x0, float x1, int y,
-										int dy, float k0, float k1,
-										BYTE c);
-void r_nchalftrifill(float x0, float x1, int y,
-										int dy, float k0, float k1,
-										BYTE c);
-
+void r_drawtri(float v[3][2], byte c);
+void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, byte c);
+void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c);
+void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c);
 
 // DRAW
 
-void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c);
+void r_add(vec4* v0, vec4* v1, vec4* v2, byte c);
 void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
-			float v2x, float v2y, float v2z, BYTE c);
+			float v2x, float v2y, float v2z, byte c);
 void r_sort();
 void r_draw();
 

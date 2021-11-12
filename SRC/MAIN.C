@@ -2,9 +2,9 @@
 
 #define RANDF ((rand() % 10000) / 10000.0f)
 
-BYTE keycode = 0;
-BYTE keycodeBuffer[256];
-BYTE keycodeTail = 0;
+byte keycode = 0;
+byte keycodeBuffer[256];
+byte keycodeTail = 0;
 
 int running = 1;
 
@@ -165,7 +165,7 @@ void tridemo(long t)
 	vt[2][0] = RANDF * 2.0f - 1.0f;
 	vt[2][1] = RANDF * 2.0f - 1.0f;
 
-	r_drawtri(vt, (BYTE) (RANDF * 256.0f));
+	r_drawtri(vt, (byte) (RANDF * 256.0f));
 
 	++tricount;
 
@@ -338,6 +338,8 @@ int main()
 		r_sort();
 
 		r_draw();
+
+		r_hlinefill(20, 300, 100, 2);
 
 		//tridemo(t);
 

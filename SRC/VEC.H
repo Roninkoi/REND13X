@@ -46,6 +46,8 @@ mat4 rotmatX(float a);
 
 mat4 rotmatY(float a);
 
+mat4 rotmatZ(float a);
+
 mat4 scalemat(float s);
 
 // dot product
@@ -65,6 +67,8 @@ float v4l(vec4 v);
 mat4 rotateX(mat4 *m, float a);
 
 mat4 rotateY(mat4 *m, float a);
+
+mat4 rotateZ(mat4 *m, float a);
 
 mat4 translate(mat4 *m, vec4 v);
 

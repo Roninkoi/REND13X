@@ -2,7 +2,8 @@
 
 unsigned vstart = VSTART;
 
-BYTE pg = 0;
+byte pg = 0;
+int pgoffs = 0;
 
 int redraw = 0;
 int itime = 0;
@@ -21,7 +22,7 @@ void r_waitRetrace()
 	TRACEEND;
 }
 
-void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
+void r_drawlinef(float x0, float y0, float x1, float y1, byte c)
 {
 	float v0[2];
 	float v1[2];
@@ -36,7 +37,7 @@ void r_drawlinef(float x0, float y0, float x1, float y1, BYTE c)
 }
 
 // line draw between v0 and v1, color c
-void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
+void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
 {
 	int x;
 	int y;
@@ -109,12 +110,43 @@ void r_drawline(float (*v0)[2], float (*v1)[2], BYTE c)
 	}
 }
 
+// half triangle fill with clipping
+void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c)
+{
+	int i, xi0, xi1;
+
+	for (i = 0; i < dy; ++i) {
+		x0 += k0;
+		x1 += k1;
+		y += 1;
+
+		if (y > B)
+			return;
+		if (y < T)
+			continue;
+		if (x0 > R)
+			continue;
+		if (x1 < L)
+			continue;
+
+		xi0 = round(x0);
+		xi1 = round(x1);
+
+		if (x0 < L)
+			xi0 = L;
+		if (x1 > R)
+			xi1 = R;
+
+		r_hlinefill(xi0, xi1, y, c);
+	}
+}
+
 /*
  * triangle draw coordinate system
  * same as opengl with origin [0.0f, 0.0f]
  * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
 */
-void r_drawtri(float v[3][2], BYTE c)
+void r_drawtri(float v[3][2], byte c)
 {
 	float to;
 	int xl0;
@@ -227,9 +259,9 @@ void r_drawtri(float v[3][2], BYTE c)
 
 	// top
 	if (clipping)
-		r_halftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+		r_trifillclip(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 	else
-		r_nchalftrifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
+		r_trifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
 
 	k0 = to;
 	if (k0 < k2) {
@@ -244,15 +276,15 @@ void r_drawtri(float v[3][2], BYTE c)
 
 	// bottom
 	if (clipping)
-		r_halftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+		r_trifillclip(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 	else
-		r_nchalftrifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+		r_trifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
 
 	++drawcount;
 }
 
 
-void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, BYTE c)
+void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
 {
 	float t[3][2];
 

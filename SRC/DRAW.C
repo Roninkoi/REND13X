@@ -1,14 +1,14 @@
 #include "SRC\RENDER.H"
 
 struct tri r_buffer[256];
-BYTE r_s[256];
-BYTE r_n = 0;
+byte r_s[256];
+byte r_n = 0;
 
 mat4 rm;
 
 unsigned drawcount = 0;
 
-void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
+void r_add(vec4* v0, vec4* v1, vec4* v2, byte c)
 {
 	struct tri t;
 	vec4 fc;
@@ -38,7 +38,7 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, BYTE c)
 
 void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
-			float v2x, float v2y, float v2z, BYTE c)
+			float v2x, float v2y, float v2z, byte c)
 {
 	vec4 v0 = Vec4(v0x, v0y, v0z, 1.0f);
 	vec4 v1 = Vec4(v1x, v1y, v1z, 1.0f);

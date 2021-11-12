@@ -10,12 +10,11 @@ void r_init()
 		mov vmode, al // get current video mode
 
 		xor ah, ah
-		mov bh, pg
-		mov al, 0x13 // set 13
+		mov al, 0x13 // set mode 13h
 		int 0x10
 
 		mov ah, 0x48
-		mov bx, 0x10 // 64k
+		mov bx, 0x10 // allocate 64k
 		int 0x21
 	}
 }
@@ -32,7 +31,7 @@ void r_exit()
 }
 
 // put pixel of color c at (x, y)
-void r_putpixel(int x, int y, BYTE c)
+void r_putpixel(int x, int y, byte c)
 {
 	asm {
 		mov ax, vstart
@@ -40,7 +39,7 @@ void r_putpixel(int x, int y, BYTE c)
 
 		mov dx, y
 		mov ax, W
-		imul dx
+		mul dx
 		add ax, x
 
 		mov di, ax
@@ -77,7 +76,7 @@ void r_vfill(int y0, int h, int c)
 }
 
 // clear screen with color c
-void r_scr(BYTE c)
+void r_scr(byte c)
 {
 	asm {
 		mov ah, 0x6
@@ -90,7 +89,7 @@ void r_scr(BYTE c)
 }
 
 // rectangle fill, left corner (x, y), size (w, h), color c
-void r_rectfill(int x, int y, int w, int h, BYTE c)
+void r_rectfill(int x, int y, int w, int h, byte c)
 {
 	w = clamp(w + x, 0, W);
 	h = clamp(h + y, 0, H);
@@ -133,98 +132,55 @@ void r_rectfill(int x, int y, int w, int h, BYTE c)
 	}
 }
 
-// horizontal line draw with x sort
-void r_hlinefill(int x0, int x1, int y, BYTE c)
+#define HLINESORT 0
+#define HLINECLIP 0
+// horizontal line draw with optional x sort and clipping
+void r_hlinefill(int x0, int x1, int y, byte c)
 {
+#if HLINESORT
 	int to;
 	if (x0 > x1) {
 		to = x0;
 		x0 = x1;
 		x1 = to;
 	}
+#endif
+
+#if HLINECLIP
+	if (x0 > R || x1 < L || y > B || y < T)
+		return;
+	if (x0 < L)
+		x0 = L;
+	if (x1 > R)
+		x1 = R;
+#endif
 
 	asm {
-		mov ax, vstart
-		mov es, ax
+		mov es, vstart
 
 		mov dx, y
 		mov ax, W
-		imul dx
+		mul dx // y offset
 
-		mov bx, x1
+		mov cx, x1
 		mov di, x0
-		add bx, ax
-		add di, ax
 
-		mov dl, c
-	}
-	draw:
-	asm {
-		mov [es:di], dl
-		inc di
-		cmp di, bx
-		jb draw
+		sub cx, di
+		add cx, 1 // n = x1 - x0 + 1
+		add di, ax // calculate address
+
+		mov al, c // color
+
+		rep stosb
 	}
 }
 
-// half triangle fill with clipping
-void r_halftrifill(float x0, float x1, int y,
-										int dy, float k0, float k1,
-										BYTE c)
-{
-	int i, xi0, xi1;
-
-	for (i = 0; i < dy; ++i) {
-		x0 += k0;
-		x1 += k1;
-		y += 1;
-
-		if (y > B)
-			return;
-		if (y < T)
-			continue;
-		if (x0 > R)
-			continue;
-		if (x1 < L)
-			continue;
-
-		xi0 = round(x0);
-		xi1 = round(x1);
-
-		if (x0 < L)
-			xi0 = L;
-		if (x1 > R)
-			xi1 = R;
-
-		asm {
-			mov es, vstart
-
-			mov dx, y
-			mov ax, W
-			imul dx // y offset
-
-			mov cx, xi1
-			mov di, xi0
-
-			sub cx, di
-			add cx, 1 // n = x1 - x0 + 1
-			add di, ax // calculate address
-
-			mov al, c // color
-
-			rep stosb
-		}
-	}
-}
-
-#define TERR 64 // correction
+#define TRIMAR 64 // correction
 /*
-	asm triangle fill using integers
+	asm half triangle fill using integers
 	no clipping, but slightly faster
 */
-void r_nchalftrifill(float x0, float x1, int y,
-										int dy, float k0, float k1,
-										BYTE c)
+void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 {
 	unsigned xi0, xi1, ki0, ki1, ye;
 
@@ -246,9 +202,9 @@ void r_nchalftrifill(float x0, float x1, int y,
 
 		mov bx, xi0 // initial points
 		mov si, xi1
-#ifdef TERR
-		sub bx, TERR/2
-		add si, TERR/2
+#ifdef TRIMAR
+		sub bx, TRIMAR/2
+		add si, TRIMAR/2
 #endif
 		mov dx, y
 	}
@@ -259,14 +215,14 @@ void r_nchalftrifill(float x0, float x1, int y,
 		add dx, W // y += 1
 
 		mov di, bx
-#ifdef TERR
-		sub di, TERR // correction
+#ifdef TRIMAR
+		sub di, TRIMAR // correction
 #endif
 		shr di, 7 // divide by 128
 
 		mov cx, si
-#ifdef TERR
-		add cx, TERR
+#ifdef TRIMAR
+		add cx, TRIMAR
 #endif
 		shr cx, 7
 

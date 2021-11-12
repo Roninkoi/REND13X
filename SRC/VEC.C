@@ -105,33 +105,6 @@ mat4 projmat(float fov, float ar, float fr, float nr)
 	return m;
 }
 
-mat4 rotmatY(float a)
-{
-	mat4 m;
-
-	m.m[0][0] = cos(a);
-	m.m[0][1] = 0.0f;
-	m.m[0][2] = sin(a);
-	m.m[0][3] = 0.0f;
-
-	m.m[1][0] = 0.0f;
-	m.m[1][1] = 1.0f;
-	m.m[1][2] = 0.0f;
-	m.m[1][3] = 0.0f;
-
-	m.m[2][0] = -sin(a);
-	m.m[2][1] = 0.0f;
-	m.m[2][2] = cos(a);
-	m.m[2][3] = 0.0f;
-
-	m.m[3][0] = 0.0f;
-	m.m[3][1] = 0.0f;
-	m.m[3][2] = 0.0f;
-	m.m[3][3] = 1.0f; // should this be 1 or 0
-
-	return m;
-}
-
 mat4 rotmatX(float a)
 {
 	mat4 m;
@@ -155,6 +128,60 @@ mat4 rotmatX(float a)
 	m.m[3][1] = 0.0f;
 	m.m[3][2] = 0.0f;
 	m.m[3][3] = 1.0f; // should this be 1 or 0
+
+	return m;
+}
+
+mat4 rotmatY(float a)
+{
+	mat4 m;
+
+	m.m[0][0] = cos(a);
+	m.m[0][1] = 0.0f;
+	m.m[0][2] = sin(a);
+	m.m[0][3] = 0.0f;
+
+	m.m[1][0] = 0.0f;
+	m.m[1][1] = 1.0f;
+	m.m[1][2] = 0.0f;
+	m.m[1][3] = 0.0f;
+
+	m.m[2][0] = -sin(a);
+	m.m[2][1] = 0.0f;
+	m.m[2][2] = cos(a);
+	m.m[2][3] = 0.0f;
+
+	m.m[3][0] = 0.0f;
+	m.m[3][1] = 0.0f;
+	m.m[3][2] = 0.0f;
+	m.m[3][3] = 1.0f;
+
+	return m;
+}
+
+mat4 rotmatZ(float a)
+{
+	mat4 m;
+
+	m.m[0][0] = cos(a);
+	m.m[0][1] = -sin(a);
+	m.m[0][2] = 0.0f;
+	m.m[0][3] = 0.0f;
+
+	m.m[1][0] = sin(a);
+	m.m[1][1] = cos(a);
+	m.m[1][2] = 0.0f;
+	m.m[1][3] = 0.0f;
+
+	m.m[2][0] = 0.0f;
+	m.m[2][1] = 0.0f;
+	m.m[2][2] = 0.0f;
+	m.m[2][3] = 0.0f;
+
+	m.m[3][0] = 0.0f;
+	m.m[3][1] = 0.0f;
+	m.m[3][2] = 0.0f;
+	m.m[3][3] = 1.0f;
 
 	return m;
 }
@@ -365,6 +392,19 @@ mat4 m4xm4(mat4* m0, mat4* m1)
 	return r;
 }
 
+mat4 rotateX(mat4* m, float a)
+{
+	mat4 r;
+
+	mat4 rm; // rotation matrix
+
+	rm = rotmatX(a); // construct x rot mat
+
+	r = m4xm4(m, &rm); // mul
+
+	return r;
+}
+
 mat4 rotateY(mat4* m, float a)
 {
 	mat4 r;
@@ -378,13 +418,13 @@ mat4 rotateY(mat4* m, float a)
 	return r;
 }
 
-mat4 rotateX(mat4* m, float a)
+mat4 rotateZ(mat4* m, float a)
 {
 	mat4 r;
 
 	mat4 rm; // rotation matrix
 
-	rm = rotmatX(a); // construct x rot mat
+	rm = rotmatZ(a); // construct z rot mat
 
 	r = m4xm4(m, &rm); // mul
 
