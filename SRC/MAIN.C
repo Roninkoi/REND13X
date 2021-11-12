@@ -339,8 +339,6 @@ int main()
 
 		r_draw();
 
-		r_hlinefill(20, 300, 100, 2);
-
 		//tridemo(t);
 
 		rs += itime;
