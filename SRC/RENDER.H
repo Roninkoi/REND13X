@@ -17,8 +17,8 @@
 
 typedef unsigned char byte;
 
-#define MODE13 0
-#define MODEX 1
+#define MODE13 1
+#define MODEX 0
 
 // viewport dimensions
 #define W 320
