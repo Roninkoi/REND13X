@@ -282,7 +282,7 @@ int main()
 	running = 1;
 	lt = 0;
 
-	frames = 70;
+	frames = 0;
 	fps = 70;
 
 	posx = 0.0f;
@@ -292,9 +292,12 @@ int main()
 	roty = 0.0f;
 	rotx = 0.0f;
 
+	walk_spd = 5.6f;
+	rot_spd = 1.4f;
+
 	key = 0;
 
-	dt = 19.0f;
+	dt = 1.0f/(float) fps;
 	rt = 1.0f;
 	rs = 0;
 
@@ -330,7 +333,7 @@ int main()
 
 		rm = m4xm4(&pm, &cm);
 
-		demo(t*0.001f);
+		demo(t*3.0f);
 
 		wireframe = 0;
 		faceculling = 1;
@@ -347,7 +350,7 @@ int main()
 		if (itime - lt >= SECOND) { // runs every second
 			rt = (((float)rs*TOSECOND)/(float)frames)*1000.0f*0.25f + rt*0.75f;
 			rs = 0;
-			dt = (float) min(itime - lt, 2.0f*SECOND);
+			dt = min((float) (itime - lt), 2.0f*SECOND) * TOSECOND / (float) frames;
 			lt = itime;
 			fps = frames;
 			frames = 0;
@@ -356,13 +359,10 @@ int main()
 		//r_flip();
 		r_waitRetrace();
 
-		printf("fps: %u, key: %i, rt: %.1f, dc: %u  \r",
+		printf("fps: %u, key: %i, rt: %.1f, dc: %u\r",
 				 fps, keycode, rt, drawcount);
 
 		getInput();
-
-		walk_spd = 0.008f;
-		rot_spd = 0.002f;
 
 		// game input
 		if (keydown[wDownCode]) {
@@ -394,10 +394,10 @@ int main()
 			rotx -= rot_spd*dt;
 		}
 		if (keydown[rDownCode]) {
-			posy += rot_spd*dt;
+			posy += walk_spd*dt;
 		}
 		if (keydown[fDownCode]) {
-			posy -= rot_spd*dt;
+			posy -= walk_spd*dt;
 		}
 	}
 
