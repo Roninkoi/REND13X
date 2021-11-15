@@ -310,9 +310,6 @@ int main()
 		++t;
 		++frames;
 
-		r_waitRetrace();
-		//r_flip();
-
 		if (clearscr) {
 			r_scr(clearcol);
 			//r_clear(clearcol);
@@ -354,6 +351,9 @@ int main()
 			frames = 0;
 			dt = 60.0f/((float)fps);
 		}
+
+		//r_flip();
+		r_waitRetrace();
 
 		printf("fps: %u, key: %i, rt: %.1f, dc: %u  \r",
 				 fps, keycode, rt, drawcount);

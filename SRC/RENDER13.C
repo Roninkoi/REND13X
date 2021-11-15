@@ -78,7 +78,7 @@ void r_vfill(int y0, int h, byte c)
 	}
 }
 
-// clear screen with color c
+// clear screen with color c by int 10h, slightly faster than fill
 void r_scr(byte c)
 {
 	asm {
@@ -88,7 +88,7 @@ void r_scr(byte c)
 		mov bh, c
 		mov cx, 0x0100
 		mov dx, 0x182a
-		int 10h
+		int 0x10
 	}
 }
 
