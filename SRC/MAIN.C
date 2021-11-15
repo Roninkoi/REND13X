@@ -359,7 +359,7 @@ int main()
 		//r_flip();
 		r_waitRetrace();
 
-		printf("fps: %u, key: %i, rt: %.1f, dc: %u\r",
+		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
 				 fps, keycode, rt, drawcount);
 
 		getInput();
