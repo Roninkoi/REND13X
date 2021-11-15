@@ -39,10 +39,10 @@ void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
 {
 	int x;
 	int y;
-	int vx0;
-	int vy0;
-	int vx1;
-	int vy1;
+	float vx0;
+	float vy0;
+	float vx1;
+	float vy1;
 	float dx;
 	float dy;
 	float k;
@@ -50,7 +50,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
 	int s;
 	float kx;
 	float ky;
-	float diff;
+	int diff;
 
 	if ((*v0)[1] < (*v1)[1]) {
 		vx0 = (*v0)[0];
@@ -75,20 +75,20 @@ void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
 
 	if (fabs(k) <= 1) {
 		s = sign(dx);
-		ky = k;
-		kx = 1.0f;
-		diff = fabs(dx);
+		ky = s*k;
+		kx = s;
+		diff = (int) (fabs(dx));
 	}
 	else {
 		s = sign(dy);
-		kx = 1.0f/k;
-		ky = 1.0f;
-		diff = fabs(dy);
+		kx = s/k;
+		ky = s;
+		diff = (int) (fabs(dy));
 	}
 
 	for (i = 0; i <= diff; i += 1) {
-		x = vx0 + (float)i*s*kx;
-		y = vy0 + (float)i*s*ky;
+		x = (int) round(vx0 + (float)i*kx);
+		y = (int) round(vy0 + (float)i*ky);
 
 		if (y > B)
 			return;
