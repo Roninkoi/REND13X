@@ -1,5 +1,6 @@
 #include "SRC\RENDER.H"
 
+// random float in range [0, 1]
 #define RANDF ((rand() % 10000) / 10000.0f)
 
 byte keycode = 0;
@@ -15,10 +16,13 @@ void interrupt (*oldkb) ();
 
 void interrupt (*oldtime) ();
 
+#define SECOND 18.206
+// convert itime 1/(18.206 s) to second
+#define TOSECOND 0.054927f
+
 void interrupt getTime()
 {
 	itime += 1;
-	redraw = 1;
 }
 
 unsigned now() {
@@ -150,7 +154,7 @@ void getInput()
 
 int tricount = 0;
 
-void tridemo(long t)
+void tridemo()
 {
 	float vt[3][2];
 
@@ -172,7 +176,7 @@ void tridemo(long t)
 	drawcount = tricount;
 }
 
-void demo(long t)
+void demo(float t)
 {
 	int i;
 	float ln;
@@ -196,11 +200,11 @@ void demo(long t)
 		rm = rm0;
 		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
-		rm = translate(&rm, Vec4(sin(t*0.03f/2.0f+3*i/PI)*2.0f,
-			cos(t*0.03f/4.0f+3*i/PI)*2.0f,
+		rm = translate(&rm, Vec4(sin(t/2.0f+3*i/PI)*2.0f,
+			cos(t/4.0f+3*i/PI)*2.0f,
 			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));
-		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t*0.03f/4.0f);
-		rm = rotateX(&rm, t*0.03f/2.0f);
+		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t/4.0f);
+		rm = rotateX(&rm, t/2.0f);
 
 /*		cube00.x += sin(t*0.02f+i/cn) * 0.1f;
 		cube10.x -= cos(t*0.06f+i/cn) * 0.1f;
@@ -247,9 +251,8 @@ int main()
 {
 	unsigned i;
 
-	long t;
+	float t;
 	unsigned lt;
-	unsigned nt;
 
 	unsigned frames;
 	unsigned fps;
@@ -265,7 +268,7 @@ int main()
 	float rt;
 	int rs;
 
-	float walk_spd;
+	float walk_spd, rot_spd;
 
 	// projection matrix
 	mat4 pm = projmat(PI*0.5f, W/H, 100.0f, 0.1f);
@@ -275,13 +278,12 @@ int main()
 	// camera position
 	vec4 cam;
 
-	t = 0;
+	t = 0.0f;
 	running = 1;
 	lt = 0;
-	nt = 0;
 
-	frames = 1000;
-	fps = 1000;
+	frames = 70;
+	fps = 70;
 
 	posx = 0.0f;
 	posy = 0.0f;
@@ -292,7 +294,7 @@ int main()
 
 	key = 0;
 
-	dt = 1.0f;
+	dt = 19.0f;
 	rt = 1.0f;
 	rs = 0;
 
@@ -307,8 +309,8 @@ int main()
 	clearcol = 3;
 
 	while (running) {
-		++t;
 		++frames;
+		t += dt;
 
 		if (clearscr) {
 			r_scr(clearcol);
@@ -328,7 +330,7 @@ int main()
 
 		rm = m4xm4(&pm, &cm);
 
-		demo(t);
+		demo(t*0.001f);
 
 		wireframe = 0;
 		faceculling = 1;
@@ -338,18 +340,17 @@ int main()
 
 		r_draw();
 
-		//tridemo(t);
+		//tridemo();
 
 		rs += itime;
 
-		nt = itime;
-		if (nt - lt >= 16) { // runs every second
-			rt = ((rs/16.0f)/(float)frames)*1000.0f*0.25f + rt*0.75f;
+		if (itime - lt >= SECOND) { // runs every second
+			rt = (((float)rs*TOSECOND)/(float)frames)*1000.0f*0.25f + rt*0.75f;
 			rs = 0;
-			lt = nt;
+			dt = (float) min(itime - lt, 2.0f*SECOND);
+			lt = itime;
 			fps = frames;
 			frames = 0;
-			dt = 60.0f/((float)fps);
 		}
 
 		//r_flip();
@@ -360,7 +361,8 @@ int main()
 
 		getInput();
 
-		walk_spd = 0.04f;
+		walk_spd = 0.008f;
+		rot_spd = 0.002f;
 
 		// game input
 		if (keydown[wDownCode]) {
@@ -380,22 +382,22 @@ int main()
 			posz += sin(roty)*walk_spd*dt;
 		}
 		if (keydown[rightDownCode]) {
-			roty -= 0.02f*dt;
+			roty -= rot_spd*dt;
 		}
 		if (keydown[leftDownCode]) {
-			roty += 0.02f*dt;
+			roty += rot_spd*dt;
 		}
 		if (keydown[upDownCode]) {
-			rotx += 0.02f*dt;
+			rotx += rot_spd*dt;
 		}
 		if (keydown[downDownCode]) {
-			rotx -= 0.02f*dt;
+			rotx -= rot_spd*dt;
 		}
 		if (keydown[rDownCode]) {
-			posy += 0.04f*dt;
+			posy += rot_spd*dt;
 		}
 		if (keydown[fDownCode]) {
-			posy -= 0.04f*dt;
+			posy -= rot_spd*dt;
 		}
 	}
 

@@ -3,9 +3,7 @@
 unsigned vstart = VSTART;
 
 byte pg = 0;
-int pgoffs = 0;
 
-int redraw = 0;
 int itime = 0;
 char vmode = 0;
 

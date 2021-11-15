@@ -136,11 +136,11 @@ void r_flip()
 
 	if (pg > 0) {
 		pg = 0;
-		pgoffs = W*H/4*1;
+		vstart = VSTART + W*H/4*0;
 	}
 	else {
 		pg = 1;
-		pgoffs = W*H/4*1;
+		vstart = VSTART + W*H/4*1;
 	}
 }
 

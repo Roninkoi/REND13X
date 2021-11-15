@@ -21,20 +21,20 @@ typedef unsigned char byte;
 #define MODEX 0
 
 // viewport dimensions
-#define W 320
 #define L 0
 #define R 319
+#define W 320
 
 #if MODE13
-#define H 200
 #define T 8
 #define B 199
+#define H 200
 #endif
 
 #if MODEX
-#define H 240
 #define T 0
 #define B 239
+#define H 240
 #endif
 
 #define VSTART 0xa000
@@ -60,17 +60,15 @@ typedef unsigned char byte;
 
 extern unsigned vstart;
 
-extern int redraw;
-extern int itime;
-extern char vmode;
-extern int wireframe;
-extern int faceculling;
-extern int zsort;
-extern int clearscr;
-extern int clearcol;
+extern int itime;  // system time from int 0x1c (18.206/s)
+extern char vmode; // previous video mode
+extern int wireframe; // draw wireframe triangles?
+extern int faceculling; // cull back faces?
+extern int zsort;  // sort triangles by z?
+extern int clearscr; // screen clearing enabled
+extern int clearcol; // screen clear color
 
-extern byte pg;
-extern int pgoffs;
+extern byte pg; // page
 
 struct tri {
 	vec4 v0; // vertices
