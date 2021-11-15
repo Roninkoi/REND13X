@@ -1,6 +1,6 @@
 #include "SRC\RENDER.H"
 
-#if MODEX
+#ifdef MODEX
 
 #define SCI 0x03c4
 #define SCD 0x03c5
@@ -76,8 +76,7 @@ void r_clear(byte c)
 		mov ax, 0x0f02 // all planes
 		out dx, ax
 
-		mov ax, VSTART
-		add ax, pgoffs
+		mov ax, vstart
 		mov es, ax
 		xor di, di
 		mov ah, c
@@ -108,8 +107,7 @@ void r_putpixel(int x, int y, byte c)
 		mov bx, x
 		shr bx, 2
 		add bx, ax
-		add bx, pgoffs
-		mov ax, VSTART
+		mov ax, vstart
 		mov es, ax
 
 		mov cx, x
@@ -129,6 +127,7 @@ void r_putpixel(int x, int y, byte c)
 
 void r_flip()
 {
+	int pgoffs = vstart - VSTART;
 	TRACESTART;
 	outpw(CRTI, CRTHI | (pgoffs & 0xff00));
 	outpw(CRTI, CRTLO | (pgoffs << 8));

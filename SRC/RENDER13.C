@@ -1,6 +1,6 @@
 #include "SRC\RENDER.H"
 
-#if MODE13
+#ifdef MODE13
 
 void r_init()
 {
@@ -137,12 +137,12 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 	}
 }
 
-#define HLINESORT 0
-#define HLINECLIP 0
+//#define HLINESORT
+//#define HLINECLIP
 // horizontal line draw with optional x sort and clipping
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
-#if HLINESORT
+#ifdef HLINESORT
 	int to;
 	if (x0 > x1) {
 		to = x0;
@@ -151,7 +151,7 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 	}
 #endif
 
-#if HLINECLIP
+#ifdef HLINECLIP
 	if (x0 > R || x1 < L || y > B || y < T)
 		return;
 	if (x0 < L)
