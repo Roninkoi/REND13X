@@ -310,11 +310,11 @@ int main()
 		++t;
 		++frames;
 
-		r_waitRetrace();
+		r_flip();
 
 		if (clearscr) {
-			r_scr(clearcol);
-			//r_clear(clearcol);
+			//r_scr(clearcol);
+			r_clear(clearcol);
 		}
 
 		rs -= itime;
@@ -332,7 +332,7 @@ int main()
 
 		demo(t);
 
-		wireframe = 0;
+		wireframe = 1;
 		faceculling = 1;
 		zsort = 1;
 
@@ -354,8 +354,8 @@ int main()
 			dt = 60.0f/((float)fps);
 		}
 
-		printf("fps: %u, key: %i, rt: %.1f, dc: %u  \r",
-				 fps, keycode, rt, drawcount);
+		//printf("fps: %u, key: %i, rt: %.1f, dc: %u  \r",
+		//		 fps, keycode, rt, drawcount);
 
 		getInput();
 

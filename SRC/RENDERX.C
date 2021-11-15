@@ -82,7 +82,7 @@ void r_clear(byte c)
 		xor di, di
 		mov ah, c
 		mov al, c
-		mov cx, W*H/2
+		mov cx, W*H/8
 		rep stosw
 	}
 }
@@ -129,19 +129,19 @@ void r_putpixel(int x, int y, byte c)
 
 void r_flip()
 {
-	if (pg > 0) {
-		pg = 0;
-		pgoffs = 0;
-	}
-	else {
-		pg = 1;
-		pgoffs = W*H/4;
-	}
-
 	TRACESTART;
 	outpw(CRTI, CRTHI | (pgoffs & 0xff00));
 	outpw(CRTI, CRTLO | (pgoffs << 8));
 	TRACEEND;
+
+	if (pg > 0) {
+		pg = 0;
+		pgoffs = W*H/4*1;
+	}
+	else {
+		pg = 1;
+		pgoffs = W*H/4*1;
+	}
 }
 
 // horizontal line draw with x sort

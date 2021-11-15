@@ -23,7 +23,6 @@ void r_exit()
 {
 	asm {
 		xor ah, ah
-		xor bh, bh
 		xor bx, bx
 		mov al, vmode // return original video mode
 		int 0x10
@@ -44,6 +43,7 @@ void r_putpixel(int x, int y, byte c)
 
 		mov di, ax
 
+		xor dh, dh
 		mov dl, c
 		mov [es:di], dl
 	}
@@ -72,7 +72,7 @@ void r_vfill(int y0, int h, byte c)
 		mov es, vstart
 		mov di, y0
 		mov cx, h
-		xor ax, ax
+		xor ah, ah
 		mov al, c
 		rep stosb
 	}
@@ -82,8 +82,9 @@ void r_vfill(int y0, int h, byte c)
 void r_scr(byte c)
 {
 	asm {
-		mov ah, 0x6
 		xor al, al
+		mov ah, 0x6
+		xor bl, bl
 		mov bh, c
 		mov cx, 0x0100
 		mov dx, 0x182a
@@ -121,6 +122,7 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 		mov bx, W
 		sub bx, cx
 
+		xor ah, ah
 		mov al, c
 	}
 	draw:
@@ -172,6 +174,7 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 		add cx, 1 // n = x1 - x0 + 1
 		add di, ax // calculate address
 
+		xor ah, ah
 		mov al, c // color
 
 		rep stosb
@@ -257,6 +260,7 @@ void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 		sub cx, di
 		add di, dx // calculate final addresses
 
+		xor ah, ah
 		mov al, c // color
 
 		rep stosb
