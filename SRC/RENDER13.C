@@ -50,19 +50,21 @@ void r_putpixel(int x, int y, byte c)
 }
 
 // fill screen area starting from vstart with color c
-void r_clear(int c)
+void r_clear(byte c)
 {
 	asm {
 		mov es, vstart
 		xor di, di
-		mov cx, W*H
-		mov ax, c
-		rep stosb
+		mov cx, W*H/2
+		xor ax, ax
+		mov al, c
+		mov ah, c
+		rep stosw
 	}
 }
 
 // vertical fill from top y0, height h, color c
-void r_vfill(int y0, int h, int c)
+void r_vfill(int y0, int h, byte c)
 {
 	y0 *= W;
 	h *= W;
@@ -70,7 +72,8 @@ void r_vfill(int y0, int h, int c)
 		mov es, vstart
 		mov di, y0
 		mov cx, h
-		mov ax, c
+		xor ax, ax
+		mov al, c
 		rep stosb
 	}
 }

@@ -94,11 +94,7 @@ void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
 
 		if (y > B)
 			return;
-		if (y < T)
-			continue;
-		if (x > R)
-			continue;
-		if (x < L)
+		if (y < T || x > R || x < L)
 			continue;
 
 		if (x < L)

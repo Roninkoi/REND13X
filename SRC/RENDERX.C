@@ -69,7 +69,7 @@ void r_init()
 
 }
 
-void r_clear(BYTE c)
+void r_clear(byte c)
 {
 	asm {
 		mov dx, SCI
@@ -100,7 +100,7 @@ void r_exit()
 
 #define MAP_MASK 0x02
 
-void r_putpixel(int x, int y, BYTE c)
+void r_putpixel(int x, int y, byte c)
 {
 	asm {
 		mov ax, W/4
@@ -129,15 +129,13 @@ void r_putpixel(int x, int y, BYTE c)
 
 void r_flip()
 {
-	pg = 0;
 	if (pg > 0) {
 		pg = 0;
 		pgoffs = 0;
 	}
 	else {
 		pg = 1;
-		pgoffs = W*H/2;
-
+		pgoffs = W*H/4;
 	}
 
 	TRACESTART;
@@ -147,7 +145,11 @@ void r_flip()
 }
 
 // horizontal line draw with x sort
-void r_drawlineh(int x0, int x1, int y, BYTE c)
+void r_hlinefill(int x0, int x1, int y, byte c)
+{
+}
+
+void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 {
 }
 

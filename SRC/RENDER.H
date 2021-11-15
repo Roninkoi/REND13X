@@ -1,4 +1,4 @@
-/*
+	/*
  * DOS Software renderer by Roninkoi 2020
  * Draw routines written in x86 assembly, mode 13h
  * 320x200, 256 colors
@@ -104,12 +104,11 @@ void r_init();
 void r_exit();
 void r_scr(byte c);
 void r_flip();
-void r_clear(int c);
-void r_vfill(int y0, int h, int c);
-
-void r_drawpixel(int x, int y, byte c);
-
-void r_drawrect(int x, int y, int w, int h, byte c);
+void r_clear(byte c);
+void r_vfill(int y0, int h, byte c);
+void r_hlinefill(int x0, int x1, int y, byte c);
+void r_putpixel(int x, int y, byte c);
+void r_rectfill(int x, int y, int w, int h, byte c);
 
 void r_drawline(float (*v0)[2], float (*v1)[2], byte c);
 void r_drawlinef(float x0, float y0, float x1, float y1, byte c);

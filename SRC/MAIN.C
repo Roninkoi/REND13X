@@ -314,6 +314,7 @@ int main()
 
 		if (clearscr) {
 			r_scr(clearcol);
+			//r_clear(clearcol);
 		}
 
 		rs -= itime;
