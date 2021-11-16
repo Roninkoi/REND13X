@@ -29,11 +29,10 @@ void r_exit()
 	}
 }
 
-// put pixel of color c at (x, y)
 void r_putpixel(int x, int y, byte c)
 {
 	asm {
-		mov ax, vstart
+		mov ax, VSTART
 		mov es, ax
 
 		mov dx, y
@@ -49,11 +48,11 @@ void r_putpixel(int x, int y, byte c)
 	}
 }
 
-// fill screen area starting from vstart with color c
-void r_clear(byte c)
+void r_fill(byte c)
 {
 	asm {
-		mov es, vstart
+		mov ax, VSTART
+		mov es, ax
 		xor di, di
 		mov cx, W*H/2
 		xor ax, ax
@@ -63,13 +62,13 @@ void r_clear(byte c)
 	}
 }
 
-// vertical fill from top y0, height h, color c
 void r_vfill(int y0, int h, byte c)
 {
 	y0 *= W;
 	h *= W;
 	asm {
-		mov es, vstart
+		mov ax, VSTART
+		mov es, ax
 		mov di, y0
 		mov cx, h
 		xor ah, ah
@@ -78,7 +77,6 @@ void r_vfill(int y0, int h, byte c)
 	}
 }
 
-// clear screen with color c by int 10h, slightly faster than fill
 void r_scr(byte c)
 {
 	asm {
@@ -92,7 +90,6 @@ void r_scr(byte c)
 	}
 }
 
-// rectangle fill, left corner (x, y), size (w, h), color c
 void r_rectfill(int x, int y, int w, int h, byte c)
 {
 	w = clamp(w + x, 0, W);
@@ -110,7 +107,8 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 	y *= W;
 
 	asm {
-		mov es, vstart
+		mov ax, VSTART
+		mov es, ax
 
 		mov dx, h
 
@@ -139,7 +137,6 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 
 //#define HLINESORT
 //#define HLINECLIP
-// horizontal line draw with optional x sort and clipping
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
 #ifdef HLINESORT
@@ -161,7 +158,8 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 #endif
 
 	asm {
-		mov es, vstart
+		mov ax, VSTART
+		mov es, ax
 
 		mov dx, y
 		mov ax, W
@@ -185,7 +183,8 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 void r_hlinefill2(int x0, int x1, int y, byte c)
 {
 	asm {
-		mov es, vstart
+		mov ax, VSTART
+		mov es, ax
 
 		mov dx, y
 		mov ax, W
@@ -207,10 +206,6 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 }
 
 #define TRIMAR 64 // correction
-/*
-	asm half triangle fill using integers
-	no clipping, but slightly faster
-*/
 void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 {
 	unsigned xi0, xi1, ki0, ki1, ye;
@@ -229,7 +224,8 @@ void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 	ye *= W;
 
 	asm {
-		mov es, vstart // video memory start
+		mov ax, VSTART
+		mov es, ax // video memory start
 
 		mov bx, xi0 // initial points
 		mov si, xi1

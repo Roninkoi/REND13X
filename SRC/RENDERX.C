@@ -65,20 +65,21 @@ void r_init()
 		loop CRTPLOOP
 	}
 
-	r_clear(clearcol);
+	r_fill(clearcol);
 
 }
 
-void r_clear(byte c)
+void r_fill(byte c)
 {
 	asm {
 		mov dx, SCI
 		mov ax, 0x0f02 // all planes
 		out dx, ax
 
-		mov ax, vstart
+		mov ax, VSTART
 		mov es, ax
-		xor di, di
+		//xor di, di
+		mov di, pgoffs
 		mov ah, c
 		mov al, c
 		mov cx, W*H/8
@@ -107,7 +108,9 @@ void r_putpixel(int x, int y, byte c)
 		mov bx, x
 		shr bx, 2
 		add bx, ax
-		mov ax, vstart
+		mov ax, pgoffs
+		add bx, ax
+		mov ax, VSTART
 		mov es, ax
 
 		mov cx, x
@@ -125,25 +128,37 @@ void r_putpixel(int x, int y, byte c)
 #define CRTHI 0x0c
 #define CRTLO 0x0d
 
+int foff = 0;
 void r_flip()
 {
-	int pgoffs = vstart - VSTART;
+	int hi = CRTHI | (pgoffs & 0xff00);
+	int lo = CRTLO | (pgoffs << 8);
+
 	TRACESTART;
-	outpw(CRTI, CRTHI | (pgoffs & 0xff00));
-	outpw(CRTI, CRTLO | (pgoffs << 8));
+
+	asm {
+		cli
+		mov dx, CRTI
+		mov ax, hi
+		out dx, ax
+		mov ax, lo
+		out dx, ax
+		sti
+	}
+
 	TRACEEND;
 
 	if (pg > 0) {
 		pg = 0;
-		vstart = VSTART + W*H/4*0;
+		pgoffs = 0;
 	}
 	else {
 		pg = 1;
-		vstart = VSTART + W*H/4*1;
+		pgoffs = W/4; // has to be done like this
+		pgoffs *= H;
 	}
 }
 
-// horizontal line draw with x sort
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
 }

@@ -316,8 +316,7 @@ int main()
 		t += dt;
 
 		if (clearscr) {
-			r_scr(clearcol);
-			//r_clear(clearcol);
+			r_clear();
 		}
 
 		rs -= itime;
@@ -356,8 +355,7 @@ int main()
 			frames = 0;
 		}
 
-		//r_flip();
-		r_waitRetrace();
+		r_sync();
 
 		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
 				 fps, keycode, rt, drawcount);

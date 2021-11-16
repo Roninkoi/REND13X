@@ -1,8 +1,7 @@
 #include "SRC\RENDER.H"
 
-unsigned vstart = VSTART;
-
 byte pg = 0;
+unsigned pgoffs = 0;
 
 int itime = 0;
 char vmode = 0;

@@ -1,6 +1,6 @@
 #include "SRC\VEC.H"
 
-void matpr(mat4* m)
+void matprint(mat4* m)
 {
 	printf("%.1f %.1f %.1f %.1f \n", m->m[0][0], m->m[0][1], m->m[0][2], m->m[0][3]);
 	printf("%.1f %.1f %.1f %.1f \n", m->m[1][0], m->m[1][1], m->m[1][2], m->m[1][3]);
@@ -8,29 +8,16 @@ void matpr(mat4* m)
 	printf("%.1f %.1f %.1f %.1f \n", m->m[3][0], m->m[3][1], m->m[3][2], m->m[3][3]);
 }
 
-void vecpr(vec4* v)
+void vecprint(vec4* v)
 {
 	printf("%.1f %.1f %.1f %.1f \n", v->x, v->y, v->z, v->w);
 }
 
-vec4 Vec4(float x, float y, float z, float w)
+vec2 Vec2(float x, float y)
 {
-	vec4 v;
+	vec2 v;
 	v.x = x;
 	v.y = y;
-	v.z = z;
-	v.w = w;
-	return v;
-}
-
-// null vector
-vec4 nvec4()
-{
-	vec4 v;
-	v.x = 0.0f;
-	v.y = 0.0f;
-	v.z = 0.0f;
-	v.w = 0.0f;
 	return v;
 }
 
@@ -43,11 +30,23 @@ vec3 Vec3(float x, float y, float z)
 	return v;
 }
 
-vec2 Vec2(float x, float y)
+vec4 Vec4(float x, float y, float z, float w)
 {
-	vec2 v;
+	vec4 v;
 	v.x = x;
 	v.y = y;
+	v.z = z;
+	v.w = w;
+	return v;
+}
+
+vec4 nvec4()
+{
+	vec4 v;
+	v.x = 0.0f;
+	v.y = 0.0f;
+	v.z = 0.0f;
+	v.w = 0.0f;
 	return v;
 }
 
@@ -213,7 +212,6 @@ mat4 scalemat(float s)
 	return m;
 }
 
-// vector addition
 vec4 v4a(vec4 v0, vec4 v1)
 {
 	v0.x += v1.x;
@@ -224,7 +222,6 @@ vec4 v4a(vec4 v0, vec4 v1)
 	return v0;
 }
 
-// vector scaling
 vec4 v4s(vec4 v, float s)
 {
 	v.x *= s;
@@ -255,7 +252,6 @@ mat4 translate(mat4 *m, vec4 v)
 	return r;
 }
 
-// mat4 get row
 vec4 m4gr(mat4 m, int r)
 {
 	vec4 v;
@@ -266,7 +262,6 @@ vec4 m4gr(mat4 m, int r)
 	return v;
 }
 
-// matrix multiplication, mat4 x vec4
 vec4 m4xv4(mat4* m, vec4* v)
 {
 	vec4 r = nvec4();
@@ -444,13 +439,11 @@ mat4 scale(mat4 *m, float s)
 	return r;
 }
 
-// dot product
 float v4dot(vec4* v0, vec4* v1)
 {
 	return v0->x*v1->x + v0->y*v1->y + v0->z*v1->z + v0->w*v1->w;
 }
 
-// cross product
 vec4 v4cross(vec4* v0, vec4* v1)
 {
 	vec4 v;
