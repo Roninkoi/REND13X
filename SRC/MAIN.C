@@ -249,7 +249,7 @@ void demo(float t)
 
 int main()
 {
-	unsigned i;
+	unsigned i, n;
 
 	float t;
 	unsigned lt;
@@ -332,7 +332,7 @@ int main()
 
 		rm = m4xm4(&pm, &cm);
 
-		demo(t*3.0f);
+		demo(t);
 
 		wireframe = 0;
 		faceculling = 1;
@@ -347,9 +347,9 @@ int main()
 		rs += itime;
 
 		if (itime - lt >= SECOND) { // runs every second
-			rt = (float) rs / (float) frames*TOSECOND*1000.0f*0.25f + rt*0.75f;
+			rt = (float) rs / (float) frames * TOSECOND * 1000.0f * 0.25f + rt*0.75f;
 			rs = 0;
-			dt = min((float) (itime - lt), 2.0f*SECOND) * TOSECOND / (float) frames;
+			dt = min((float) (itime - lt), 2.0f * SECOND) * TOSECOND / (float) frames * 0.25f + 0.75f * dt;
 			lt = itime;
 			fps = frames;
 			frames = 0;

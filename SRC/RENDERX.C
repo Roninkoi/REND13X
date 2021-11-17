@@ -69,11 +69,13 @@ void r_init()
 
 }
 
+#define MAP_MASK 0x02
+
 void r_fill(byte c)
 {
 	asm {
 		mov dx, SCI
-		mov ax, 0x0f02 // all planes
+		mov ax, 0x0f00 + MAP_MASK // all planes
 		out dx, ax
 
 		mov ax, VSTART
@@ -97,8 +99,6 @@ void r_exit()
 		int 0x10
 	}
 }
-
-#define MAP_MASK 0x02
 
 void r_putpixel(int x, int y, byte c)
 {
@@ -128,7 +128,6 @@ void r_putpixel(int x, int y, byte c)
 #define CRTHI 0x0c
 #define CRTLO 0x0d
 
-int foff = 0;
 void r_flip()
 {
 	int hi = CRTHI | (pgoffs & 0xff00);
@@ -159,12 +158,106 @@ void r_flip()
 	}
 }
 
+void r_hlinefill2(int x0, int x1, int y, byte c)
+{
+	asm {
+		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov cx, x1
+		shr cx, 2
+		mov di, x0
+		shr di, 2
+
+		inc di // remove ends
+		dec cx
+
+		sub cx, di
+		add cx, 1 // n = x1 - x0 + 1
+		shr cx, 1 // words
+		add di, ax // calculate address
+		mov ax, pgoffs
+		add di, ax
+
+		mov al, c // color
+		mov ah, c
+
+		rep stosw
+	}
+}
+
+void r_plinefill(int x0, int x1, int y, byte c)
+{
+	asm xor bx, bx
+	PLINEFILL:
+	asm {
+		mov cx, x0
+		add cx, bx
+		and cx, 3 // plane of pixel
+		mov ax, 0x0100 + MAP_MASK
+		shl ah, cl
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov di, x0
+		shr di, 2
+
+		add di, ax // calculate address
+		mov ax, pgoffs
+		add di, ax
+
+		xor ax, ax
+		mov al, c // color
+
+		mov [es:di], al
+
+		mov cx, x1
+		sub cx, x0
+		//mov cx, x0
+		//sub cx, 3
+		//neg cx
+		and cx, 3
+		cmp bx, cx
+		inc bx
+		jbe PLINEFILL
+	}
+
+}
+
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
+	// fill left and right edge
+	r_plinefill(x0, min((x0/4)*4 + 3, x1), y, c);
+	r_plinefill(max(x0, (x1/4)*4), x1, y, c);
+
+	if (x1 - x0 < 5) // no center area?
+		return;
+
+	// fill edge area not covered by fill2
+	r_plinefill(max((x1/4-1)*4, x0), (x1/4-1)*4+3, y, c);
+
+	// fill center
+	r_hlinefill2(x0, x1, y, c);
 }
 
 void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 {
+	r_trifillclip(x0, x1, y, dy, k0, k1, c);
 }
 
 #endif

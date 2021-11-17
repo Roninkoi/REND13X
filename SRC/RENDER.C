@@ -89,9 +89,15 @@ void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
 		x = (int) round(vx0 + (float)i*kx);
 		y = (int) round(vy0 + (float)i*ky);
 
-		if (y > B)
+		if (y > B && ky > 0.0f)
 			return;
-		if (y < T || x > R || x < L)
+		if (y < T && ky < 0.0f)
+			return;
+		if (x > R && kx > 0.0f)
+			return;
+		if (x < L && kx < 0.0f)
+			return;
+		if (y < T || y > B || x > R || x < L)
 			continue;
 
 		if (x < L)
