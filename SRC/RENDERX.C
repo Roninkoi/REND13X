@@ -8,7 +8,7 @@
 #define MISCOUT 0x03c2
 
 #define CRTPLEN 10
-const unsigned int CRTPARAM[CRTPLEN] = {
+const unsigned CRTPARAM[CRTPLEN] = {
 		0x00d06, // vert tot
 		0x03e07, // overflow
 		0x04109, // cell height
@@ -58,11 +58,11 @@ void r_init()
 		mov si, offset CRTPARAM
 		mov cx, CRTPLEN
 	}
-	CRTPLOOP:
+	crtp:
 	asm {
 		lodsw
 		out dx, ax
-		loop CRTPLOOP
+		loop crtp
 	}
 
 	r_fill(clearcol);
@@ -194,10 +194,38 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 	}
 }
 
-void r_plinefill(int x0, int x1, int y, byte c)
+void r_planefill(int x, int y, int p, byte c)
+{
+	asm {
+		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov di, x
+		shr di, 2
+
+		add di, ax // calculate address
+		mov ax, pgoffs
+		add di, ax
+
+		xor ax, ax
+		mov al, c // color
+
+		mov [es:di], al
+	}
+}
+
+void r_hlinefill0(int x0, int x1, int y, byte c)
 {
 	asm xor bx, bx
-	PLINEFILL:
+	hlf0:
 	asm {
 		mov cx, x0
 		add cx, bx
@@ -234,7 +262,7 @@ void r_plinefill(int x0, int x1, int y, byte c)
 		and cx, 3
 		cmp bx, cx
 		inc bx
-		jbe PLINEFILL
+		jbe hlf0
 	}
 
 }
@@ -242,14 +270,14 @@ void r_plinefill(int x0, int x1, int y, byte c)
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
 	// fill left and right edge
-	r_plinefill(x0, min((x0/4)*4 + 3, x1), y, c);
-	r_plinefill(max(x0, (x1/4)*4), x1, y, c);
+	r_hlinefill0(x0, min((x0/4)*4 + 3, x1), y, c);
+	r_hlinefill0(max(x0, (x1/4)*4), x1, y, c);
 
 	if (x1 - x0 < 5) // no center area?
 		return;
 
 	// fill edge area not covered by fill2
-	r_plinefill(max((x1/4-1)*4, x0), (x1/4-1)*4+3, y, c);
+	r_hlinefill0(max((x1/4-1)*4, x0), (x1/4-1)*4+3, y, c);
 
 	// fill center
 	r_hlinefill2(x0, x1, y, c);
