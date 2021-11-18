@@ -197,7 +197,10 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 void r_planefill(int x, int y, int p, byte c)
 {
 	asm {
-		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov dx, 0x0100
+		mov ax, p // select planes to draw 0-16
+		mul dx
+		add ax, MAP_MASK
 		mov dx, SCI
 		out dx, ax
 
@@ -222,62 +225,26 @@ void r_planefill(int x, int y, int p, byte c)
 	}
 }
 
-void r_hlinefill0(int x0, int x1, int y, byte c)
-{
-	asm xor bx, bx
-	hlf0:
-	asm {
-		mov cx, x0
-		add cx, bx
-		and cx, 3 // plane of pixel
-		mov ax, 0x0100 + MAP_MASK
-		shl ah, cl
-		mov dx, SCI
-		out dx, ax
-
-		mov ax, VSTART
-		mov es, ax
-
-		mov dx, y
-		mov ax, W/4
-		mul dx // y offset
-
-		mov di, x0
-		shr di, 2
-
-		add di, ax // calculate address
-		mov ax, pgoffs
-		add di, ax
-
-		xor ax, ax
-		mov al, c // color
-
-		mov [es:di], al
-
-		mov cx, x1
-		sub cx, x0
-		//mov cx, x0
-		//sub cx, 3
-		//neg cx
-		and cx, 3
-		cmp bx, cx
-		inc bx
-		jbe hlf0
-	}
-
-}
+// select planes from right x offset
+#define rightp(x) (0x0f>>(x))
+// select planes from left x offset
+#define leftp(x) (0x0f&(0x0f<<(x)))
+// combined left and right offsets
+#define linep(x0, x1) (leftp(x0)&rightp(x1))
+// select planes in coordinates [x0, x1]
+#define linepx(x0, x1) (linep((x0)&3, 3-(x1)&3))
 
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
-	// fill left and right edge
-	r_hlinefill0(x0, min((x0/4)*4 + 3, x1), y, c);
-	r_hlinefill0(max(x0, (x1/4)*4), x1, y, c);
+	r_planefill(x0, y, linepx(x0, min((x0/4)*4 + 3, x1)), c);
+	r_planefill(x1, y, linepx(max(x0, (x1/4)*4), x1), c);
 
-	if (x1 - x0 < 5) // no center area?
+	if (x1 - x0 <= 4) // no center area?
 		return;
 
 	// fill edge area not covered by fill2
-	r_hlinefill0(max((x1/4-1)*4, x0), (x1/4-1)*4+3, y, c);
+	r_planefill(max((x1/4-1)*4, x0), y,
+		linepx(max((x1/4-1)*4, x0), (x1/4-1)*4+3), c);
 
 	// fill center
 	r_hlinefill2(x0, x1, y, c);

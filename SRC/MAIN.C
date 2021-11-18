@@ -332,7 +332,7 @@ int main()
 
 		rm = m4xm4(&pm, &cm);
 
-		demo(t);
+		demo(t*3.0f);
 
 		wireframe = 0;
 		faceculling = 1;
