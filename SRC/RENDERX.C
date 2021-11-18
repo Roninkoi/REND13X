@@ -331,7 +331,7 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 
 		cmp cx, bx
 		inc cx
-		jbe vfill
+		jb vfill
 	}
 }
 
