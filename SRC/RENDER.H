@@ -19,8 +19,8 @@
 typedef unsigned char byte;
 
 // video mode selection
-#define MODE13
-//#define MODEX
+//#define MODE13
+#define MODEX
 
 // viewport dimensions
 #define L 0

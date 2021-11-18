@@ -355,10 +355,10 @@ int main()
 			frames = 0;
 		}
 
-		r_sync();
-
 		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
 				 fps, keycode, rt, drawcount);
+
+		r_sync();
 
 		getInput();
 

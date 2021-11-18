@@ -21,7 +21,7 @@ const unsigned CRTPARAM[CRTPLEN] = {
 		0x0e317 // byte mode
 };
 
-void r_init()
+void r_init13()
 {
 	asm {
 		mov ah, 0x0f // get current video mode
@@ -31,6 +31,11 @@ void r_init()
 		mov ax, 0x13 // set 13
 		int 0x10
 	}
+}
+
+void r_init()
+{
+	r_init13();
 	asm {
 		mov dx, SCI // sequence controller
 		mov ax, 0x0604
@@ -65,8 +70,7 @@ void r_init()
 		loop crtp
 	}
 
-	r_fill(clearcol);
-
+	//r_fill(clearcol);
 }
 
 #define MAP_MASK 0x02
@@ -158,6 +162,7 @@ void r_flip()
 	}
 }
 
+// fill all planes from x0 to x1 using stosw
 void r_hlinefill2(int x0, int x1, int y, byte c)
 {
 	asm {
@@ -191,6 +196,42 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		mov ah, c
 
 		rep stosw
+	}
+}
+
+// fill all planes from x0 to x1 using stosb
+void r_hlinefill1(int x0, int x1, int y, byte c)
+{
+	asm {
+		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov cx, x1
+		shr cx, 2
+		mov di, x0
+		shr di, 2
+
+		inc di // remove ends
+		dec cx
+
+		sub cx, di
+		add cx, 1 // n = x1 - x0 + 1
+		add di, ax // calculate address
+		mov ax, pgoffs
+		add di, ax
+
+		xor ax, ax
+		mov al, c // color
+
+		rep stosb
 	}
 }
 
@@ -236,6 +277,7 @@ void r_planefill(int x, int y, int p, byte c)
 
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
+	// fill edges x0 and x1, selecting correct planes
 	r_planefill(x0, y, linepx(x0, min((x0/4)*4 + 3, x1)), c);
 	r_planefill(x1, y, linepx(max(x0, (x1/4)*4), x1), c);
 
@@ -243,11 +285,21 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 		return;
 
 	// fill edge area not covered by fill2
-	r_planefill(max((x1/4-1)*4, x0), y,
-		linepx(max((x1/4-1)*4, x0), (x1/4-1)*4+3), c);
+	//r_planefill(max((x1/4-1)*4, x0), y,
+	//	linepx(max((x1/4-1)*4, x0), (x1/4-1)*4+3), c);
+	// fill center words at a time
+	//r_hlinefill2(x0, x1, y, c);
 
 	// fill center
-	r_hlinefill2(x0, x1, y, c);
+	r_hlinefill1(x0, x1, y, c);
+}
+
+void r_vplanefill(int x, int y0, int y1, int p, byte c)
+{
+}
+
+void r_rectfill(int x, int y, int w, int h, byte c)
+{
 }
 
 void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
