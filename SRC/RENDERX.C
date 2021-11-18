@@ -274,6 +274,8 @@ void r_planefill(int x, int y, int p, byte c)
 #define linep(x0, x1) (leftp(x0)&rightp(x1))
 // select planes in coordinates [x0, x1]
 #define linepx(x0, x1) (linep((x0)&3, 3-(x1)&3))
+// select plane for one pixel coordinate x
+#define pixpx(x) (1<<((x)&3))
 
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
@@ -296,6 +298,46 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 
 void r_vplanefill(int x, int y0, int y1, int p, byte c)
 {
+	asm {
+		mov dx, 0x0100
+		mov ax, p // select planes to draw 0-16
+		mul dx
+		add ax, MAP_MASK
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax
+
+		mov bx, y1
+		mov cx, y0
+	}
+	vfill:
+	asm {
+		mov ax, W/4
+		mul cx // y offset
+
+		mov di, x
+		shr di, 2
+
+		add di, ax // calculate address
+		mov ax, pgoffs
+		add di, ax
+
+		xor ax, ax
+		mov al, c // color
+
+		mov [es:di], al
+
+		cmp cx, bx
+		inc cx
+		jbe vfill
+	}
+}
+
+void r_vlinefill(int x, int y0, int y1, byte c)
+{
+	r_vplanefill(x, y0, y1, pixpx(x), c);
 }
 
 void r_rectfill(int x, int y, int w, int h, byte c)
