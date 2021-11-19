@@ -180,7 +180,7 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		mov cx, x1
 		shr cx, 2
 		mov di, x0
-		shr di, 2
+		shr di, 2 // plane coordinates
 
 		inc di // remove ends
 		dec cx
@@ -189,7 +189,7 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		add cx, 1 // n = x1 - x0 + 1
 		shr cx, 1 // words
 		add di, ax // calculate address
-		add di, pgoffs
+		add di, pgoffs // add page offset
 
 		mov al, c // color
 		mov ah, c
@@ -216,7 +216,7 @@ void r_hlinefill1(int x0, int x1, int y, byte c)
 		mov cx, x1
 		shr cx, 2
 		mov di, x0
-		shr di, 2
+		shr di, 2 // plane coordinates
 
 		inc di // remove ends
 		dec cx
@@ -224,7 +224,7 @@ void r_hlinefill1(int x0, int x1, int y, byte c)
 		sub cx, di
 		add cx, 1 // n = x1 - x0 + 1
 		add di, ax // calculate address
-		add di, pgoffs
+		add di, pgoffs // add page offset
 
 		xor ax, ax
 		mov al, c // color
@@ -251,10 +251,10 @@ void r_planefill(int x, int y, int p, byte c)
 		mul dx // y offset
 
 		mov di, x
-		shr di, 2
+		shr di, 2 // x coordinate of plane
 
 		add di, ax // calculate address
-		add di, pgoffs
+		add di, pgoffs // add page offset
 
 		xor ax, ax
 		mov al, c // color
@@ -308,14 +308,14 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 
 		mov si, W/4
 		mov ax, y1
-		inc ax
+		inc ax // account for x
 		mul si
-		mov bx, ax
-		add bx, pgoffs
+		mov bx, ax // end point
+		add bx, pgoffs // add page offset for cmp
 
 		mov ax, y0
 		mul si
-		mov cx, ax
+		mov cx, ax // start point
 
 		mov di, x
 		shr di, 2
@@ -343,6 +343,13 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 
 void r_rectfill(int x, int y, int w, int h, byte c)
 {
+	int i;
+
+	r_vplanefill(x, y, y+h, linepx(x, min((x/4)*4 + 3, x+w)), c);
+	r_vplanefill(x+w, y, y+h, linepx(max(x, ((x+w)/4)*4), x+w), c);
+
+	for (i = 0; i < w/4; ++i)
+		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
 void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)

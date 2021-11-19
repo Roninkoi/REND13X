@@ -349,7 +349,7 @@ int main()
 		if (itime - lt >= SECOND) { // runs every second
 			rt = (float) rs / (float) frames * TOSECOND * 1000.0f * 0.25f + rt*0.75f;
 			rs = 0;
-			dt = min((float) (itime - lt), 2.0f * SECOND) * TOSECOND / (float) frames * 0.25f + 0.75f * dt;
+			dt = min((float) (itime - lt), 2.0f * SECOND) * TOSECOND / (float) frames;
 			lt = itime;
 			fps = frames;
 			frames = 0;
