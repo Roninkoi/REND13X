@@ -189,8 +189,7 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		add cx, 1 // n = x1 - x0 + 1
 		shr cx, 1 // words
 		add di, ax // calculate address
-		mov ax, pgoffs
-		add di, ax
+		add di, pgoffs
 
 		mov al, c // color
 		mov ah, c
@@ -225,8 +224,7 @@ void r_hlinefill1(int x0, int x1, int y, byte c)
 		sub cx, di
 		add cx, 1 // n = x1 - x0 + 1
 		add di, ax // calculate address
-		mov ax, pgoffs
-		add di, ax
+		add di, pgoffs
 
 		xor ax, ax
 		mov al, c // color
@@ -256,8 +254,7 @@ void r_planefill(int x, int y, int p, byte c)
 		shr di, 2
 
 		add di, ax // calculate address
-		mov ax, pgoffs
-		add di, ax
+		add di, pgoffs
 
 		xor ax, ax
 		mov al, c // color
@@ -309,28 +306,32 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 		mov ax, VSTART
 		mov es, ax
 
-		mov bx, y1
-		mov cx, y0
-	}
-	vfill:
-	asm {
-		mov ax, W/4
-		mul cx // y offset
+		mov si, W/4
+		mov ax, y1
+		inc ax
+		mul si
+		mov bx, ax
+		add bx, pgoffs
+
+		mov ax, y0
+		mul si
+		mov cx, ax
 
 		mov di, x
 		shr di, 2
 
-		add di, ax // calculate address
-		mov ax, pgoffs
-		add di, ax
+		add di, cx // calculate address
+		add di, pgoffs
 
 		xor ax, ax
 		mov al, c // color
-
+	}
+	vfill:
+	asm {
 		mov [es:di], al
+		add di, si
 
-		cmp cx, bx
-		inc cx
+		cmp di, bx
 		jb vfill
 	}
 }
