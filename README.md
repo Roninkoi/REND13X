@@ -1,4 +1,4 @@
-# CRENDER DOS software renderer
+# REND13X DOS software renderer
 
 ![cube](https://media.giphy.com/media/S57czNBuL5ZxcZmrbN/giphy.gif)
 

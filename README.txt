@@ -1,4 +1,4 @@
-CRENDER DOS software renderer
+REND13X DOS software renderer
 =============================
 By Roninkoi 2020
 
