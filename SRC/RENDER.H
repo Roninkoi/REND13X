@@ -65,10 +65,6 @@ typedef unsigned char byte;
 // random float in range [0, 1]
 #define RANDF ((rand() % 10000) / 10000.0f)
 
-#define SECOND 18.206
-// convert itime 1/(18.206 s) to second
-#define TOSECOND 0.054927f
-
 #define PI 3.1415926
 
 #define TRACESTART while (inportb(0x3da) & 8)
@@ -106,19 +102,6 @@ extern unsigned drawcount;
 // render matrix
 extern mat4 rm;
 
-extern int running; // program running?
-
-extern int itime;  // time since start of program via int 0x1c (18.206/s)
-extern byte keycode; // keycode of currently pressed/released key
-extern int keydown[256]; // key pressed down?
-
-void interrupt getTime();
-unsigned now(); // get system time
-
-void hookKeys();
-void unhookKeys();
-void getInput(); // get which keys are pressed down
-
 void r_init(); // initialize renderer, enter video mode
 void r_exit(); // return original video mode
 void r_scr(byte c); // clear screen with color c by int 10h, slightly faster than fill
@@ -149,6 +132,25 @@ void r_sort(); // sort triangles by centroid z coordinate
 void r_draw(); // draw all triangles in render buffer
 
 void r_waitRetrace(); // wait for screen retrace to sync
+
+// INPUT
+
+#define SECOND 18.206
+// convert itime 1/(18.206 s) to second
+#define TOSECOND 0.054927f
+
+extern int running; // program running?
+
+extern int itime;  // time since start of program via int 0x1c (18.206/s)
+extern byte keycode; // keycode of currently pressed/released key
+extern int keydown[256]; // key pressed down?
+
+void interrupt getTime();
+unsigned now(); // get system time
+
+void hookKeys();
+void unhookKeys();
+void getInput(); // get which keys are pressed down
 
 // keyboard codes
 

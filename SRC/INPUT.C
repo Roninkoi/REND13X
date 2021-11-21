@@ -1,5 +1,7 @@
 #include "SRC\RENDER.H"
 
+int itime = 0;
+
 void interrupt (*oldtime) ();
 
 void interrupt getTime()
