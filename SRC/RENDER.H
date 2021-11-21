@@ -142,12 +142,12 @@ void r_waitRetrace(); // wait for screen retrace to sync
 extern int running; // program running?
 
 extern int itime;  // time since start of program via int 0x1c (18.206/s)
-extern byte keycode; // keycode of currently pressed/released key
-extern int keydown[256]; // key pressed down?
-
-void interrupt getTime();
+void hookTime();
+void unhookTime();
 unsigned now(); // get system time
 
+extern byte keycode; // keycode of currently pressed/released key
+extern int keydown[256]; // key pressed down?
 void hookKeys();
 void unhookKeys();
 void getInput(); // get which keys are pressed down
