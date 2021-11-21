@@ -1,155 +1,28 @@
 #include "SRC\RENDER.H"
 
-// random float in range [0, 1]
-#define RANDF ((rand() % 10000) / 10000.0f)
-
-byte keycode = 0;
-byte keycodeBuffer[256];
-byte keycodeTail = 0;
-
 int running = 1;
 
-int key;
-int keydown[256];
-
-void interrupt (*oldkb) ();
-
 void interrupt (*oldtime) ();
-
-#define SECOND 18.206
-// convert itime 1/(18.206 s) to second
-#define TOSECOND 0.054927f
 
 void interrupt getTime()
 {
 	itime += 1;
 }
 
-unsigned now() {
+void hookTime()
+{
+	oldtime = getvect(0x1c);
+	setvect(0x1c, getTime);
+}
+
+void unhookTime()
+{
+	setvect(0x1c, oldtime);
+}
+
+unsigned now()
+{
 	return (unsigned) time(NULL);
-}
-
-void interrupt getKeys()
-{
-	// get code from keyboard
-	asm {
-		cli
-
-		in al, 0x060	// read code
-		mov keycode, al
-		in al, 0x061	// status
-		mov bl, al
-		or al, 0x080
-		out 0x061, al
-		mov al, bl
-		out 0x061, al
-
-		mov al, 0x020	// reset
-		out 0x020, al
-
-		sti
-	}
-
-	*(keycodeBuffer + keycodeTail) = keycode;
-
-	++keycodeTail;
-}
-
-#define wDownCode 17
-#define wUpCode 145
-#define aDownCode 30
-#define aUpCode 158
-#define sDownCode 31
-#define sUpCode 159
-#define dDownCode 32
-#define dUpCode 160
-#define rightDownCode 77
-#define rightUpCode 205
-#define leftDownCode 75
-#define leftUpCode 203
-#define upDownCode 72
-#define upUpCode 200
-#define downDownCode 80
-#define downUpCode 208
-#define rDownCode 19
-#define rUpCode 147
-#define fDownCode 33
-#define fUpCode 161
-
-void getInput()
-{
-	int i;
-	for (i = 0; i < 256; ++i) {
-		key = keycodeBuffer[i];
-		keycodeBuffer[i] = 0;
-
-		// key press and release
-		switch (key) {
-			case 1:
-				running = 0; // halt program
-				break;
-			case wDownCode:
-				keydown[wDownCode] = 1;
-				break;
-			case wUpCode:
-				keydown[wDownCode] = 0;
-				break;
-			case aDownCode:
-				keydown[aDownCode] = 1;
-				break;
-			case aUpCode:
-				keydown[aDownCode] = 0;
-				break;
-			case sDownCode:
-				keydown[sDownCode] = 1;
-				break;
-			case sUpCode:
-				keydown[sDownCode] = 0;
-				break;
-			case dDownCode:
-				keydown[dDownCode] = 1;
-				break;
-			case dUpCode:
-				keydown[dDownCode] = 0;
-				break;
-			case rightDownCode:
-				keydown[rightDownCode] = 1;
-				break;
-			case rightUpCode:
-				keydown[rightDownCode] = 0;
-				break;
-			case leftDownCode:
-				keydown[leftDownCode] = 1;
-				break;
-			case leftUpCode:
-				keydown[leftDownCode] = 0;
-				break;
-			case upDownCode:
-				keydown[upDownCode] = 1;
-				break;
-			case upUpCode:
-				keydown[upDownCode] = 0;
-				break;
-			case downDownCode:
-				keydown[downDownCode] = 1;
-				break;
-			case downUpCode:
-				keydown[downDownCode] = 0;
-				break;
-			case rDownCode:
-				keydown[rDownCode] = 1;
-				break;
-			case rUpCode:
-				keydown[rDownCode] = 0;
-				break;
-			case fDownCode:
-				keydown[fDownCode] = 1;
-				break;
-			case fUpCode:
-				keydown[fDownCode] = 0;
-				break;
-		}
-	}
 }
 
 int tricount = 0;
@@ -234,18 +107,15 @@ void demo(float t)
 	}
 }
 
-// these have to be macros?
 #define init() \
 	r_init(); \
-	oldkb = getvect(9); \
-	setvect(9, getKeys); \
-	oldtime = getvect(0x1c); \
-	setvect(0x1c, getTime);
+	hookKeys(); \
+	hookTime();
 
 #define exit() \
 	r_exit(); \
-	setvect(9, oldkb); \
-	setvect(0x1c, oldtime);
+	unhookKeys(); \
+	unhookTime();
 
 int main()
 {
@@ -294,8 +164,6 @@ int main()
 
 	walk_spd = 5.6f;
 	rot_spd = 1.4f;
-
-	key = 0;
 
 	dt = 1.0f/(float) fps;
 	rt = 1.0f;

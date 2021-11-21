@@ -62,12 +62,18 @@ typedef unsigned char byte;
 #define abs(x) (x < 0 ? -(x) : x)
 #define round(x) floor(x + 0.5f)
 
+// random float in range [0, 1]
+#define RANDF ((rand() % 10000) / 10000.0f)
+
+#define SECOND 18.206
+// convert itime 1/(18.206 s) to second
+#define TOSECOND 0.054927f
+
 #define PI 3.1415926
 
 #define TRACESTART while (inportb(0x3da) & 8)
 #define TRACEEND while (!(inportb(0x3da) & 8))
 
-extern int itime;  // system time from int 0x1c (18.206/s)
 extern char vmode; // previous video mode
 extern int wireframe; // draw wireframe triangles?
 extern int faceculling; // cull back faces?
@@ -100,14 +106,18 @@ extern unsigned drawcount;
 // render matrix
 extern mat4 rm;
 
-// keyboard codes
-extern byte keycode;
-extern byte keycodeBuffer[256];
-extern byte keycodeTail;
+extern int running; // program running?
+
+extern int itime;  // time since start of program via int 0x1c (18.206/s)
+extern byte keycode; // keycode of currently pressed/released key
+extern int keydown[256]; // key pressed down?
 
 void interrupt getTime();
+unsigned now(); // get system time
 
-unsigned now(); // what time is it?
+void hookKeys();
+void unhookKeys();
+void getInput(); // get which keys are pressed down
 
 void r_init(); // initialize renderer, enter video mode
 void r_exit(); // return original video mode
@@ -132,12 +142,35 @@ void r_addf(float v0x, float v0y, float v0z,
 void r_drawline(float (*v0)[2], float (*v1)[2], byte c); // draw line of color c from v0 to v1
 void r_drawlinef(float x0, float y0, float x1, float y1, byte c);
 
-void r_drawtri(float v[3][2], byte c); // draw triangle of color cwith vertices v
+void r_drawtri(float v[3][2], byte c); // draw triangle of color c with vertices v
 void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, byte c); // draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
 
 void r_sort(); // sort triangles by centroid z coordinate
 void r_draw(); // draw all triangles in render buffer
 
 void r_waitRetrace(); // wait for screen retrace to sync
+
+// keyboard codes
+
+#define wDownCode 17
+#define wUpCode 145
+#define aDownCode 30
+#define aUpCode 158
+#define sDownCode 31
+#define sUpCode 159
+#define dDownCode 32
+#define dUpCode 160
+#define rightDownCode 77
+#define rightUpCode 205
+#define leftDownCode 75
+#define leftUpCode 203
+#define upDownCode 72
+#define upUpCode 200
+#define downDownCode 80
+#define downUpCode 208
+#define rDownCode 19
+#define rUpCode 147
+#define fDownCode 33
+#define fUpCode 161
 
 #endif
