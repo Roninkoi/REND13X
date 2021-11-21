@@ -63,7 +63,7 @@ typedef unsigned char byte;
 #define round(x) floor(x + 0.5f)
 
 // random float in range [0, 1]
-#define RANDF ((rand() % 10000) / 10000.0f)
+#define RANDF ((rand() % 10000) / (10000.0f-1.0f))
 
 #define PI 3.1415926
 
