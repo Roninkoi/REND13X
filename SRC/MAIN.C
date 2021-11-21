@@ -2,29 +2,6 @@
 
 int running = 1;
 
-void interrupt (*oldtime) ();
-
-void interrupt getTime()
-{
-	itime += 1;
-}
-
-void hookTime()
-{
-	oldtime = getvect(0x1c);
-	setvect(0x1c, getTime);
-}
-
-void unhookTime()
-{
-	setvect(0x1c, oldtime);
-}
-
-unsigned now()
-{
-	return (unsigned) time(NULL);
-}
-
 int tricount = 0;
 
 void tridemo()
