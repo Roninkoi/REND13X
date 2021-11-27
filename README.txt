@@ -8,7 +8,8 @@ or mode X (320x240), 256 colors.
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming
 
-Compiled using Turbo C++ 3.0 or equivalent. Open the project file REND13X.PRJ using TC, select Run -> Run (Ctrl + F9).
+Compiled using Turbo C++ 3.0 or equivalent. Open the project file REND13X.PRJ
+using TC, select Run -> Run (Ctrl + F9).
 
 --- Features ---
 
