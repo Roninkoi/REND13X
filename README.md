@@ -13,11 +13,11 @@ Compiled using Turbo C++ 3.0 or equivalent. Open the project file REND13X.PRJ us
 
 - "Fast" x86 assembly draw routines for line drawing and triangle fills
 
+- 3D perspective projected triangle draw with z sorting, face culling and wireframe rendering
+
 - Simple vector/matrix math and transforms
 
-- 3D perspective projected triangle draw
-
-- Page flipping in mode X
+- Page flipping in mode X (double buffering)
 
 - Keyboard interrupt handler for smooth multi-key input
 
