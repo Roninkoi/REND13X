@@ -126,8 +126,7 @@ void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
 			float v2x, float v2y, float v2z, byte c);
 
-void r_drawline(float (*v0)[2], float (*v1)[2], byte c); // draw line of color c from v0 to v1
-void r_drawlinef(float x0, float y0, float x1, float y1, byte c);
+void r_drawline(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
 
 void r_drawpoint3d(vec4 v, byte c);
 

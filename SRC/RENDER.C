@@ -11,100 +11,107 @@ int zsort = 1;
 int clearscr = 1;
 int clearcol = 0;
 
-// wait for screen retrace to sync
 void r_waitRetrace()
 {
 	TRACESTART;
 	TRACEEND;
 }
 
-void r_drawlinef(float x0, float y0, float x1, float y1, byte c)
+void r_linefill(int a0, int b0, int a1, int b1, int s, byte c)
 {
-	float v0[2];
-	float v1[2];
-
-	v0[0] = x0;
-	v0[1] = y0;
-
-	v1[0] = x1;
-	v1[1] = y1;
-
-	r_drawline(&v0, &v1, c);
-}
-
-// line draw between v0 and v1, color c
-void r_drawline(float (*v0)[2], float (*v1)[2], byte c)
-{
-	int x;
-	int y;
-	float vx0;
-	float vy0;
-	float vx1;
-	float vy1;
-	float dx;
-	float dy;
-	float k;
-	int i;
-	int s;
-	float kx;
-	float ky;
+	int a;
+	int b;
+	int da;
+	int db;
+	int j = 1;
 	int diff;
 
-	if ((*v0)[1] < (*v1)[1]) {
-		vx0 = (*v0)[0];
-		vy0 = (*v0)[1];
-		vx1 = (*v1)[0];
-		vy1 = (*v1)[1];
-	}
-	else {
-		vx1 = (*v0)[0];
-		vy1 = (*v0)[1];
-		vx0 = (*v1)[0];
-		vy0 = (*v1)[1];
+	da = a1 - a0;
+	db = b1 - b0;
+
+	if (db < 0) {
+		j = -1;
+		db = -db;
 	}
 
-	dx = vx1 - vx0;
-	dy = vy1 - vy0;
+	diff = 2 * db - da;
+	a = a0;
+	b = b0;
 
-	if (dx != 0.0f)
-		k = dy/dx;
-	else
-		k = dy;
+	// Bresenham line draw
+	for (a = a0; a <= a1; ++a) {
+		if (s < 0) {
+			if (b > B)
+				return;
+			if (b < T || b > B || a > R || a < L)
+				continue;
+			r_putpixel(a, b, c);
+		}
+		else {
+			if (a > B)
+				return;
+			if (a < T || a > B || b > R || b < L)
+				continue;
+			r_putpixel(b, a, c);
+		}
 
-	if (fabs(k) <= 1) {
-		s = sign(dx);
-		ky = s*k;
-		kx = s;
-		diff = (int) (fabs(dx));
-	}
-	else {
-		s = sign(dy);
-		kx = s/k;
-		ky = s;
-		diff = (int) (fabs(dy));
-	}
-
-	for (i = 0; i <= diff; i += 1) {
-		x = (int) round(vx0 + (float)i*kx);
-		y = (int) round(vy0 + (float)i*ky);
-
-		if (y > B)
-			return;
-		if ((x > R && kx > 0.0f) || (x < L && kx < 0.0f))
-			return;
-		if (y < T || y > B || x > R || x < L)
-			continue;
-
-		if (x < L)
-			x = L;
-		if (x > R)
-			x = R;
-
-		r_putpixel(x, y, c);
+		if (diff > 0) {
+			b += j;
+			diff += 2 * (db - da);
+		}
+		else {
+			diff += 2 * db;
+		}
 	}
 }
 
-// half triangle fill with clipping
+void r_drawline(int x0, int y0, int x1, int y1, byte c)
+{
+	int to;
+	int p;
+	int xd = x1 - x0;
+	int yd = y1 - y0;
+	int s = abs(yd) - abs(xd);
+	int d0x, d0y, d1x, d1y;
+
+	if (s < 0) { // horizontal line
+		p = sign(x1 - x0);
+		if (p < 0) { // sort by x
+			to = x0;
+			x0 = x1;
+			x1 = to;
+
+			to = y0;
+			y0 = y1;
+			y1 = to;
+		}
+
+		if (x0 > R || x1 < L ||
+			min(y0, y1) < T || max(y0, y1) > B)
+			return;
+
+		r_linefill(x0, y0, x1, y1, s, c);
+	}
+	else { // vertical line
+		p = sign(y1 - y0);
+		if (p < 0) { // sort by y
+			to = x0;
+			x0 = x1;
+			x1 = to;
+
+			to = y0;
+			y0 = y1;
+			y1 = to;
+		}
+
+		if (y0 > B || y1 < T ||
+			min(x0, x1) < L || max(x0, x1) > R)
+			return;
+
+		r_linefill(y0, x0, y1, x1, s, c);
+	}
+}
+
 void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c)
 {
 	int i, xi0, xi1;
@@ -135,11 +142,6 @@ void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c
 	}
 }
 
-/*
- * triangle draw coordinate system
- * same as opengl with origin [0.0f, 0.0f]
- * screen range [-1.0f, 1.0f], [-1.0f, 1.0f]
-*/
 void r_drawtri(float v[3][2], byte c)
 {
 	float to;
@@ -217,9 +219,9 @@ void r_drawtri(float v[3][2], byte c)
 	y2 = round(y2);
 
 	if (wireframe) {
-		r_drawlinef(x0, y0, x1, y1, c);
-		r_drawlinef(x1, y1, x2, y2, c);
-		r_drawlinef(x0, y0, x2, y2, c);
+		r_drawline(x0, y0, x1, y1, c);
+		r_drawline(x1, y1, x2, y2, c);
+		r_drawline(x0, y0, x2, y2, c);
 
 		return;
 	}

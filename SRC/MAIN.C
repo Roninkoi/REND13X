@@ -29,6 +29,21 @@ void tridemo()
 	drawcount = tricount;
 }
 
+void linedemo()
+{
+	unsigned i;
+	float a;
+	unsigned n = 62832;
+	for (i = 0; i < n; ++i) {
+		a = (float) i / (float) n;
+		r_drawline(W/2, H/2,
+			W/2 + 0.45f*H*cos(2.0f*PI*a),
+			H/2 + 0.45f*H*sin(2.0f*PI*a),
+			256*a);
+	}
+	drawcount = n;
+}
+
 void drawcube(vec4 pos, mat4 rot, float a, byte c)
 {
 	vec4 cube00 = Vec4(-0.5f*a, -0.5f*a, -0.5f*a, 1.0f);
@@ -226,11 +241,12 @@ int main()
 		r_draw();
 
 		//tridemo();
+		//linedemo();
 
 		rs += itime;
 
 		if (itime - lt >= SECOND) { // runs every second
-			rt = (float) rs / (float) frames * TOSECOND * 1000.0f * 0.25f + rt*0.75f;
+			rt = (float) rs / (float) frames * TOSECOND * 1000.0f /* 0.25f + rt*0.75f*/;
 			rs = 0;
 			dt = min((float) (itime - lt), 2.0f * SECOND) * TOSECOND / (float) frames;
 			lt = itime;
