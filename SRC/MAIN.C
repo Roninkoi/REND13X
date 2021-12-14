@@ -6,22 +6,25 @@ int tricount = 0;
 
 void tridemo()
 {
+	int i;
 	float vt[3][2];
 
 	clearscr = 0;
 
-	vt[0][0] = RANDF * 2.0f - 1.0f;
-	vt[0][1] = RANDF * 2.0f - 1.0f;
+	//for (i = 0; i < 1; ++i) {
+		vt[0][0] = RANDF * 2.0f - 1.0f;
+		vt[0][1] = RANDF * 2.0f - 1.0f;
 
-	vt[1][0] = RANDF * 2.0f - 1.0f;
-	vt[1][1] = RANDF * 2.0f - 1.0f;
+		vt[1][0] = RANDF * 2.0f - 1.0f;
+		vt[1][1] = RANDF * 2.0f - 1.0f;
 
-	vt[2][0] = RANDF * 2.0f - 1.0f;
-	vt[2][1] = RANDF * 2.0f - 1.0f;
+		vt[2][0] = RANDF * 2.0f - 1.0f;
+		vt[2][1] = RANDF * 2.0f - 1.0f;
 
-	r_drawtri(vt, (byte) (RANDF * 256.0f));
+		r_drawtri(vt, (byte) (RANDF * 256.0f));
 
-	++tricount;
+		++tricount;
+	//}
 
 	drawcount = tricount;
 }
@@ -92,7 +95,7 @@ void demo(float t)
 			cos(t/4.0f+3*i/PI)*2.0f,
 			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));*/
 
-		rm = translate(&rm, Vec4(0.0f, 0.0f, 10.0f+6.0f*sin(t/5.0f+i/PI/5.0f), 0.0f));
+		rm = translate(&rm, Vec4(0.0f, 0.0f, 10.0f+3.0f*sin(t/5.0f+i/PI/5.0f), 0.0f));
 		rm = translate(&rm, Vec4(10.0f*sin(t+i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 0.0f, 0.0f));
 		rm = rotateY(&rm, sin(i/PI)*i/cn*t);
 		rm = rotateX(&rm, t);

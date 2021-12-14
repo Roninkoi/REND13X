@@ -90,12 +90,14 @@ struct tri {
 	byte c; // color
 };
 
+#define RBUFFERLEN 512
+
 // render buffer of triangles
-extern struct tri r_buffer[256];
+extern struct tri r_buffer[RBUFFERLEN];
 
 // indices of sorted triangles in r_buffer
-extern byte r_s[256]; // sorted
-extern byte r_n;
+extern unsigned r_s[RBUFFERLEN]; // sorted
+extern unsigned r_n;
 
 extern unsigned drawcount;
 

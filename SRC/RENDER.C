@@ -179,9 +179,7 @@ void r_drawtri(float v[3][2], byte c)
 	clipping = clipping || y0out || y1out || y2out;
 
 	// bounds
-	if (x0out && x1out && x2out)
-		return;
-	if (y0out && y1out && y2out)
+	if (x0out && x1out && x2out && y0out && y1out && y2out)
 		return;
 
 	// sort vertices by y

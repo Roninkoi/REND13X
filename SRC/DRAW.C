@@ -1,17 +1,19 @@
 #include "SRC\RENDER.H"
 
-struct tri r_buffer[256];
-byte r_s[256];
-byte r_n = 0;
+struct tri r_buffer[RBUFFERLEN];
+unsigned r_s[RBUFFERLEN];
+unsigned r_n = 0;
 
 mat4 rm;
 
 unsigned drawcount = 0;
 
-void r_add(vec4* v0, vec4* v1, vec4* v2, byte c)
+void r_add(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
 {
 	struct tri t;
 	vec4 fc;
+
+	if (r_n >= RBUFFERLEN) return;
 
 	t.v0 = mat4vec4(&rm, v0); // transform vertices
 	t.v1 = mat4vec4(&rm, v1);
