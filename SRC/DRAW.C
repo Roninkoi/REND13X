@@ -1,8 +1,8 @@
 #include "SRC\RENDER.H"
 
 struct tri r_buffer[RBUFFERLEN];
-unsigned r_s[RBUFFERLEN];
-unsigned r_n = 0;
+unsigned r_sorted[RBUFFERLEN];
+unsigned r_num = 0;
 
 mat4 rm;
 
@@ -13,7 +13,7 @@ void r_add(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
 	struct tri t;
 	vec4 fc;
 
-	if (r_n >= RBUFFERLEN) return;
+	if (r_num >= RBUFFERLEN) return;
 
 	t.v0 = mat4vec4(&rm, v0); // transform vertices
 	t.v1 = mat4vec4(&rm, v1);
@@ -33,9 +33,9 @@ void r_add(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
 
 	t.c = c;
 
-	r_buffer[r_n] = t; // render buffer
+	r_buffer[r_num] = t; // render buffer
 
-	++r_n; // triangle index
+	++r_num; // triangle index
 }
 
 void r_addf(float v0x, float v0y, float v0z,
@@ -49,7 +49,7 @@ void r_addf(float v0x, float v0y, float v0z,
 	r_add(&v0, &v1, &v2, c);
 }
 
-void r_sort() // selection sort or something
+void r_sort()
 {
 	int i;
 	int j;
@@ -57,25 +57,26 @@ void r_sort() // selection sort or something
 	int largest;
 	float largest_v;
 
-	for (i = 0; i < r_n; ++i) {
-		r_s[i] = i;
+	for (i = 0; i < r_num; ++i) {
+		r_sorted[i] = i;
 	}
 
 	if (!zsort) return;
 
-	for (i = 0; i < r_n; ++i) {
+	// selection sort?
+	for (i = 0; i < r_num; ++i) {
 		largest = i;
-		largest_v = r_buffer[r_s[i]].fc;
+		largest_v = r_buffer[r_sorted[i]].fc;
 
-		for (j = i; j < r_n; ++j) {
-			if (r_buffer[r_s[j]].fc > largest_v) {
+		for (j = i; j < r_num; ++j) {
+			if (r_buffer[r_sorted[j]].fc > largest_v) {
 				largest = j;
-				largest_v = r_buffer[r_s[j]].fc;
+				largest_v = r_buffer[r_sorted[j]].fc;
 			}
 		}
-		c = r_s[i];
-		r_s[i] = r_s[largest];
-		r_s[largest] = c;
+		c = r_sorted[i];
+		r_sorted[i] = r_sorted[largest];
+		r_sorted[largest] = c;
 	}
 }
 
@@ -85,12 +86,13 @@ void r_draw()
 
 	drawcount = 0;
 
-	for (i = 0; i < r_n; ++i) {
-		r_drawtri3d(&r_buffer[r_s[i]].v0,
-			&r_buffer[r_s[i]].v1,
-			&r_buffer[r_s[i]].v2,
-			r_buffer[r_s[i]].c);
+	// draw triangles back to front
+	for (i = 0; i < r_num; ++i) {
+		r_drawtri3d(&r_buffer[r_sorted[i]].v0,
+			&r_buffer[r_sorted[i]].v1,
+			&r_buffer[r_sorted[i]].v2,
+			r_buffer[r_sorted[i]].c);
 	}
 
-	r_n = 0;
+	r_num = 0;
 }

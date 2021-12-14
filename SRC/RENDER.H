@@ -1,6 +1,6 @@
 /*
  * DOS Software renderer by Roninkoi 2020
- * ANSI C, draw routines written in x86 assembly
+ * (ANSI?) C, draw routines written in x86 assembly
  * Compiled using Turbo C++ 3.0 or equivalent
  * Mode 13h (320x200) or mode X (320x240), 256 colors
  */
@@ -18,7 +18,7 @@
 
 typedef unsigned char byte;
 
-// video mode selection
+// video mode selection (ifdef)
 #define MODE13
 //#define MODEX
 
@@ -67,6 +67,7 @@ typedef unsigned char byte;
 
 #define PI 3.1415926
 
+// wait around for start/end of trace to sync
 #define TRACESTART while (inportb(0x3da) & 8)
 #define TRACEEND while (!(inportb(0x3da) & 8))
 
@@ -96,12 +97,13 @@ struct tri {
 extern struct tri r_buffer[RBUFFERLEN];
 
 // indices of sorted triangles in r_buffer
-extern unsigned r_s[RBUFFERLEN]; // sorted
-extern unsigned r_n;
+extern unsigned r_sorted[RBUFFERLEN];
+extern unsigned r_num; // number of triangles in buffer
 
+// total triangle draw count
 extern unsigned drawcount;
 
-// render matrix
+// render matrix for triangles used in r_add
 extern mat4 rm;
 
 void r_init(); // initialize renderer, enter video mode

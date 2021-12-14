@@ -130,16 +130,6 @@ void demo(float t)
 	}
 }
 
-#define init() \
-	r_init(); \
-	hookKeys(); \
-	hookTime();
-
-#define exit() \
-	r_exit(); \
-	unhookKeys(); \
-	unhookTime();
-
 int main()
 {
 	unsigned i, n;
@@ -197,7 +187,9 @@ int main()
 	}
 
 	// initialize renderer, hook up keyboard
-	init();
+	r_init();
+	hookKeys();
+	hookTime();
 
 	clearscr = 1;
 	clearcol = 3;
@@ -290,7 +282,10 @@ int main()
 		}
 	}
 
-	exit();
+	// return previous
+	r_exit();
+	unhookKeys();
+	unhookTime();
 
 	return 0;
 }
