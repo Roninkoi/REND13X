@@ -65,6 +65,7 @@ void r_linefill(int a0, int b0, int a1, int b1, int s, byte c)
 	}
 }
 
+// TODO: clipping at line level
 void r_drawline(int x0, int y0, int x1, int y1, byte c)
 {
 	int to;
@@ -72,11 +73,9 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	int xd = x1 - x0;
 	int yd = y1 - y0;
 	int s = abs(yd) - abs(xd);
-	int d0x, d0y, d1x, d1y;
 
 	if (s < 0) { // horizontal line
-		p = sign(x1 - x0);
-		if (p < 0) { // sort by x
+		if (x0 > x1) { // sort by x
 			to = x0;
 			x0 = x1;
 			x1 = to;
@@ -93,8 +92,7 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 		r_linefill(x0, y0, x1, y1, s, c);
 	}
 	else { // vertical line
-		p = sign(y1 - y0);
-		if (p < 0) { // sort by y
+		if (y0 > y1) { // sort by y
 			to = x0;
 			x0 = x1;
 			x1 = to;
@@ -142,6 +140,7 @@ void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c
 	}
 }
 
+// TODO: clipping at triangle level
 void r_drawtri(float v[3][2], byte c)
 {
 	float to;
