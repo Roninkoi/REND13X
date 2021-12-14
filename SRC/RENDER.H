@@ -125,6 +125,8 @@ void r_addf(float v0x, float v0y, float v0z,
 void r_drawline(float (*v0)[2], float (*v1)[2], byte c); // draw line of color c from v0 to v1
 void r_drawlinef(float x0, float y0, float x1, float y1, byte c);
 
+void r_drawpoint3d(vec4 v, byte c);
+
 void r_drawtri(float v[3][2], byte c); // draw triangle of color c with vertices v
 void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, byte c); // draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
 

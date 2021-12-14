@@ -26,6 +26,45 @@ void tridemo()
 	drawcount = tricount;
 }
 
+void drawcube(vec4 pos, mat4 rot, float a, byte c)
+{
+	vec4 cube00 = Vec4(-0.5f*a, -0.5f*a, -0.5f*a, 1.0f);
+	vec4 cube01 = Vec4(0.5f*a, -0.5f*a, -0.5f*a, 1.0f);
+	vec4 cube02 = Vec4(0.5f*a, 0.5f*a, -0.5f*a, 1.0f);
+	vec4 cube03 = Vec4(-0.5f*a, 0.5f*a, -0.5f*a, 1.0f);
+
+	vec4 cube10 = Vec4(-0.5f*a, -0.5f*a, 0.5f*a, 1.0f);
+	vec4 cube11 = Vec4(0.5f*a, -0.5f*a, 0.5f*a, 1.0f);
+	vec4 cube12 = Vec4(0.5f*a, 0.5f*a, 0.5f*a, 1.0f);
+	vec4 cube13 = Vec4(-0.5f*a, 0.5f*a, 0.5f*a, 1.0f);
+
+	mat4 rm0 = rm;
+
+	rm = scale(&rm, a);
+	rm = translate(&rm, pos);
+	rm = mat4mat4(&rm, &rot);
+
+	r_add(&cube00, &cube01, &cube02, c);
+	r_add(&cube00, &cube02, &cube03, c);
+
+	r_add(&cube10, &cube12, &cube11, c);
+	r_add(&cube10, &cube13, &cube12, c);
+
+	r_add(&cube00, &cube10, &cube11, c);
+	r_add(&cube00, &cube11, &cube01, c);
+
+	r_add(&cube01, &cube11, &cube12, c);
+	r_add(&cube01, &cube12, &cube02, c);
+
+	r_add(&cube02, &cube12, &cube13, c);
+	r_add(&cube02, &cube13, &cube03, c);
+
+	r_add(&cube03, &cube13, &cube10, c);
+	r_add(&cube03, &cube10, &cube00, c);
+
+	rm = rm0;
+}
+
 void demo(float t)
 {
 	int i;
@@ -45,16 +84,18 @@ void demo(float t)
 
 	mat4 rm0 = rm;
 
-	cn = 3;
+	cn = 5;
 	for (i = 0; i < cn; ++i) {
-		rm = rm0;
 		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
-		rm = translate(&rm, Vec4(sin(t/2.0f+3*i/PI)*2.0f,
+		/*rm = translate(&rm, Vec4(sin(t/2.0f+3*i/PI)*2.0f,
 			cos(t/4.0f+3*i/PI)*2.0f,
-			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));
-		rm = rotateY(&rm, sin(i/PI)*i/cn*4.0f*t/4.0f);
-		rm = rotateX(&rm, t/2.0f);
+			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));*/
+
+		rm = translate(&rm, Vec4(0.0f, 0.0f, 10.0f+6.0f*sin(t/5.0f+i/PI/5.0f), 0.0f));
+		rm = translate(&rm, Vec4(10.0f*sin(t+i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 0.0f, 0.0f));
+		rm = rotateY(&rm, sin(i/PI)*i/cn*t);
+		rm = rotateX(&rm, t);
 
 /*		cube00.x += sin(t*0.02f+i/cn) * 0.1f;
 		cube10.x -= cos(t*0.06f+i/cn) * 0.1f;
@@ -64,23 +105,25 @@ void demo(float t)
 		cube03.x -= sin(t*0.05f+i/cn) * 0.1f;
 		cube13.x += sin(t*0.02f+i/cn) * 0.1f;*/
 
-		r_add(&cube00, &cube01, &cube02, 48);
-		r_add(&cube00, &cube02, &cube03, 50);
+		r_add(&cube00, &cube01, &cube02, 48+i%30);
+		r_add(&cube00, &cube02, &cube03, 50+i%30);
 
-		r_add(&cube10, &cube12, &cube11, 38);
-		r_add(&cube10, &cube13, &cube12, 40);
+		r_add(&cube10, &cube12, &cube11, 38+i%30);
+		r_add(&cube10, &cube13, &cube12, 40+i%30);
 
-		r_add(&cube00, &cube10, &cube11, 45);
-		r_add(&cube00, &cube11, &cube01, 47);
+		r_add(&cube00, &cube10, &cube11, 45+i%30);
+		r_add(&cube00, &cube11, &cube01, 47+i%30);
 
-		r_add(&cube01, &cube11, &cube12, 35);
-		r_add(&cube01, &cube12, &cube02, 37);
+		r_add(&cube01, &cube11, &cube12, 35+i%30);
+		r_add(&cube01, &cube12, &cube02, 37+i%30);
 
-		r_add(&cube02, &cube12, &cube13, 55);
-		r_add(&cube02, &cube13, &cube03, 57);
+		r_add(&cube02, &cube12, &cube13, 55+i%30);
+		r_add(&cube02, &cube13, &cube03, 57+i%30);
 
-		r_add(&cube03, &cube13, &cube10, 42);
-		r_add(&cube03, &cube10, &cube00, 44);
+		r_add(&cube03, &cube13, &cube10, 42+i%30);
+		r_add(&cube03, &cube10, &cube00, 44+i%30);
+
+		rm = rm0;
 	}
 }
 
@@ -118,7 +161,7 @@ int main()
 	float walk_spd, rot_spd;
 
 	// projection matrix
-	mat4 pm = projmat(PI*0.5f, W/H, 100.0f, 0.1f);
+	mat4 pm = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
 	// camera matrix
 	mat4 cm = Mat4(1.0f);
 
@@ -175,9 +218,9 @@ int main()
 
 		cm = translate(&cm, cam);
 
-		rm = m4xm4(&pm, &cm);
+		rm = mat4mat4(&pm, &cm);
 
-		demo(t*3.0f);
+		demo(3.0f*t);
 
 		wireframe = 0;
 		faceculling = 1;

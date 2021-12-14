@@ -1,6 +1,6 @@
 #include "SRC\VEC.H"
 
-void matprint(mat4* m)
+void mat4Print(mat4* m)
 {
 	printf("%.1f %.1f %.1f %.1f \n", m->m[0][0], m->m[0][1], m->m[0][2], m->m[0][3]);
 	printf("%.1f %.1f %.1f %.1f \n", m->m[1][0], m->m[1][1], m->m[1][2], m->m[1][3]);
@@ -8,7 +8,7 @@ void matprint(mat4* m)
 	printf("%.1f %.1f %.1f %.1f \n", m->m[3][0], m->m[3][1], m->m[3][2], m->m[3][3]);
 }
 
-void vecprint(vec4* v)
+void vec4Print(vec4* v)
 {
 	printf("%.1f %.1f %.1f %.1f \n", v->x, v->y, v->z, v->w);
 }
@@ -40,7 +40,7 @@ vec4 Vec4(float x, float y, float z, float w)
 	return v;
 }
 
-vec4 nvec4()
+vec4 Zvec4()
 {
 	vec4 v;
 	v.x = 0.0f;
@@ -54,30 +54,30 @@ mat4 Mat4(float s)
 {
 	mat4 m;
 
-	m.m[0][0] = 1.0f*s;
+	m.m[0][0] = s;
 	m.m[0][1] = 0.0f;
 	m.m[0][2] = 0.0f;
 	m.m[0][3] = 0.0f;
 
 	m.m[1][0] = 0.0f;
-	m.m[1][1] = 1.0f*s;
+	m.m[1][1] = s;
 	m.m[1][2] = 0.0f;
 	m.m[1][3] = 0.0f;
 
 	m.m[2][0] = 0.0f;
 	m.m[2][1] = 0.0f;
-	m.m[2][2] = 1.0f*s;
+	m.m[2][2] = s;
 	m.m[2][3] = 0.0f;
 
 	m.m[3][0] = 0.0f;
 	m.m[3][1] = 0.0f;
 	m.m[3][2] = 0.0f;
-	m.m[3][3] = 1.0f*s;
+	m.m[3][3] = s;
 
 	return m;
 }
 
-mat4 projmat(float fov, float ar, float fr, float nr)
+mat4 projMat(float fov, float ar, float fr, float nr)
 {
 	mat4 m;
 
@@ -104,7 +104,7 @@ mat4 projmat(float fov, float ar, float fr, float nr)
 	return m;
 }
 
-mat4 rotmatX(float a)
+mat4 rotMatX(float a)
 {
 	mat4 m;
 
@@ -131,7 +131,7 @@ mat4 rotmatX(float a)
 	return m;
 }
 
-mat4 rotmatY(float a)
+mat4 rotMatY(float a)
 {
 	mat4 m;
 
@@ -158,7 +158,7 @@ mat4 rotmatY(float a)
 	return m;
 }
 
-mat4 rotmatZ(float a)
+mat4 rotMatZ(float a)
 {
 	mat4 m;
 
@@ -185,34 +185,7 @@ mat4 rotmatZ(float a)
 	return m;
 }
 
-mat4 scalemat(float s)
-{
-	mat4 m;
-
-	m.m[0][0] = s;
-	m.m[0][1] = 0.0f;
-	m.m[0][2] = 0.0f;
-	m.m[0][3] = 0.0f;
-
-	m.m[1][0] = 0.0f;
-	m.m[1][1] = s;
-	m.m[1][2] = 0.0f;
-	m.m[1][3] = 0.0f;
-
-	m.m[2][0] = 0.0f;
-	m.m[2][1] = 0.0f;
-	m.m[2][2] = s;
-	m.m[2][3] = 0.0f;
-
-	m.m[3][0] = 0.0f;
-	m.m[3][1] = 0.0f;
-	m.m[3][2] = 0.0f;
-	m.m[3][3] = 1.0f;
-
-	return m;
-}
-
-vec4 v4a(vec4 v0, vec4 v1)
+vec4 vec4Add(vec4 v0, vec4 v1)
 {
 	v0.x += v1.x;
 	v0.y += v1.y;
@@ -222,7 +195,17 @@ vec4 v4a(vec4 v0, vec4 v1)
 	return v0;
 }
 
-vec4 v4s(vec4 v, float s)
+vec4 vec4Sub(vec4 v0, vec4 v1)
+{
+	v0.x -= v1.x;
+	v0.y -= v1.y;
+	v0.z -= v1.z;
+	v0.w -= v1.w;
+
+	return v0;
+}
+
+vec4 vec4Scale(vec4 v, float s)
 {
 	v.x *= s;
 	v.y *= s;
@@ -232,9 +215,30 @@ vec4 v4s(vec4 v, float s)
 	return v;
 }
 
-float v4l(vec4 v)
+float vec4Len(vec4 *v)
 {
-	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w);
+	return sqrt(v->x*v->x + v->y*v->y + v->z*v->z + v->w*v->w);
+}
+
+float vec4Dot(vec4 *v0, vec4 *v1)
+{
+	return v0->x*v1->x + v0->y*v1->y + v0->z*v1->z + v0->w*v1->w;
+}
+
+vec4 vec4Cross(vec4 *v0, vec4 *v1)
+{
+	vec4 v;
+
+	v.x = v0->y*v1->z - v0->z*v1->y;
+	v.y = v0->z*v1->x - v0->x*v1->z;
+	v.z = v0->x*v1->y - v0->y*v1->x;
+
+	return v;
+}
+
+vec4 vec4Normalize(vec4 *v)
+{
+	return vec4Scale(*v, 1.0f/vec4Len(v));
 }
 
 mat4 translate(mat4 *m, vec4 v)
@@ -247,24 +251,24 @@ mat4 translate(mat4 *m, vec4 v)
 	tm.m[1][3] = v.y;
 	tm.m[2][3] = v.z;
 
-	r = m4xm4(m, &tm);
+	r = mat4mat4(m, &tm);
 
 	return r;
 }
 
-vec4 m4gr(mat4 m, int r)
+vec4 mat4GetRow(mat4 *m, int r)
 {
 	vec4 v;
-	v.x = m.m[r][0];
-	v.y = m.m[r][1];
-	v.z = m.m[r][2];
-	v.w = m.m[r][3];
+	v.x = m->m[r][0];
+	v.y = m->m[r][1];
+	v.z = m->m[r][2];
+	v.w = m->m[r][3];
 	return v;
 }
 
-vec4 m4xv4(mat4* m, vec4* v)
+vec4 mat4vec4(mat4 *m, vec4 *v)
 {
-	vec4 r = nvec4();
+	vec4 r = Zvec4();
 /*
 	r = v4a(r, v4s(m4gr(*m, 0), v->x));
 	r = v4a(r, v4s(m4gr(*m, 1), v->y));
@@ -294,7 +298,7 @@ vec4 m4xv4(mat4* m, vec4* v)
 	return r;
 }
 
-mat4 m4xm4(mat4* m0, mat4* m1)
+mat4 mat4mat4(mat4 *m0, mat4 *m1)
 {
 	mat4 r;
 
@@ -387,41 +391,41 @@ mat4 m4xm4(mat4* m0, mat4* m1)
 	return r;
 }
 
-mat4 rotateX(mat4* m, float a)
+mat4 rotateX(mat4 *m, float a)
 {
 	mat4 r;
 
 	mat4 rm; // rotation matrix
 
-	rm = rotmatX(a); // construct x rot mat
+	rm = rotMatX(a); // construct x rot mat
 
-	r = m4xm4(m, &rm); // mul
+	r = mat4mat4(m, &rm); // mul
 
 	return r;
 }
 
-mat4 rotateY(mat4* m, float a)
+mat4 rotateY(mat4 *m, float a)
 {
 	mat4 r;
 
 	mat4 rm; // rotation matrix
 
-	rm = rotmatY(a); // construct y rot mat
+	rm = rotMatY(a); // construct y rot mat
 
-	r = m4xm4(m, &rm); // mul
+	r = mat4mat4(m, &rm); // mul
 
 	return r;
 }
 
-mat4 rotateZ(mat4* m, float a)
+mat4 rotateZ(mat4 *m, float a)
 {
 	mat4 r;
 
 	mat4 rm; // rotation matrix
 
-	rm = rotmatZ(a); // construct z rot mat
+	rm = rotMatZ(a); // construct z rot mat
 
-	r = m4xm4(m, &rm); // mul
+	r = mat4mat4(m, &rm); // mul
 
 	return r;
 }
@@ -432,25 +436,27 @@ mat4 scale(mat4 *m, float s)
 
 	mat4 sm;
 
-	sm = scalemat(s);
+	sm = Mat4(s);
 
-	r = m4xm4(m, &sm);
+	r = mat4mat4(m, &sm);
 
 	return r;
 }
 
-float v4dot(vec4* v0, vec4* v1)
+mat4 lookAt(vec4 v0, vec4 v1)
 {
-	return v0->x*v1->x + v0->y*v1->y + v0->z*v1->z + v0->w*v1->w;
-}
+	mat4 r;
+	vec4 d = vec4Sub(v1, v0);
+	vec4 up = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	float ya = 0.0f, xa = 0.0f;
 
-vec4 v4cross(vec4* v0, vec4* v1)
-{
-	vec4 v;
+	if (d.x != 0.0f)
+		ya = atan2(d.z, d.x)-1.5708f;
 
-	v.x = v0->y*v1->z - v0->z*v1->y;
-	v.y = v0->z*v1->x - v0->x*v1->z;
-	v.z = v0->x*v1->y - v0->y*v1->x;
+	xa = acos(-vec4Dot(&up, &d)/vec4Len(&d))-1.5708f;
 
-	return v;
+	r = rotMatX(xa);
+	r = rotateY(&r, ya);
+
+	return r;
 }

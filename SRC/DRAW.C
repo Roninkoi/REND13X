@@ -13,9 +13,9 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, byte c)
 	struct tri t;
 	vec4 fc;
 
-	t.v0 = m4xv4(&rm, v0); // transform vertices
-	t.v1 = m4xv4(&rm, v1);
-	t.v2 = m4xv4(&rm, v2);
+	t.v0 = mat4vec4(&rm, v0); // transform vertices
+	t.v1 = mat4vec4(&rm, v1);
+	t.v2 = mat4vec4(&rm, v2);
 
 	//face culling
 	if ((t.v1.x/t.v1.z-t.v0.x/t.v0.z)*(t.v2.y/t.v2.z-t.v0.y/t.v0.z) -
@@ -24,10 +24,10 @@ void r_add(vec4* v0, vec4* v1, vec4* v2, byte c)
 		return;
 
 	fc = t.v0;
-	fc = v4a(fc, t.v1);
-	fc = v4a(fc, t.v2);
-	fc = v4s(fc, 1.0f/3.0f);
-	t.fc = v4l(fc);
+	fc = vec4Add(fc, t.v1);
+	fc = vec4Add(fc, t.v2);
+	fc = vec4Scale(fc, 1.0f/3.0f);
+	t.fc = vec4Len(&fc);
 
 	t.c = c;
 

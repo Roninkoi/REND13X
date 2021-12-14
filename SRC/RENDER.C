@@ -277,6 +277,22 @@ void r_drawtri(float v[3][2], byte c)
 	++drawcount;
 }
 
+void r_drawpoint3d(vec4 v, byte c)
+{
+	if (v.z <= ZNEAR || v.z >= ZFAR)
+		return;
+
+	v.x /= v.z;
+	v.y /= v.z;
+
+	v.x = (v.x+1.0f)*W*0.5f;
+	v.y = (-v.y+1.0f)*H*0.5f;
+
+	if (v.x > R || v.x < L || v.y > B || v.y < T)
+		return;
+
+	r_putpixel(v.x, v.y, c);
+}
 
 void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
 {
