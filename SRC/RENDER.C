@@ -10,6 +10,7 @@ int faceculling = 1;
 int zsort = 1;
 int clearscr = 1;
 int clearcol = 0;
+int doublebuffer = 0;
 
 void r_waitRetrace()
 {

@@ -10,6 +10,7 @@ void tridemo()
 	float vt[3][2];
 
 	clearscr = 0;
+	doublebuffer = 0;
 
 	//for (i = 0; i < 1; ++i) {
 		vt[0][0] = RANDF * 2.0f - 1.0f;
@@ -102,7 +103,7 @@ void demo(float t)
 
 	mat4 rm0 = rm;
 
-	cn = 5;
+	cn = 7;
 	for (i = 0; i < cn; ++i) {
 		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
@@ -205,6 +206,7 @@ int main()
 	hookKeys();
 	hookTime();
 
+	doublebuffer = 1;
 	clearscr = 1;
 	clearcol = 3;
 
@@ -253,8 +255,10 @@ int main()
 			frames = 0;
 		}
 
+#ifdef MODE13
 		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
 				 fps, keycode, rt, drawcount);
+#endif
 
 		r_sync();
 

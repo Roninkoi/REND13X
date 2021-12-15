@@ -42,7 +42,7 @@ typedef unsigned char byte;
 #define H 240
 
 #define r_clear() r_fill(clearcol);
-#define r_sync() r_flip();
+#define r_sync() if (doublebuffer) r_flip(); else r_waitRetrace();
 #endif
 
 // start of video memory
@@ -77,6 +77,7 @@ extern int faceculling; // cull back faces?
 extern int zsort;  // sort triangles by z?
 extern int clearscr; // screen clearing enabled
 extern int clearcol; // screen clear color
+extern int doublebuffer; // enable double buffering in MODEX
 
 extern byte pg; // page number
 extern unsigned pgoffs; // offset of page being written
