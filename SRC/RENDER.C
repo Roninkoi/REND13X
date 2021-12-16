@@ -24,13 +24,15 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 {
 	int i, maxd;
 	int x, y;
-	int dx = x1 - x0;
-	int dy = y1 - y0;
+	int dx, dy;
 	int sx = 1, sy = 1;
 	int diff;
 
 	if (!lineVis(x0, y0, x1, y1))
 		return;
+
+	dx = x1 - x0;
+	dy = y1 - y0;
 
 	dx = x1 - x0;
 	dy = y1 - y0;
@@ -52,7 +54,7 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	y = y0;
 
 	// Bresenham line draw
-	for (i = 0; i < maxd; ++i) {
+	for (i = 0; i <= maxd; ++i) {
 		if (pointVis(x, y))
 			r_putpixel(x, y, c);
 
@@ -65,15 +67,15 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 			y += sy;
 		}
 	}
-	if (pointVis(x1, y1))
-		r_putpixel(x1, y1, c);
 }
 
 void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	int i, diff0, diff1;
+	int i, diff0, diff1, maxd;
 	int s0 = 1, s1 = 1;
-	int y0 = y;
+	int y0 = y + dy;
+	int x2 = x0 + dx0;
+	int x3 = x1 + dx1;
 
 	if (dx0 < 0) {
 		s0 = -1;
@@ -84,19 +86,18 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		dx1 = -dx1;
 	}
 
+	maxd = max(dy, max(dx0, dx1));
+
 	diff0 = dx0 - dy;
 	diff1 = dx1 - dy;
 
-	for (i = 0; y < y0+dy /*&& x0 < x1*/; ++i) {
-		if (y > B)
-			return;
-
-		if (x1 < x0) {
-			x1 = x0;
+	for (i = 0; i <= maxd; ++i) {
+		if (hlineVis(x0, x1, y)) {
+			r_hlinefill(max(x0, L), min(x1, R), y, c);
 		}
 
-		if (x0 <= R && x1 >= L && y >= T)
-			r_hlinefill(max(x0, L), min(x1, R), y, c);
+		if (y > B || y >= y0)
+			return;
 
 		if (2 * diff0 >= -dy) {
 			diff0 -= dy;
@@ -106,6 +107,7 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 			diff1 -= dy;
 			x1 += s1;
 		}
+
 		if (2 * diff0 <= dx0 && 2 * diff1 <= dx1) {
 			diff0 += dx0;
 			diff1 += dx1;
@@ -113,6 +115,8 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		}
 	}
 }
+
+//#define TRILINES
 
 // TODO: clipping at triangle level
 void r_drawtri(float *v, byte c)
@@ -208,6 +212,11 @@ void r_drawtri(float *v, byte c)
 	else
 		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
 
+#ifdef TRILINES
+	r_drawline(x0, y0, x0+dx0, y0+dy1, 0);
+	r_drawline(x0, y0, x0+dx1, y0+dy1, 0);
+#endif
+
 	if (x1 > x2) { // sort x
 			to = x1;
 			x1 = x2;
@@ -223,6 +232,11 @@ void r_drawtri(float *v, byte c)
 		r_trifillclip(x1, dx2, x2, dx01, y2, dy2, c);
 	else
 		r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
+
+#ifdef TRILINES
+	r_drawline(x1, y2, x1+dx2, y2+dy2, 0);
+	r_drawline(x2, y2, x2+dx01, y2+dy2, 0);
+#endif
 
 	++drawcount;
 }

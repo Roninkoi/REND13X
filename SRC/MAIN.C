@@ -7,21 +7,21 @@ int tricount = 0;
 void tridemo()
 {
 	int i;
-	float vt[3][2];
+	float vt[6];
 #define TRIDEMOA 1.0f
 
 	clearscr = 0;
 	doublebuffer = 0;
 
 	//for (i = 0; i < 1; ++i) {
-		vt[0][0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt[0][1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		vt[1][0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt[1][1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[2] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[3] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		vt[2][0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt[2][1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[4] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[5] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
 		r_drawtri(vt, (byte) (RANDF * 256.0f));
 
@@ -230,11 +230,13 @@ int main()
 
 		rm = mat4mat4(&pm, &cm);
 
+		//rm = rotateZ(&rm, t);
 		demo(3.0f*t);
-		r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 4);
-		drawcube(Vec3(0.0f, 0.0f, 10.0f), rotMatY(t), 1.0f, 34);
+		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 4);
+		//drawcube(Vec3(0.0f, 0.0f, 10.0f), rotMatY(t), 1.0f, 34);
+		//r_hlinefill(L, R, 100, 4);
 
-		wireframe = 1;
+		wireframe = 0;
 		filled = 1;
 		faceculling = 1;
 		zsort = 1;

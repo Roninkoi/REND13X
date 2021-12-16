@@ -276,16 +276,21 @@ void r_planefill(int x, int y, int p, byte c)
 
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
+	int px;
 	// fill edges x0 and x1, selecting correct planes
-	r_planefill(x0, y, linepx(x0, min((x0/4)*4 + 3, x1)), c);
-	r_planefill(x1, y, linepx(max(x0, (x1/4)*4), x1), c);
+	px = min((x0/4)*4 + 3, x1);
+	if (x0 <= px)
+		r_planefill(x0, y, linepx(x0, px), c);
+	px = max(x0, (x1/4)*4);
+	if (px <= x1)
+		r_planefill(x1, y, linepx(px, x1), c);
 
 	if (x1 - x0 <= 4) // no center area?
 		return;
 
 	// fill edge area not covered by fill2
 	//r_planefill(max((x1/4-1)*4, x0), y,
-	//	linepx(max((x1/4-1)*4, x0), (x1/4-1)*4+3), c);
+	//linepx(max((x1/4-1)*4, x0), (x1/4-1)*4+3), c);
 	// fill center words at a time
 	//r_hlinefill2(x0, x1, y, c);
 

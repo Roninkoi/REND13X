@@ -66,6 +66,8 @@ typedef unsigned char byte;
 #define pointVis(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
 #define lineVis(x0, y0, x1, y1) (\
 	min(x0, x1) <= R && max(x0, x1) >= L && min(y0, y1) <= B && max(y0, y1) >= T)
+#define hlineVis(x0, x1, y) (\
+	x0 <= R && x1 >= L && y >= T && y <= B)
 #define triVis(x0, y0, x1, y1, x2, y2) (\
 	min(x0, min(x1, x2)) <= R && max(x0, max(x1, x2)) >= L && \
 	min(y0, min(y1, y2)) <= B && max(y0, max(y1, y2)) >= T)

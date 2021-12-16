@@ -97,13 +97,13 @@ void r_draw()
 		if (wireframe) {
 			r_drawline3d(r_buffer[r_sorted[i]].v0,
 				r_buffer[r_sorted[i]].v1,
-				r_buffer[r_sorted[i]].c*0);
+				r_buffer[r_sorted[i]].c);
 			r_drawline3d(r_buffer[r_sorted[i]].v0,
 				r_buffer[r_sorted[i]].v2,
-				r_buffer[r_sorted[i]].c*0);
+				r_buffer[r_sorted[i]].c);
 			r_drawline3d(r_buffer[r_sorted[i]].v1,
 				r_buffer[r_sorted[i]].v2,
-				r_buffer[r_sorted[i]].c*0);
+				r_buffer[r_sorted[i]].c);
 		}
 	}
 
