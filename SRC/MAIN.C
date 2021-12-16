@@ -8,19 +8,20 @@ void tridemo()
 {
 	int i;
 	float vt[3][2];
+#define TRIDEMOA 1.0f
 
 	clearscr = 0;
 	doublebuffer = 0;
 
 	//for (i = 0; i < 1; ++i) {
-		vt[0][0] = RANDF * 2.0f - 1.0f;
-		vt[0][1] = RANDF * 2.0f - 1.0f;
+		vt[0][0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[0][1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		vt[1][0] = RANDF * 2.0f - 1.0f;
-		vt[1][1] = RANDF * 2.0f - 1.0f;
+		vt[1][0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[1][1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		vt[2][0] = RANDF * 2.0f - 1.0f;
-		vt[2][1] = RANDF * 2.0f - 1.0f;
+		vt[2][0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt[2][1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
 		r_drawtri(vt, (byte) (RANDF * 256.0f));
 
@@ -231,15 +232,25 @@ int main()
 
 		rm = mat4mat4(&pm, &cm);
 
-		demo(3.0f*t);
+		rm = rotateZ(&rm, PI+t);
 
-		wireframe = 0;
+		//demo(3.0f*t);
+		r_addf(0.0f, 0.0f, 10.0f,
+		1.0f, 0.0f, 10.0f,
+		1.0f, 1.0f, 10.0f, 4);
+
+		wireframe = 1;
+		filled = 1;
 		faceculling = 1;
 		zsort = 1;
 
 		r_sort();
 
 		r_draw();
+
+//		r_trifillclip(100, 0, 100, 50, 50, 30+30*sin(t), 4);
+
+//		r_trifillclip(100, 70, 140, -10, 50, 50, 4);
 
 		//tridemo();
 		//linedemo();

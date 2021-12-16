@@ -62,6 +62,13 @@ typedef unsigned char byte;
 #define abs(x) (x < 0 ? -(x) : x)
 #define round(x) floor(x + 0.5f)
 
+#define inView(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
+#define lineOut(x0, y0, x1, y1) \
+	min(x0, x1) > R || max(x0, x1) < L || min(y0, y1) > B || max(y0, y1) < T
+#define triOut(x0, y0, x1, y1, x2, y2) \
+	min(x0, min(x1, x2)) > R || max(x0, max(x1, x2)) < L || \
+	min(y0, min(y1, y2)) > B || max(y0, max(y1, y2)) < T
+
 // random float in range [0, 1]
 #define RANDF ((rand() % 10000) / (10000.0f-1.0f))
 
@@ -73,6 +80,7 @@ typedef unsigned char byte;
 
 extern char vmode; // previous video mode
 extern int wireframe; // draw wireframe triangles?
+extern int filled; // fill triangles?
 extern int faceculling; // cull back faces?
 extern int zsort;  // sort triangles by z?
 extern int clearscr; // screen clearing enabled
@@ -118,7 +126,8 @@ void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
 void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c); // fast asm triangle fill using integers, no clipping
-void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c); // triangle will with clipping at pixel level
+//void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c); // triangle will with clipping at pixel level
+void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c); // triangle will with clipping at pixel level
 
 // DRAW
 
