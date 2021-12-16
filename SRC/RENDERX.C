@@ -352,9 +352,9 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
-void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
+void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	r_trifillclip(x0, x1, y, dy, k0, k1, c);
+	r_trifillclip(x0, dx0, x1, dx1, y, dy, c); // TODO: new asm fill for mode 13h
 }
 
 #endif

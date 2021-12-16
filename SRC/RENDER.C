@@ -52,13 +52,9 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	y = y0;
 
 	// Bresenham line draw
-	for (i = 0; i <= maxd; ++i) {
-		if (i == maxd) {
-			x = x1; // make sure last pixel exact
-			y = y1;
-		}
+	for (i = 0; i < maxd; ++i) {
 		if (inView(x, y))
-			r_putpixel(x, y, c+x);
+			r_putpixel(x, y, c);
 
 		if (2 * diff >= -dy) {
 			diff -= dy;
@@ -69,37 +65,9 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 			y += sy;
 		}
 	}
+	//if (inView(x1, y1))
+	//	r_putpixel(x1, y1, c);
 }
-
-/*void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c)
-{
-	int i, xi0, xi1;
-
-	for (i = 0; i < dy; ++i) {
-		x0 += k0;
-		x1 += k1;
-		y += 1;
-
-		if (y > B)
-			return;
-		if (y < T)
-			continue;
-		if (x0 > R)
-			continue;
-		if (x1 < L)
-			continue;
-
-		xi0 = round(x0);
-		xi1 = round(x1);
-
-		if (x0 < L)
-			xi0 = L;
-		if (x1 > R)
-			xi1 = R;
-
-		r_hlinefill(xi0, xi1, y, c);
-	}
-}*/
 
 void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
@@ -122,15 +90,9 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	for (i = 0; y < y0+dy /*&& x0 < x1*/; ++i) {
 		if (y > B)
 			return;
-		if (x0 > R || x1 < L || y < T)
-			continue;
 
-		if (x0 < L)
-			x0 = L;
-		if (x1 > R)
-			x1 = R;
-
-		r_hlinefill(x0, x1, y, c);
+		if (x0 <= R && x1 >= L && y >= T)
+			r_hlinefill(max(x0, L), min(x1, R), y, c);
 
 		if (2 * diff0 >= -dy) {
 			diff0 -= dy;
@@ -149,11 +111,11 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 }
 
 // TODO: clipping at triangle level
-void r_drawtri(float v[3][2], byte c)
+void r_drawtri(float *v, byte c)
 {
 	int to;
 
-	int dx0;
+	int dx0, dx01 = 0;
 	int dx1;
 	int dx2;
 
@@ -162,14 +124,14 @@ void r_drawtri(float v[3][2], byte c)
 	int dy2;
 
 	// transform from gl to pix
-	int x0 = round((v[0][0]+1.0f)*W*0.5f);
-	int y0 = round((-v[0][1]+1.0f)*H*0.5f);
+	int x0 = round((v[0]+1.0f)*W*0.5f);
+	int y0 = round((-v[1]+1.0f)*H*0.5f);
 
-	int x1 = round((v[1][0]+1.0f)*W*0.5f);
-	int y1 = round((-v[1][1]+1.0f)*H*0.5f);
+	int x1 = round((v[2]+1.0f)*W*0.5f);
+	int y1 = round((-v[3]+1.0f)*H*0.5f);
 
-	int x2 = round((v[2][0]+1.0f)*W*0.5f);
-	int y2 = round((-v[2][1]+1.0f)*H*0.5f);
+	int x2 = round((v[4]+1.0f)*W*0.5f);
+	int y2 = round((-v[5]+1.0f)*H*0.5f);
 
 	int mar = 2; // margin
 	int x0out = x0 > R-mar || x0 < L+mar;
@@ -183,8 +145,16 @@ void r_drawtri(float v[3][2], byte c)
 		y0out || y1out || y2out;
 
 	// bounds
-	if (triOut(x0, y1, x1, y1, x2, y2))
+	if (triOut(x0, y0, x1, y1, x2, y2))
 		return;
+
+	if (wireframe) {
+		r_drawline(x0, y0, x1, y1, c);
+		r_drawline(x1, y1, x2, y2, c);
+		r_drawline(x0, y0, x2, y2, c);
+
+		if (!filled) return;
+	}
 
 	// sort vertices by y
 	if (y0 > y2) {
@@ -212,14 +182,6 @@ void r_drawtri(float v[3][2], byte c)
 		x1 = to;
 	}
 
-	if (wireframe) {
-		r_drawline(x0, y0, x1, y1, c);
-		r_drawline(x1, y1, x2, y2, c);
-		r_drawline(x0, y0, x2, y2, c);
-
-		if (!filled) return;
-	}
-
 	// first -> last
 	dx0 = x2 - x0;
 	dy0 = y2 - y0;
@@ -232,8 +194,11 @@ void r_drawtri(float v[3][2], byte c)
 	dx2 = x2 - x1;
 	dy2 = y2 - y1;
 
-//	if (dy0 > dy1)
-		dx0 = dx0 * dy1 / dy0;
+	dx01 = dx0 * (float) dy2 / (float) dy0;
+	dx0 = dx0 * (float) dy1 / (float) dy0;
+
+	x2 = x0 + dx0;
+	y2 -= dy2;
 
 	if (dx0 > dx1) { // sort x
 		to = dx0;
@@ -242,39 +207,31 @@ void r_drawtri(float v[3][2], byte c)
 	}
 
 	// top
-//	if (clipping)
+	if (clipping)
 		r_trifillclip(x0, dx0, x0, dx1, y0, dy1, c);
-//	else
-//		r_trifill(x0, x1, (int) y0, (int) dy1 - 1, k0, k1, c);
-
-
-//	if (dy0 > dy2)
-	dx0 = (x2 - x0) * dy2 / dy0;
-
-	x2 = x0 + (x2 - x0) * dy1 / dy0;
-
-	y2 -= dy2;
+	else
+		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
 
 	if (x1 > x2) { // sort x
 			to = x1;
 			x1 = x2;
 			x2 = to;
 
-			to = dx0;
-			dx0 = dx2;
+			to = dx01;
+			dx01 = dx2;
 			dx2 = to;
 	}
 
 	// bottom
-//	if (clipping)
-		r_trifillclip(x1, dx2, x2, dx0, y2, dy2, c);
-//	else
-//		r_trifill(x1, x2, (int) y2, (int) dy2 - 1, k0, k2, c);
+	if (clipping)
+		r_trifillclip(x1, dx2, x2, dx01, y2, dy2, c);
+	else
+		r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
 
 	++drawcount;
 }
 
-void r_drawpoint3d(vec4 v, byte c)
+void r_drawpoint3d(vec3 v, byte c)
 {
 	if (v.z <= ZNEAR || v.z >= ZFAR)
 		return;
@@ -291,9 +248,9 @@ void r_drawpoint3d(vec4 v, byte c)
 	r_putpixel(v.x, v.y, c);
 }
 
-void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
+void r_drawtri3d(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
-	float t[3][2];
+	float t[6];
 
 	float z0 = v0->z;
 	float z1 = v1->z;
@@ -306,20 +263,20 @@ void r_drawtri3d(vec4 *v0, vec4 *v1, vec4 *v2, byte c)
 		return;
 
 	// projection
-	t[0][0] = v0->x;
-	t[0][0] /= z0;
-	t[0][1] = v0->y;
-	t[0][1] /= z0;
+	t[0] = v0->x;
+	t[0] /= z0;
+	t[1] = v0->y;
+	t[1] /= z0;
 
-	t[1][0] = v1->x;
-	t[1][0] /= z1;
-	t[1][1] = v1->y;
-	t[1][1] /= z1;
+	t[2] = v1->x;
+	t[2] /= z1;
+	t[3] = v1->y;
+	t[3] /= z1;
 
-	t[2][0] = v2->x;
-	t[2][0] /= z2;
-	t[2][1] = v2->y;
-	t[2][1] /= z2;
+	t[4] = v2->x;
+	t[4] /= z2;
+	t[5] = v2->y;
+	t[5] /= z2;
 
 	r_drawtri(t, c);
 }

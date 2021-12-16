@@ -46,17 +46,17 @@ void linedemo()
 	drawcount = n;
 }
 
-void drawcube(vec4 pos, mat4 rot, float a, byte c)
+void drawcube(vec3 pos, mat4 rot, float a, byte c)
 {
-	vec4 cube00 = Vec4(-0.5f*a, -0.5f*a, -0.5f*a, 1.0f);
-	vec4 cube01 = Vec4(0.5f*a, -0.5f*a, -0.5f*a, 1.0f);
-	vec4 cube02 = Vec4(0.5f*a, 0.5f*a, -0.5f*a, 1.0f);
-	vec4 cube03 = Vec4(-0.5f*a, 0.5f*a, -0.5f*a, 1.0f);
+	vec3 cube00 = Vec3(-0.5f*a, -0.5f*a, -0.5f*a);
+	vec3 cube01 = Vec3(0.5f*a, -0.5f*a, -0.5f*a);
+	vec3 cube02 = Vec3(0.5f*a, 0.5f*a, -0.5f*a);
+	vec3 cube03 = Vec3(-0.5f*a, 0.5f*a, -0.5f*a);
 
-	vec4 cube10 = Vec4(-0.5f*a, -0.5f*a, 0.5f*a, 1.0f);
-	vec4 cube11 = Vec4(0.5f*a, -0.5f*a, 0.5f*a, 1.0f);
-	vec4 cube12 = Vec4(0.5f*a, 0.5f*a, 0.5f*a, 1.0f);
-	vec4 cube13 = Vec4(-0.5f*a, 0.5f*a, 0.5f*a, 1.0f);
+	vec3 cube10 = Vec3(-0.5f*a, -0.5f*a, 0.5f*a);
+	vec3 cube11 = Vec3(0.5f*a, -0.5f*a, 0.5f*a);
+	vec3 cube12 = Vec3(0.5f*a, 0.5f*a, 0.5f*a);
+	vec3 cube13 = Vec3(-0.5f*a, 0.5f*a, 0.5f*a);
 
 	mat4 rm0 = rm;
 
@@ -92,19 +92,19 @@ void demo(float t)
 	float lf;
 	int cn;
 
-	vec4 cube00 = Vec4(-0.5f, -0.5f, -0.5f, 1.0f);
-	vec4 cube01 = Vec4(0.5f, -0.5f, -0.5f, 1.0f);
-	vec4 cube02 = Vec4(0.5f, 0.5f, -0.5f, 1.0f);
-	vec4 cube03 = Vec4(-0.5f, 0.5f, -0.5f, 1.0f);
+	vec3 cube00 = Vec3(-0.5f, -0.5f, -0.5f);
+	vec3 cube01 = Vec3(0.5f, -0.5f, -0.5f);
+	vec3 cube02 = Vec3(0.5f, 0.5f, -0.5f);
+	vec3 cube03 = Vec3(-0.5f, 0.5f, -0.5f);
 
-	vec4 cube10 = Vec4(-0.5f, -0.5f, 0.5f, 1.0f);
-	vec4 cube11 = Vec4(0.5f, -0.5f, 0.5f, 1.0f);
-	vec4 cube12 = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
-	vec4 cube13 = Vec4(-0.5f, 0.5f, 0.5f, 1.0f);
+	vec3 cube10 = Vec3(-0.5f, -0.5f, 0.5f);
+	vec3 cube11 = Vec3(0.5f, -0.5f, 0.5f);
+	vec3 cube12 = Vec3(0.5f, 0.5f, 0.5f);
+	vec3 cube13 = Vec3(-0.5f, 0.5f, 0.5f);
 
 	mat4 rm0 = rm;
 
-	cn = 7;
+	cn = 5;
 	for (i = 0; i < cn; ++i) {
 		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
 
@@ -112,7 +112,7 @@ void demo(float t)
 			cos(t/4.0f+3*i/PI)*2.0f,
 			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));*/
 
-		rm = translate(&rm, Vec4(10.0f*sin(t+i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 10.0f+3.0f*sin(t/5.0f+i/PI/5.0f), 0.0f));
+		rm = translate(&rm, Vec3(10.0f*sin(t+2*i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 10.0f+5.0f*sin(t/5.0f+i/PI/5.0f)));
 		rm = rotateY(&rm, sin(i/PI)*i/cn*t);
 		rm = rotateX(&rm, t);
 
@@ -175,7 +175,7 @@ int main()
 	mat4 cm = Mat4(1.0f);
 
 	// camera position
-	vec4 cam;
+	vec3 cam;
 
 	t = 0.0f;
 	running = 1;
@@ -221,25 +221,20 @@ int main()
 
 		rs -= itime;
 
-		cam = Vec4(-posx, -posy, -posz, 0.0f);
+		cam = Vec3(-posx, -posy, -posz);
 
-		cm = Mat4(1.0f);
-
-		cm = rotateX(&cm, rotx);
+		cm = rotMatX(rotx);
 		cm = rotateY(&cm, roty);
 
 		cm = translate(&cm, cam);
 
 		rm = mat4mat4(&pm, &cm);
 
-		rm = rotateZ(&rm, PI+t);
+		demo(3.0f*t);
+		//r_addf(0.0f, 0.0f, 10.0f, 1.0f, 0.0f, 10.0f, 1.0f, 1.0f, 10.0f, 4);
+		//drawcube(Vec3(0.0f, 0.0f, 10.0f), rotMatY(t), 1.0f, 34);
 
-		//demo(3.0f*t);
-		r_addf(0.0f, 0.0f, 10.0f,
-		1.0f, 0.0f, 10.0f,
-		1.0f, 1.0f, 10.0f, 4);
-
-		wireframe = 1;
+		wireframe = 0;
 		filled = 1;
 		faceculling = 1;
 		zsort = 1;
@@ -247,10 +242,6 @@ int main()
 		r_sort();
 
 		r_draw();
-
-//		r_trifillclip(100, 0, 100, 50, 50, 30+30*sin(t), 4);
-
-//		r_trifillclip(100, 70, 140, -10, 50, 50, 4);
 
 		//tridemo();
 		//linedemo();

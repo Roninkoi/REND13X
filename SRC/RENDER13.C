@@ -205,66 +205,9 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 	}
 }
 
-#define TRIMAR 64 // correction
-void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c)
+void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	unsigned xi0, xi1, ki0, ki1, ye;
-
-	xi0 = (unsigned)(x0*128.0f);
-	xi1 = (unsigned)(x1*128.0f);
-	ki0 = (unsigned)(k0*128.0f);
-	ki1 = (unsigned)(k1*128.0f);
-
-	if (dy <= 0)
-		return;
-
-	ye = y + dy;
-
-	y *= W;
-	ye *= W;
-
-	asm {
-		mov ax, VSTART
-		mov es, ax // video memory start
-
-		mov bx, xi0 // initial points
-		mov si, xi1
-#ifdef TRIMAR
-		sub bx, TRIMAR/2
-		add si, TRIMAR/2
-#endif
-		mov dx, y
-	}
-	drawt:
-	asm {
-		add bx, ki0 // x0 += k0
-		add si, ki1 // x1 += k1
-		add dx, W // y += 1
-
-		mov di, bx
-#ifdef TRIMAR
-		sub di, TRIMAR // correction
-#endif
-		shr di, 7 // divide by 128
-
-		mov cx, si
-#ifdef TRIMAR
-		add cx, TRIMAR
-#endif
-		shr cx, 7
-
-		sub cx, di
-		add di, dx // calculate final addresses
-
-		xor ah, ah
-		mov al, c // color
-
-		rep stosb
-
-		mov ax, ye
-		cmp dx, ax
-		jb drawt // lines left?
-	}
+	r_trifillclip(x0, dx0, x1, dx1, y, dy, c); // TODO: new asm fill for mode 13h
 }
 
 #endif

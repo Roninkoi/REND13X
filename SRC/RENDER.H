@@ -54,20 +54,21 @@ typedef unsigned char byte;
 #define ZNEAR 0.2
 #define ZFAR 20.0
 
-#define min(x, y) (x > y ? y : x)
-#define max(x, y) (x < y ? y : x)
-#define clamp(x, min, max) (x > max ? max : (x < min ? min : x))
+#define min(x, y) ((x) > (y) ? (y) : (x))
+#define max(x, y) ((x) < (y) ? (y) : (x))
+#define clamp(x, min, max) ((x) > (max) ? (max) : ((x) < (min) ? (min) : (x)))
 
 #define sign(x) (x >= 0 ? 1 : -1)
 #define abs(x) (x < 0 ? -(x) : x)
 #define round(x) floor(x + 0.5f)
 
 #define inView(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
-#define lineOut(x0, y0, x1, y1) \
-	min(x0, x1) > R || max(x0, x1) < L || min(y0, y1) > B || max(y0, y1) < T
-#define triOut(x0, y0, x1, y1, x2, y2) \
+
+#define lineOut(x0, y0, x1, y1) (\
+	min(x0, x1) > R || max(x0, x1) < L || min(y0, y1) > B || max(y0, y1) < T)
+#define triOut(x0, y0, x1, y1, x2, y2) (\
 	min(x0, min(x1, x2)) > R || max(x0, max(x1, x2)) < L || \
-	min(y0, min(y1, y2)) > B || max(y0, max(y1, y2)) < T
+	min(y0, min(y1, y2)) > B || max(y0, max(y1, y2)) < T)
 
 // random float in range [0, 1]
 #define RANDF ((rand() % 10000) / (10000.0f-1.0f))
@@ -91,9 +92,9 @@ extern byte pg; // page number
 extern unsigned pgoffs; // offset of page being written
 
 struct tri {
-	vec4 v0; // vertices
-	vec4 v1;
-	vec4 v2;
+	vec3 v0; // vertices
+	vec3 v1;
+	vec3 v2;
 
 	float fc; // face center distance
 
@@ -125,23 +126,22 @@ void r_hlinefill(int x0, int x1, int y, byte c); // horizontal line draw with op
 void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
-void r_trifill(float x0, float x1, int y, int dy, float k0, float k1, byte c); // fast asm triangle fill using integers, no clipping
-//void r_trifillclip(float x0, float x1, int y, int dy, float k0, float k1, byte c); // triangle will with clipping at pixel level
+void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c); // fast asm triangle fill using integers, no clipping
 void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c); // triangle will with clipping at pixel level
 
 // DRAW
 
-void r_add(vec4* v0, vec4* v1, vec4* v2, byte c); // add triangle to render buffer
+void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c); // add triangle to render buffer
 void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
 			float v2x, float v2y, float v2z, byte c);
 
 void r_drawline(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
 
-void r_drawpoint3d(vec4 v, byte c);
+void r_drawpoint3d(vec3 v, byte c);
 
-void r_drawtri(float v[3][2], byte c); // draw triangle of color c with vertices v
-void r_drawtri3d(vec4* v0, vec4* v1, vec4* v2, byte c); // draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
+void r_drawtri(float *v, byte c); // draw triangle of color c with vertices v
+void r_drawtri3d(vec3 *v0, vec3 *v1, vec3 *v2, byte c); // draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
 
 void r_sort(); // sort triangles by centroid z coordinate
 void r_draw(); // draw all triangles in render buffer
