@@ -29,7 +29,7 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	int sx = 1, sy = 1;
 	int diff;
 
-	if (lineOut(x0, y0, x1, y1))
+	if (!lineVis(x0, y0, x1, y1))
 		return;
 
 	dx = x1 - x0;
@@ -53,7 +53,7 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 
 	// Bresenham line draw
 	for (i = 0; i < maxd; ++i) {
-		if (inView(x, y))
+		if (pointVis(x, y))
 			r_putpixel(x, y, c);
 
 		if (2 * diff >= -dy) {
@@ -65,8 +65,8 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 			y += sy;
 		}
 	}
-	//if (inView(x1, y1))
-	//	r_putpixel(x1, y1, c);
+	if (pointVis(x1, y1))
+		r_putpixel(x1, y1, c);
 }
 
 void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
@@ -145,7 +145,7 @@ void r_drawtri(float *v, byte c)
 		y0out || y1out || y2out;
 
 	// bounds
-	if (triOut(x0, y0, x1, y1, x2, y2))
+	if (!triVis(x0, y0, x1, y1, x2, y2))
 		return;
 
 	if (wireframe) {
@@ -242,7 +242,7 @@ void r_drawpoint3d(vec3 v, byte c)
 	v.x = (v.x+1.0f)*W*0.5f;
 	v.y = (-v.y+1.0f)*H*0.5f;
 
-	if (v.x > R || v.x < L || v.y > B || v.y < T)
+	if (!pointVis(v.x, v.y))
 		return;
 
 	r_putpixel(v.x, v.y, c);

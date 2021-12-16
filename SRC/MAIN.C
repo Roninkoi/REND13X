@@ -39,8 +39,8 @@ void linedemo()
 	for (i = 0; i < n; ++i) {
 		a = (float) i / (float) n;
 		r_drawline(W/2, H/2,
-			W/2 + 0.45f*H*cos(2.0f*PI*a),
-			H/2 + 0.45f*H*sin(2.0f*PI*a),
+			round(W/2 + 0.45f*H*cos(2.0f*PI*a)),
+			round(H/2 + 0.45f*H*sin(2.0f*PI*a)),
 			256*a);
 	}
 	drawcount = n;

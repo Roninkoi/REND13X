@@ -62,13 +62,12 @@ typedef unsigned char byte;
 #define abs(x) (x < 0 ? -(x) : x)
 #define round(x) floor(x + 0.5f)
 
-#define inView(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
-
-#define lineOut(x0, y0, x1, y1) (\
-	min(x0, x1) > R || max(x0, x1) < L || min(y0, y1) > B || max(y0, y1) < T)
-#define triOut(x0, y0, x1, y1, x2, y2) (\
-	min(x0, min(x1, x2)) > R || max(x0, max(x1, x2)) < L || \
-	min(y0, min(y1, y2)) > B || max(y0, max(y1, y2)) < T)
+#define pointVis(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
+#define lineVis(x0, y0, x1, y1) (\
+	min(x0, x1) <= R && max(x0, x1) >= L && min(y0, y1) <= B && max(y0, y1) >= T)
+#define triVis(x0, y0, x1, y1, x2, y2) (\
+	min(x0, min(x1, x2)) <= R && max(x0, max(x1, x2)) >= L && \
+	min(y0, min(y1, y2)) <= B && max(y0, max(y1, y2)) >= T)
 
 // random float in range [0, 1]
 #define RANDF ((rand() % 10000) / (10000.0f-1.0f))
