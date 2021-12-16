@@ -91,6 +91,10 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		if (y > B)
 			return;
 
+		if (x1 < x0) {
+			x1 = x0;
+		}
+
 		if (x0 <= R && x1 >= L && y >= T)
 			r_hlinefill(max(x0, L), min(x1, R), y, c);
 
@@ -148,14 +152,6 @@ void r_drawtri(float *v, byte c)
 	if (!triVis(x0, y0, x1, y1, x2, y2))
 		return;
 
-	if (wireframe) {
-		r_drawline(x0, y0, x1, y1, c);
-		r_drawline(x1, y1, x2, y2, c);
-		r_drawline(x0, y0, x2, y2, c);
-
-		if (!filled) return;
-	}
-
 	// sort vertices by y
 	if (y0 > y2) {
 		to = y0;
@@ -207,7 +203,7 @@ void r_drawtri(float *v, byte c)
 	}
 
 	// top
-	if (clipping)
+	if (clipping || 1)
 		r_trifillclip(x0, dx0, x0, dx1, y0, dy1, c);
 	else
 		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
@@ -223,7 +219,7 @@ void r_drawtri(float *v, byte c)
 	}
 
 	// bottom
-	if (clipping)
+	if (clipping || 1)
 		r_trifillclip(x1, dx2, x2, dx01, y2, dy2, c);
 	else
 		r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
@@ -246,6 +242,33 @@ void r_drawpoint3d(vec3 v, byte c)
 		return;
 
 	r_putpixel(v.x, v.y, c);
+}
+
+void r_drawline3d(vec3 v0, vec3 v1, byte c)
+{
+	int x0, y0, x1, y1;
+
+	if (v0.z <= ZNEAR || v1.z <= ZNEAR)
+		return;
+
+	if (v0.z >= ZFAR && v1.z >= ZFAR)
+		return;
+
+	// projection
+	v0.x /= v0.z;
+	v0.y /= v0.z;
+
+	v1.x /= v1.z;
+	v1.y /= v1.z;
+
+	// transform from gl to pix
+	x0 = round((v0.x+1.0f)*W*0.5f);
+	y0 = round((-v0.y+1.0f)*H*0.5f);
+
+	x1 = round((v1.x+1.0f)*W*0.5f);
+	y1 = round((-v1.y+1.0f)*H*0.5f);
+
+	r_drawline(x0, y0, x1, y1, c);
 }
 
 void r_drawtri3d(vec3 *v0, vec3 *v1, vec3 *v2, byte c)

@@ -231,10 +231,10 @@ int main()
 		rm = mat4mat4(&pm, &cm);
 
 		demo(3.0f*t);
-		//r_addf(0.0f, 0.0f, 10.0f, 1.0f, 0.0f, 10.0f, 1.0f, 1.0f, 10.0f, 4);
-		//drawcube(Vec3(0.0f, 0.0f, 10.0f), rotMatY(t), 1.0f, 34);
+		r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 4);
+		drawcube(Vec3(0.0f, 0.0f, 10.0f), rotMatY(t), 1.0f, 34);
 
-		wireframe = 0;
+		wireframe = 1;
 		filled = 1;
 		faceculling = 1;
 		zsort = 1;

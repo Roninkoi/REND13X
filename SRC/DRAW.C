@@ -89,10 +89,22 @@ void r_draw()
 
 	// draw triangles back to front
 	for (i = 0; i < r_num; ++i) {
-		r_drawtri3d(&r_buffer[r_sorted[i]].v0,
-			&r_buffer[r_sorted[i]].v1,
-			&r_buffer[r_sorted[i]].v2,
-			r_buffer[r_sorted[i]].c);
+		if (filled)
+			r_drawtri3d(&r_buffer[r_sorted[i]].v0,
+				&r_buffer[r_sorted[i]].v1,
+				&r_buffer[r_sorted[i]].v2,
+				r_buffer[r_sorted[i]].c);
+		if (wireframe) {
+			r_drawline3d(r_buffer[r_sorted[i]].v0,
+				r_buffer[r_sorted[i]].v1,
+				r_buffer[r_sorted[i]].c*0);
+			r_drawline3d(r_buffer[r_sorted[i]].v0,
+				r_buffer[r_sorted[i]].v2,
+				r_buffer[r_sorted[i]].c*0);
+			r_drawline3d(r_buffer[r_sorted[i]].v1,
+				r_buffer[r_sorted[i]].v2,
+				r_buffer[r_sorted[i]].c*0);
+		}
 	}
 
 	r_num = 0;

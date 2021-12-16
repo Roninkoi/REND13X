@@ -62,6 +62,7 @@ typedef unsigned char byte;
 #define abs(x) (x < 0 ? -(x) : x)
 #define round(x) floor(x + 0.5f)
 
+// determine visibility of geometric primitives
 #define pointVis(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
 #define lineVis(x0, y0, x1, y1) (\
 	min(x0, x1) <= R && max(x0, x1) >= L && min(y0, y1) <= B && max(y0, y1) >= T)
@@ -136,10 +137,11 @@ void r_addf(float v0x, float v0y, float v0z,
 			float v2x, float v2y, float v2z, byte c);
 
 void r_drawline(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
-
-void r_drawpoint3d(vec3 v, byte c);
-
 void r_drawtri(float *v, byte c); // draw triangle of color c with vertices v
+
+// perspective projected draws
+void r_drawpoint3d(vec3 v, byte c);
+void r_drawline3d(vec3 v0, vec3 v1, byte c);
 void r_drawtri3d(vec3 *v0, vec3 *v1, vec3 *v2, byte c); // draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
 
 void r_sort(); // sort triangles by centroid z coordinate
