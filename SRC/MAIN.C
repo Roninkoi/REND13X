@@ -234,12 +234,10 @@ int main()
 
 		demo(3.0f*t);
 
-		//rm = rotateZ(&rm, t);
 		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 4);
 		om = rotMatY(t);
 		om = rotateX(&om, t);
 		drawcube(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 42, 12);
-		//r_hlinefill(L, R, 100, 4);
 
 		wireframe = 0;
 		filled = 1;

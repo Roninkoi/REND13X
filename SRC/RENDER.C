@@ -70,6 +70,58 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	}
 }
 
+// TODO: asm version
+void r_vlinefill(int x, int y0, int y1, byte c)
+{
+	for (; y0 <= y1; ++y0) {
+		r_putpixel(x, y0, c);
+	}
+}
+
+void r_trivfillclip(int x, int dx, int y0, int dy0, int y1, int dy1, byte c)
+{
+	int i, diff0, diff1, d0, d1;
+	int s0 = 1, s1 = 1;
+	int x0 = x + dx;
+
+	if (dy0 < 0) {
+		s0 = -1;
+		dy0 = -dy0;
+	}
+	if (dy1 < 0) {
+		s1 = -1;
+		dy1 = -dy1;
+	}
+
+	diff0 = dy0 - dx;
+	diff1 = dy1 - dx;
+
+	while (x <= x0) {
+		if (vlineVis(x, y0, y1))
+			r_vlinefill(x, max(y0, T), min(y1, B), c);
+
+		if (x > R || x >= x0)
+			return;
+
+		d0 = diff0;
+		d1 = diff1;
+		if (2 * d0 >= -dx) {
+			diff0 -= dx;
+			y0 += s0;
+		}
+		if (2 * d1 >= -dx) {
+			diff1 -= dx;
+			y1 += s1;
+		}
+
+		if (2 * d0 <= dy0 && 2 * d1 <= dy1) {
+			diff0 += dy0;
+			diff1 += dy1;
+			x += 1;
+		}
+	}
+}
+
 void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
 	int i, diff0, diff1, d0, d1;
@@ -89,9 +141,8 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	diff1 = dx1 - dy;
 
 	while (y <= y0) {
-		if (hlineVis(x0, x1, y)) {
+		if (hlineVis(x0, x1, y))
 			r_hlinefill(max(x0, L), min(x1, R), y, c);
-		}
 
 		if (y > B || y >= y0)
 			return;

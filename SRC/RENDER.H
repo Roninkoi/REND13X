@@ -68,6 +68,8 @@ typedef unsigned char byte;
 	min(x0, x1) <= R && max(x0, x1) >= L && min(y0, y1) <= B && max(y0, y1) >= T)
 #define hlineVis(x0, x1, y) (\
 	x0 <= R && x1 >= L && y >= T && y <= B)
+#define vlineVis(x, y0, y1) (\
+	x <= R && x >= L && y0 <= B && y1 >= T)
 #define triVis(x0, y0, x1, y1, x2, y2) (\
 	min(x0, min(x1, x2)) <= R && max(x0, max(x1, x2)) >= L && \
 	min(y0, min(y1, y2)) <= B && max(y0, max(y1, y2)) >= T)
@@ -124,7 +126,8 @@ void r_scr(byte c); // clear screen with color c by int 10h, slightly faster tha
 void r_flip(); // flip page
 void r_fill(byte c); // fill entire screen area with color c
 void r_vfill(int y0, int h, byte c); // vertical fill from top y0, height h, color c
-void r_hlinefill(int x0, int x1, int y, byte c); // horizontal line draw with optional x sort and clipping
+void r_hlinefill(int x0, int x1, int y, byte c); // horizontal line fill with optional x sort and clipping
+void r_vlinefill(int x, int y0, int y1, byte c); // verticalline fill
 void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
