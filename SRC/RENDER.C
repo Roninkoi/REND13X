@@ -181,16 +181,7 @@ void r_drawtri(float *v, byte c)
 	int x2 = round((v[4]+1.0f)*W*0.5f);
 	int y2 = round((-v[5]+1.0f)*H*0.5f);
 
-	int mar = 2; // margin
-	int x0out = x0 > R-mar || x0 < L+mar;
-	int x1out = x1 > R-mar || x1 < L+mar;
-	int x2out = x2 > R-mar || x2 < L+mar;
-	int y0out = y0 > B-mar || y0 < T+mar;
-	int y1out = y1 > B-mar || y1 < T+mar;
-	int y2out = y2 > B-mar || y2 < T+mar;
-
-	int clipping = x0out || x1out || x2out ||
-		y0out || y1out || y2out;
+	int clipping = triClips(x0, y0, x1, y1, x2, y2, 2);
 
 	// bounds
 	if (!triVis(x0, y0, x1, y1, x2, y2))

@@ -73,6 +73,14 @@ typedef unsigned char byte;
 #define triVis(x0, y0, x1, y1, x2, y2) (\
 	min(x0, min(x1, x2)) <= R && max(x0, max(x1, x2)) >= L && \
 	min(y0, min(y1, y2)) <= B && max(y0, max(y1, y2)) >= T)
+#define triClips(x0, y0, x1, y1, x2, y2, mar) (\
+	(x0 > R-mar) || (x0 < L+mar) || \
+	(x1 > R-mar) || (x1 < L+mar) || \
+	(x2 > R-mar) || (x2 < L+mar) || \
+	(y0 > B-mar) || (y0 < T+mar) || \
+	(y1 > B-mar) || (y1 < T+mar) || \
+	(y2 > B-mar) || (y2 < T+mar))
+
 
 // random float in range [0, 1]
 #define RANDF ((rand() % 10000) / (10000.0f-1.0f))
