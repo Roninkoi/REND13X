@@ -70,14 +70,6 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	}
 }
 
-// TODO: asm version
-void r_vlinefill(int x, int y0, int y1, byte c)
-{
-	for (; y0 <= y1; ++y0) {
-		r_putpixel(x, y0, c);
-	}
-}
-
 void r_trivfillclip(int x, int dx, int y0, int dy0, int y1, int dy1, byte c)
 {
 	int i, diff0, diff1, d0, d1;

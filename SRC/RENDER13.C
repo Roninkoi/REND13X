@@ -205,6 +205,38 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 	}
 }
 
+void r_vlinefill(int x, int y0, int y1, byte c)
+{
+	asm {
+		mov ax, VSTART
+		mov es, ax
+
+		mov di, y0
+		mov ax, W
+		mul di
+		mov di, ax
+		add di, x // starting address
+
+		mov cx, y1
+		add cx, 1 // n = y1 - y0 + 1
+		mov ax, W
+		mul cx
+
+		mov dx, ax
+		add dx, x // calculate final address
+
+		xor ah, ah
+		mov al, c // color
+	}
+	vfill:
+	asm {
+		mov [es:di], al
+		add di, W
+		cmp di, dx
+		jb vfill
+	}
+}
+
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
 	r_trifillclip(x0, dx0, x1, dx1, y, dy, c); // TODO: new asm fill for mode 13h

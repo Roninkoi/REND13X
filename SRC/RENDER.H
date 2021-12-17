@@ -127,7 +127,7 @@ void r_flip(); // flip page
 void r_fill(byte c); // fill entire screen area with color c
 void r_vfill(int y0, int h, byte c); // vertical fill from top y0, height h, color c
 void r_hlinefill(int x0, int x1, int y, byte c); // horizontal line fill with optional x sort and clipping
-void r_vlinefill(int x, int y0, int y1, byte c); // verticalline fill
+void r_vlinefill(int x, int y0, int y1, byte c); // vertical line fill
 void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
