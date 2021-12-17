@@ -359,7 +359,7 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	r_trifillclip(x0, dx0, x1, dx1, y, dy, c); // TODO: new asm fill for mode 13h
+	r_trifillclip(x0, dx0, x1, dx1, y, dy, c); // TODO: asm fill optimized for planar memory in mode X
 }
 
 #endif

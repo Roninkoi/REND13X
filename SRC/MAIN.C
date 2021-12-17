@@ -46,7 +46,7 @@ void linedemo()
 	drawcount = n;
 }
 
-void drawcube(vec3 pos, mat4 rot, float a, byte c)
+void drawcube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 {
 	vec3 cube00 = Vec3(-0.5f*a, -0.5f*a, -0.5f*a);
 	vec3 cube01 = Vec3(0.5f*a, -0.5f*a, -0.5f*a);
@@ -62,25 +62,25 @@ void drawcube(vec3 pos, mat4 rot, float a, byte c)
 
 	rm = scale(&rm, a);
 	rm = translate(&rm, pos);
-	rm = mat4mat4(&rm, &rot);
+	rm = mat4mat4(&rm, rot);
 
-	r_add(&cube00, &cube01, &cube02, c);
-	r_add(&cube00, &cube02, &cube03, c);
+	r_add(&cube00, &cube01, &cube02, c+ci*0);
+	r_add(&cube00, &cube02, &cube03, c+ci*1);
 
-	r_add(&cube10, &cube12, &cube11, c);
-	r_add(&cube10, &cube13, &cube12, c);
+	r_add(&cube10, &cube12, &cube11, c+ci*2);
+	r_add(&cube10, &cube13, &cube12, c+ci*3);
 
-	r_add(&cube00, &cube10, &cube11, c);
-	r_add(&cube00, &cube11, &cube01, c);
+	r_add(&cube00, &cube10, &cube11, c+ci*4);
+	r_add(&cube00, &cube11, &cube01, c+ci*5);
 
-	r_add(&cube01, &cube11, &cube12, c);
-	r_add(&cube01, &cube12, &cube02, c);
+	r_add(&cube01, &cube11, &cube12, c+ci*6);
+	r_add(&cube01, &cube12, &cube02, c+ci*7);
 
-	r_add(&cube02, &cube12, &cube13, c);
-	r_add(&cube02, &cube13, &cube03, c);
+	r_add(&cube02, &cube12, &cube13, c+ci*8);
+	r_add(&cube02, &cube13, &cube03, c+ci*9);
 
-	r_add(&cube03, &cube13, &cube10, c);
-	r_add(&cube03, &cube10, &cube00, c);
+	r_add(&cube03, &cube13, &cube10, c+ci*10);
+	r_add(&cube03, &cube10, &cube00, c+ci*11);
 
 	rm = rm0;
 }
@@ -173,6 +173,8 @@ int main()
 	mat4 pm = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
 	// camera matrix
 	mat4 cm = Mat4(1.0f);
+	// object matrix
+	mat4 om = Mat4(1.0f);
 
 	// camera position
 	vec3 cam;
@@ -230,10 +232,13 @@ int main()
 
 		rm = mat4mat4(&pm, &cm);
 
-		//rm = rotateZ(&rm, t);
 		demo(3.0f*t);
+
+		//rm = rotateZ(&rm, t);
 		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 4);
-		//drawcube(Vec3(0.0f, 0.0f, 10.0f), rotMatY(t), 1.0f, 34);
+		om = rotMatY(t);
+		om = rotateX(&om, t);
+		drawcube(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 42, 12);
 		//r_hlinefill(L, R, 100, 4);
 
 		wireframe = 0;
