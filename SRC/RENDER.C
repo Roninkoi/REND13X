@@ -179,7 +179,7 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	}
 
 	// top
-	r_trihfillclip(x0, dx0, x0, dx1, y0, dy1, c);
+	//r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
 
 	if (x1 > x2) { // sort x
 			to = x1;
@@ -192,7 +192,8 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	}
 
 	// bottom
-	r_trihfillclip(x1, dx2, x2, dx01, y2, dy2, c);
+	r_trihfillclip(x1, dx2, x2, dx01, y2, dy2, c+5);
+	r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
 
 	++drawcount;
 }

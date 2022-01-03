@@ -64,15 +64,23 @@ void r_fill(byte c)
 
 void r_vfill(int y0, int h, byte c)
 {
-	y0 *= W;
-	h *= W;
 	asm {
 		mov ax, VSTART
 		mov es, ax
-		mov di, y0
-		mov cx, h
+
+		mov di, W
+		mov ax, y0
+		mul di
+		mov di, ax
+
+		mov cx, W
+		mov ax, h
+		mul cx
+		mov cx, ax
+
 		xor ah, ah
 		mov al, c
+
 		rep stosb
 	}
 }
@@ -90,8 +98,11 @@ void r_scr(byte c)
 	}
 }
 
+
+//#define RECTCLIP
 void r_rectfill(int x, int y, int w, int h, byte c)
 {
+#ifdef RECTCLIP
 	w = clamp(w + x, 0, W);
 	h = clamp(h + y, 0, H);
 	x = clamp(x, L, R);
@@ -100,38 +111,45 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 	if (w <= x || h <= y) {
 		return;
 	}
-
-	w -= x;
-
-	h *= W;
-	y *= W;
+#endif
 
 	asm {
 		mov ax, VSTART
 		mov es, ax
 
-		mov dx, h
+		mov dx, y
+		mov ax, W
+		mul dx // y offset
 
-		mov di, y
-		add di, x
+		mov di, x // start points
+		mov cx, di
+		add cx, w
 
-		mov cx, w
+		sub cx, di
+		mov si, cx
+		add di, ax // calculate address
+
+		mov dx, y
+		add dx, h
+		mov ax, W
+		mul dx
+		mov dx, ax // final line start address
+
+		xor ah, ah
+		mov al, c // color
 
 		mov bx, W
 		sub bx, cx
-
-		xor ah, ah
-		mov al, c
 	}
-	draw:
+	rfill:
 	asm {
-		rep stosb
+		rep stosb // fill line
 
-		mov cx, w
+		mov cx, si
+		add di, bx // y += 1
 
-		add di, bx
 		cmp di, dx
-		jb draw
+		jb rfill
 	}
 }
 
@@ -239,46 +257,48 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	int i, diff0, diff1, d0, d1;
-	int s0 = 1, s1 = 1;
-	int y0 = y + dy;
-
-	if (dx0 < 0) {
-		s0 = -1;
-		dx0 = -dx0;
-	}
-	if (dx1 < 0) {
-		s1 = -1;
-		dx1 = -dx1;
-	}
-
-	diff0 = dx0 - dy;
-	diff1 = dx1 - dy;
-
 	asm {
 		mov ax, VSTART
 		mov es, ax
 
 		mov dx, y
+
+		mov ax, dx0
+		shl ax, 7
+		div dx
+		mov bx, ax
+
 		mov ax, W
 		mul dx // y offset
 		mov dx, ax
 
-		mov cx, x1
+		mov cx, x1 // start points
 		mov di, x0
 
 		sub cx, di
-		add cx, 1 // n = x1 - x0 + 1
+		inc cx // n = x1 - x0 + 1
+		push cx
 		add di, ax // calculate address
+
+		mov dx, y
+		add dx, dy
+		inc dx
+		mov ax, W
+		mul dx
+		mov dx, ax // final line start address
 
 		xor ah, ah
 		mov al, c // color
 	}
 	tfill:
 	asm {
-		rep stosb
+		rep stosb // fill line
 
-		add di, W
+		pop cx
+		sub di, cx
+		add di, W // y += 1
+		push cx
+
 		cmp di, dx
 		jb tfill
 	}
