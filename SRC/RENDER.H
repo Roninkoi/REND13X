@@ -139,8 +139,13 @@ void r_vlinefill(int x, int y0, int y1, byte c); // vertical line fill
 void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
-void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c); // fast asm triangle fill using integers, no clipping
-void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c); // triangle will with clipping at pixel level
+// fast asm triangle fill using integers, no clipping
+#ifdef MODE13
+void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
+#endif
+#ifdef MODEX
+void r_trifill(int x0, int dx0, int y0, int dy0, int y1, int dy1, byte c);
+#endif
 
 // DRAW
 

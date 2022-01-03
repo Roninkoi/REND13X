@@ -234,7 +234,7 @@ int main()
 
 		demo(3.0f*t);
 
-		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 4);
+		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 2.0f, 1.0f, 1.0f, 4);
 		om = rotMatY(t);
 		om = rotateX(&om, t);
 		drawcube(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 42, 12);

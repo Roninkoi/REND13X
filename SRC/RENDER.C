@@ -70,51 +70,9 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	}
 }
 
-void r_trivfillclip(int x, int dx, int y0, int dy0, int y1, int dy1, byte c)
-{
-	int i, diff0, diff1, d0, d1;
-	int s0 = 1, s1 = 1;
-	int x0 = x + dx;
+#ifdef MODE13
 
-	if (dy0 < 0) {
-		s0 = -1;
-		dy0 = -dy0;
-	}
-	if (dy1 < 0) {
-		s1 = -1;
-		dy1 = -dy1;
-	}
-
-	diff0 = dy0 - dx;
-	diff1 = dy1 - dx;
-
-	while (x <= x0) {
-		if (vlineVis(x, y0, y1))
-			r_vlinefill(x, max(y0, T), min(y1, B), c);
-
-		if (x > R || x >= x0)
-			return;
-
-		d0 = diff0;
-		d1 = diff1;
-		if (2 * d0 >= -dx) {
-			diff0 -= dx;
-			y0 += s0;
-		}
-		if (2 * d1 >= -dx) {
-			diff1 -= dx;
-			y1 += s1;
-		}
-
-		if (2 * d0 <= dy0 && 2 * d1 <= dy1) {
-			diff0 += dy0;
-			diff1 += dy1;
-			x += 1;
-		}
-	}
-}
-
-void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+void r_trihfillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
 	int i, diff0, diff1, d0, d1;
 	int s0 = 1, s1 = 1;
@@ -158,8 +116,7 @@ void r_trifillclip(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	}
 }
 
-// TODO: clipping at triangle level
-void r_drawtri(float *v, byte c)
+void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 {
 	int to;
 
@@ -170,22 +127,6 @@ void r_drawtri(float *v, byte c)
 	int dy0;
 	int dy1;
 	int dy2;
-
-	// transform from gl to pix
-	int x0 = round((v[0]+1.0f)*W*0.5f);
-	int y0 = round((-v[1]+1.0f)*H*0.5f);
-
-	int x1 = round((v[2]+1.0f)*W*0.5f);
-	int y1 = round((-v[3]+1.0f)*H*0.5f);
-
-	int x2 = round((v[4]+1.0f)*W*0.5f);
-	int y2 = round((-v[5]+1.0f)*H*0.5f);
-
-	int clipping = triClips(x0, y0, x1, y1, x2, y2, 2);
-
-	// bounds
-	if (!triVis(x0, y0, x1, y1, x2, y2))
-		return;
 
 	// sort vertices by y
 	if (y0 > y2) {
@@ -238,10 +179,7 @@ void r_drawtri(float *v, byte c)
 	}
 
 	// top
-	if (clipping)
-		r_trifillclip(x0, dx0, x0, dx1, y0, dy1, c);
-	else
-		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
+	r_trihfillclip(x0, dx0, x0, dx1, y0, dy1, c);
 
 	if (x1 > x2) { // sort x
 			to = x1;
@@ -254,12 +192,168 @@ void r_drawtri(float *v, byte c)
 	}
 
 	// bottom
-	if (clipping)
-		r_trifillclip(x1, dx2, x2, dx01, y2, dy2, c);
-	else
-		r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
+	r_trihfillclip(x1, dx2, x2, dx01, y2, dy2, c);
 
 	++drawcount;
+}
+
+#endif
+
+#ifdef MODEX
+
+void r_trivfillclip(int x, int dx, int y0, int dy0, int y1, int dy1, byte c)
+{
+	int i, diff0, diff1, d0, d1;
+	int s0 = 1, s1 = 1;
+	int x0 = x + dx;
+
+	if (dy0 < 0) {
+		s0 = -1;
+		dy0 = -dy0;
+	}
+	if (dy1 < 0) {
+		s1 = -1;
+		dy1 = -dy1;
+	}
+
+	diff0 = dy0 - dx;
+	diff1 = dy1 - dx;
+
+	while (x <= x0) {
+		if (vlineVis(x, y0, y1))
+			r_vlinefill(x, max(y0, T), min(y1, B), c);
+
+		if (x > R || x >= x0)
+			return;
+
+		d0 = diff0;
+		d1 = diff1;
+		if (2 * d0 >= -dx) {
+			diff0 -= dx;
+			y0 += s0;
+		}
+		if (2 * d1 >= -dx) {
+			diff1 -= dx;
+			y1 += s1;
+		}
+
+		if (2 * d0 <= dy0 && 2 * d1 <= dy1) {
+			diff0 += dy0;
+			diff1 += dy1;
+			x += 1;
+		}
+	}
+}
+
+void r_drawvtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
+{
+	int to;
+
+	int dy0, dy01 = 0;
+	int dy1;
+	int dy2;
+
+	int dx0;
+	int dx1;
+	int dx2;
+
+	// sort vertices by x
+	if (x0 > x2) {
+		to = x0;
+		x0 = x2;
+		x2 = to;
+		to = y0;
+		y0 = y2;
+		y2 = to;
+	}
+	if (x1 > x2) {
+		to = x1;
+		x1 = x2;
+		x2 = to;
+		to = y1;
+		y1 = y2;
+		y2 = to;
+	}
+	if (x0 > x1) {
+		to = x0;
+		x0 = x1;
+		x1 = to;
+		to = y0;
+		y0 = y1;
+		y1 = to;
+	}
+
+	// first -> last
+	dx0 = x2 - x0;
+	dy0 = y2 - y0;
+
+	// first -> mid
+	dx1 = x1 - x0;
+	dy1 = y1 - y0;
+
+	// mid -> last
+	dx2 = x2 - x1;
+	dy2 = y2 - y1;
+
+	dy01 = dy0 * (float) dx2 / (float) dx0;
+	dy0 = dy0 * (float) dx1 / (float) dx0;
+
+	y2 = y0 + dy0;
+	x2 -= dx2;
+
+	if (dy0 > dy1) { // sort y
+		to = dy0;
+		dy0 = dy1;
+		dy1 = to;
+	}
+
+	// top
+	r_trivfillclip(x0, dx1, y0, dy0, y0, dy1, c);
+
+	if (y1 > y2) { // sort y
+			to = y1;
+			y1 = y2;
+			y2 = to;
+
+			to = dy01;
+			dy01 = dy2;
+			dy2 = to;
+	}
+
+	// bottom
+	r_trivfillclip(x2, dx2, y1, dy2, y2, dy01, c);
+
+	++drawcount;
+}
+
+#endif
+
+// TODO: clipping at triangle level
+void r_drawtri(float *v, byte c)
+{
+	// transform from gl to pix
+	int x0 = round((v[0]+1.0f)*W*0.5f);
+	int y0 = round((-v[1]+1.0f)*H*0.5f);
+
+	int x1 = round((v[2]+1.0f)*W*0.5f);
+	int y1 = round((-v[3]+1.0f)*H*0.5f);
+
+	int x2 = round((v[4]+1.0f)*W*0.5f);
+	int y2 = round((-v[5]+1.0f)*H*0.5f);
+
+	//int clipping = triClips(x0, y0, x1, y1, x2, y2, 2);
+
+	// bounds
+	if (!triVis(x0, y0, x1, y1, x2, y2))
+		return;
+
+#ifdef MODE13
+	r_drawhtri(x0, y0, x1, y1, x2, y2, c);
+#endif
+
+#ifdef MODEX
+	r_drawvtri(x0, y0, x1, y1, x2, y2, c);
+#endif
 }
 
 void r_drawpoint3d(vec3 v, byte c)

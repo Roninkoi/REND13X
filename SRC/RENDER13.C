@@ -239,7 +239,49 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	r_trifillclip(x0, dx0, x1, dx1, y, dy, c); // TODO: new asm fill for mode 13h
+	int i, diff0, diff1, d0, d1;
+	int s0 = 1, s1 = 1;
+	int y0 = y + dy;
+
+	if (dx0 < 0) {
+		s0 = -1;
+		dx0 = -dx0;
+	}
+	if (dx1 < 0) {
+		s1 = -1;
+		dx1 = -dx1;
+	}
+
+	diff0 = dx0 - dy;
+	diff1 = dx1 - dy;
+
+	asm {
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W
+		mul dx // y offset
+		mov dx, ax
+
+		mov cx, x1
+		mov di, x0
+
+		sub cx, di
+		add cx, 1 // n = x1 - x0 + 1
+		add di, ax // calculate address
+
+		xor ah, ah
+		mov al, c // color
+	}
+	tfill:
+	asm {
+		rep stosb
+
+		add di, W
+		cmp di, dx
+		jb tfill
+	}
 }
 
 #endif
