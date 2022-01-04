@@ -257,50 +257,53 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
+	int k0 = dx0<<7;
+	int k1 = dx1<<7;
+	int ye = (y+dy)*W;
+
+	if (dy <= 0) return;
+
+	k0 /= dy;
+	k1 /= dy;
+
 	asm {
 		mov ax, VSTART
-		mov es, ax
+		mov es, ax // video memory start
 
-		mov dx, y
+		mov bx, x0 // initial points
+		shl bx, 7
+		mov si, x1
+		shl si, 7
 
-		mov ax, dx0
-		shl ax, 7
-		div dx
-		mov bx, ax
-
-		mov ax, W
-		mul dx // y offset
-		mov dx, ax
-
-		mov cx, x1 // start points
-		mov di, x0
-
-		sub cx, di
-		inc cx // n = x1 - x0 + 1
-		push cx
-		add di, ax // calculate address
-
-		mov dx, y
-		add dx, dy
-		inc dx
-		mov ax, W
+		mov dx, W
+		mov ax, y
 		mul dx
-		mov dx, ax // final line start address
-
-		xor ah, ah
-		mov al, c // color
+		mov dx, ax // y offset
 	}
 	tfill:
 	asm {
+		mov di, bx
+		shr di, 7 // divide to calculate coordinates
+
+		mov cx, si
+		shr cx, 7
+
+		sub cx, di
+		inc cx
+		add di, dx // calculate final addresses
+
+		xor ax, ax
+		mov al, c // color
+
 		rep stosb // fill line
 
-		pop cx
-		sub di, cx
-		add di, W // y += 1
-		push cx
+		add bx, k0 // x0 += k0
+		add si, k1 // x1 += k1
+		add dx, W // y += 1
 
-		cmp di, dx
-		jb tfill
+		mov ax, ye
+		cmp dx, ax
+		jb tfill // lines left?
 	}
 }
 
