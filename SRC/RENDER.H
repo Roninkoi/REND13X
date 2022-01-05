@@ -19,8 +19,8 @@
 typedef unsigned char byte;
 
 // video mode selection (ifdef)
-#define MODE13
-//#define MODEX
+//#define MODE13
+#define MODEX
 
 // viewport dimensions
 #define L 0
@@ -140,12 +140,12 @@ void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
 // fast asm triangle fill using integers, no clipping
-#ifdef MODE13
+//#ifdef MODE13
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
-#endif
-#ifdef MODEX
-void r_trifill(int x0, int dx0, int y0, int dy0, int y1, int dy1, byte c);
-#endif
+//#endif
+//#ifdef MODEX
+//void r_trifill(int x0, int dx0, int y0, int dy0, int y1, int dy1, byte c);
+//#endif
 
 // DRAW
 

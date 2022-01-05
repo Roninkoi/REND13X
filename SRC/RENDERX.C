@@ -288,12 +288,6 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 	if (x1 - x0 <= 4) // no center area?
 		return;
 
-	// fill edge area not covered by fill2
-	//r_planefill(max((x1/4-1)*4, x0), y,
-	//linepx(max((x1/4-1)*4, x0), (x1/4-1)*4+3), c);
-	// fill center words at a time
-	//r_hlinefill2(x0, x1, y, c);
-
 	// fill center
 	r_hlinefill1(x0, x1, y, c);
 }
@@ -357,9 +351,125 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
-void r_trifill(int x0, int dx0, int y0, int dy0, int y1, int dy1, byte c)
+void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
-	// TODO: asm fill optimized for planar memory in mode X
+	asm {
+		push bp
+
+		mov dx, 0x0100
+		mov ax, p // select planes to draw 0-16
+		mul dx
+		add ax, MAP_MASK
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax // video memory start
+
+		mov ax, y // final line
+		add ax, dy
+		mov cx, W/4
+		mul cx
+		push ax
+
+		mov cx, dy
+		mov ax, dx1 // slopes
+		mov si, ax
+		cmp si, 0
+		jg tfs1
+		neg ax
+	}
+	tfs1:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp si, 0
+		jg tfss1
+		neg ax
+	}
+	tfss1:
+	asm {
+		push ax // k1 to stack
+
+		mov si, x1 // right point
+		shl si, 7
+		add si, 100 // right bias
+
+		mov ax, dx0
+		mov bx, ax
+		cmp bx, 0
+		jg tfs0
+		neg ax
+	}
+	tfs0:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp bx, 0
+		jg tfss0
+		neg ax
+	}
+	tfss0:
+	asm {
+		push ax // k0 to stack
+
+		mov bx, x0
+		shl bx, 7
+		sub bx, 100 // left bias
+
+		mov dx, W/4
+		mov ax, y
+		mul dx // y offset
+		mov dx, ax
+
+		xor ax, ax
+		mov al, c // color
+	}
+	tfill:
+	asm {
+		mov di, bx // x0
+		shr di, 9 // divide to calculate coordinates
+
+		mov cx, si // x1
+		shr cx, 9
+
+		sub cx, di
+		add di, dx // calculate final address
+		add di, pgoffs // add page offset
+
+		rep stosb // fill line
+
+		add dx, W/4 // y += 1
+
+		pop di
+		add bx, di // x0 += k0
+		pop cx
+		add si, cx // x1 += k1
+
+		pop bp
+		cmp dx, bp
+
+		push bp
+		push cx
+		push di
+
+		jb tfill // lines left?
+
+		pop ax
+		pop ax
+		pop ax
+		pop bp
+	}
+}
+
+void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+{
+	r_triplanefill(x0+3, dx0, x1+3, dx1, y, dy, pixpx(0), c);
+	r_triplanefill(x0+2, dx0, x1+2, dx1, y, dy, pixpx(1), c);
+	r_triplanefill(x0+1, dx0, x1+1, dx1, y, dy, pixpx(2), c);
+	r_triplanefill(x0+0, dx0, x1+0, dx1, y, dy, pixpx(3), c);
 }
 
 #endif

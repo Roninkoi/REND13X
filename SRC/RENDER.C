@@ -70,7 +70,7 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	}
 }
 
-#ifdef MODE13
+//#ifdef MODE13
 
 void r_trihfillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
@@ -210,7 +210,7 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	++drawcount;
 }
 
-#endif
+//#endif
 
 #ifdef MODEX
 
@@ -368,7 +368,10 @@ void r_drawtri(float *v, byte c)
 #endif
 
 #ifdef MODEX
-	r_drawvtri(x0, y0, x1, y1, x2, y2, c);
+	if (triClips(x0, y0, x1, y1, x2, y2, 2))
+		r_drawvtri(x0, y0, x1, y1, x2, y2, c);
+	else
+		r_drawhtri(x0, y0, x1, y1, x2, y2, c);
 #endif
 }
 
