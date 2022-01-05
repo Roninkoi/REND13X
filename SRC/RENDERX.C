@@ -370,6 +370,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		add ax, dy
 		mov cx, W/4
 		mul cx
+		add ax, pgoffs // page offset for cmp
 		push ax
 
 		mov cx, dy
@@ -422,6 +423,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		mov dx, W/4
 		mov ax, y
 		mul dx // y offset
+		add ax, pgoffs // add page offset
 		mov dx, ax
 
 		xor ax, ax
@@ -437,7 +439,6 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 
 		sub cx, di
 		add di, dx // calculate final address
-		add di, pgoffs // add page offset
 
 		rep stosb // fill line
 
