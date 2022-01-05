@@ -13,7 +13,7 @@ void tridemo()
 	clearscr = 0;
 	doublebuffer = 0;
 
-	//for (i = 0; i < 1; ++i) {
+	for (i = 0; i < 1; ++i) {
 		vt[0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 		vt[1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
@@ -26,7 +26,7 @@ void tridemo()
 		r_drawtri(vt, (byte) (RANDF * 256.0f));
 
 		++tricount;
-	//}
+	}
 
 	drawcount = tricount;
 }
@@ -247,6 +247,8 @@ int main()
 		r_sort();
 
 		r_draw();
+
+		//r_trifill(100, -50, 150, 30, 100, 60, 1);
 
 		//tridemo();
 		//linedemo();

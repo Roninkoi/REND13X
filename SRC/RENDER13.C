@@ -187,7 +187,7 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 		mov di, x0
 
 		sub cx, di
-		add cx, 1 // n = x1 - x0 + 1
+		inc cx // n = x1 - x0 + 1
 		add di, ax // calculate address
 
 		xor ah, ah
@@ -213,7 +213,7 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 
 		sub cx, di
 		shr cx, 1 // divide by 2, discard odd
-		add cx, 1 // n = x1 - x0 + 1
+		inc cx // n = x1 - x0 + 1
 		add di, ax // calculate address
 
 		mov al, c // color
@@ -236,7 +236,7 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 		add di, x // starting address
 
 		mov cx, y1
-		add cx, 1 // n = y1 - y0 + 1
+		inc cx // n = y1 - y0 + 1
 		mov ax, W
 		mul cx
 
@@ -257,53 +257,110 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	int k0 = dx0<<7;
-	int k1 = dx1<<7;
-	int ye = (y+dy)*W;
-
-	if (dy <= 0) return;
-
-	k0 /= dy;
-	k1 /= dy;
-
 	asm {
+		push bp
 		mov ax, VSTART
 		mov es, ax // video memory start
 
-		mov bx, x0 // initial points
-		shl bx, 7
-		mov si, x1
+		mov ax, y // final line
+		add ax, dy
+		mov cx, W
+		mul cx
+		push ax
+
+		mov cx, dy
+		mov ax, dx1 // slopes
+		mov si, ax
+		cmp si, 0
+		jg tfs1
+		neg ax
+	}
+	tfs1:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp si, 0
+		jg tfss1
+		neg ax
+	}
+	tfss1:
+	asm {
+		push ax // k1 to stack
+
+		mov si, x1 // right point
 		shl si, 7
+		//sar ax, 1
+		//add si, ax
+		add si, 100 // right bias
+
+		mov ax, dx0
+		mov bx, ax
+		cmp bx, 0
+		jg tfs0
+		neg ax
+	}
+	tfs0:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp bx, 0
+		jg tfss0
+		neg ax
+	}
+	tfss0:
+	asm {
+		push ax // k0 to stack
+
+		mov bx, x0 // left point
+		shl bx, 7
+		//sar ax, 1
+		//add bx, ax
+		sub bx, 100 // left bias
 
 		mov dx, W
 		mov ax, y
-		mul dx
-		mov dx, ax // y offset
-	}
-	tfill:
-	asm {
-		mov di, bx
-		shr di, 7 // divide to calculate coordinates
-
-		mov cx, si
-		shr cx, 7
-
-		sub cx, di
-		inc cx
-		add di, dx // calculate final addresses
+		mul dx // y offset
+		mov dx, ax
 
 		xor ax, ax
 		mov al, c // color
+	}
+	tfill:
+	asm {
+		mov di, bx // x0
+		shr di, 7 // divide to calculate coordinates
+
+		mov cx, si // x1
+		shr cx, 7
+
+		sub cx, di
+		//inc cx // n = x1 - x0 + 1
+		add di, dx // calculate final address
 
 		rep stosb // fill line
 
-		add bx, k0 // x0 += k0
-		add si, k1 // x1 += k1
 		add dx, W // y += 1
 
-		mov ax, ye
-		cmp dx, ax
+		pop di
+		add bx, di // x0 += k0
+		pop cx
+		add si, cx // x1 += k1
+
+		pop bp
+		cmp dx, bp
+
+		push bp
+		push cx
+		push di
+
 		jb tfill // lines left?
+
+		pop ax
+		pop ax
+		pop ax
+		pop bp
 	}
 }
 

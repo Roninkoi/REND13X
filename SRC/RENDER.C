@@ -90,6 +90,7 @@ void r_trihfillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	diff0 = dx0 - dy;
 	diff1 = dx1 - dy;
 
+	// Bresenham
 	while (y <= y0) {
 		if (hlineVis(x0, x1, y))
 			r_hlinefill(max(x0, L), min(x1, R), y, c);
@@ -128,7 +129,7 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	int dy1;
 	int dy2;
 
-	int clipping = triClips(x0, y0, x1, y1, x2, y2, 2) || 1;
+	int clipping = triClips(x0, y0, x1, y1, x2, y2, 2);
 
 	// sort vertices by y
 	if (y0 > y2) {
@@ -181,10 +182,12 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	}
 
 	// top
-	if (clipping)
-		r_trihfillb(x0, dx0, x0, dx1, y0, dy1, c);
-	else
-		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
+	if (dy1 > 0) {
+		if (clipping)
+			r_trihfillb(x0, dx0, x0, dx1, y0, dy1, c);
+		else
+			r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
+	}
 
 	if (x1 > x2) { // sort x
 		to = x1;
@@ -197,10 +200,12 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	}
 
 	// bottom
-	if (clipping)
-		r_trihfillb(x1, dx2, x2, dx01, y2, dy2, c);
-	else
-		r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
+	if (dy2 > 0) {
+		if (clipping)
+			r_trihfillb(x1, dx2, x2, dx01, y2, dy2, c);
+		else
+			r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
+	}
 
 	++drawcount;
 }
@@ -227,6 +232,7 @@ void r_trivfillb(int x, int dx, int y0, int dy0, int y1, int dy1, byte c)
 	diff0 = dy0 - dx;
 	diff1 = dy1 - dx;
 
+	// Bresenham
 	while (x <= x0) {
 		if (vlineVis(x, y0, y1))
 			r_vlinefill(x, max(y0, T), min(y1, B), c);
@@ -316,7 +322,9 @@ void r_drawvtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	}
 
 	// top
-	r_trivfillb(x0, dx1, y0, dy0, y0, dy1, c);
+	if (dx1 > 0) {
+		r_trivfillb(x0, dx1, y0, dy0, y0, dy1, c);
+	}
 
 	if (y1 > y2) { // sort y
 			to = y1;
@@ -329,7 +337,9 @@ void r_drawvtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	}
 
 	// bottom
-	r_trivfillb(x2, dx2, y1, dy2, y2, dy01, c);
+	if (dx2 > 0) {
+		r_trivfillb(x2, dx2, y1, dy2, y2, dy01, c);
+	}
 
 	++drawcount;
 }
