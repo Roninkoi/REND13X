@@ -4,11 +4,12 @@ int running = 1;
 
 int tricount = 0;
 
+#define TRIDEMOA 1.0f
+
 void tridemo()
 {
 	int i;
 	float vt[6];
-#define TRIDEMOA 1.0f
 
 	clearscr = 0;
 	doublebuffer = 0;
@@ -171,7 +172,7 @@ void ground(vec3 cam)
 	}
 }
 
-void demo(float t)
+void cubedemo(float t)
 {
 	int i;
 	float ln;
@@ -192,23 +193,9 @@ void demo(float t)
 
 	cn = 5;
 	for (i = 0; i < cn; ++i) {
-		//rm = scale(&rm, sin(i+t*0.1f)*0.2f + 1.0f);
-
-		/*rm = translate(&rm, Vec4(sin(t/2.0f+3*i/PI)*2.0f,
-			cos(t/4.0f+3*i/PI)*2.0f,
-			sin(i/PI*2.0f)*4.0f + 2.5f, 1.0f));*/
-
 		rm = translate(&rm, Vec3(10.0f*sin(t+2*i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 10.0f+5.0f*sin(t/5.0f+i/PI/5.0f)));
 		rm = rotateY(&rm, sin(i/PI)*i/cn*t);
 		rm = rotateX(&rm, t);
-
-/*		cube00.x += sin(t*0.02f+i/cn) * 0.1f;
-		cube10.x -= cos(t*0.06f+i/cn) * 0.1f;
-		cube01.x += sin(t*0.08f+i/cn) * 0.1f;
-		cube11.x -= cos(t*0.02f+i/cn) * 0.1f;
-		cube02.x -= sin(t*0.05f+i/cn) * 0.1f;
-		cube03.x -= sin(t*0.05f+i/cn) * 0.1f;
-		cube13.x += sin(t*0.02f+i/cn) * 0.1f;*/
 
 		r_add(&cube00, &cube01, &cube02, 48+i%30);
 		r_add(&cube00, &cube02, &cube03, 50+i%30);
@@ -270,7 +257,7 @@ int main()
 	lt = 0;
 
 	frames = 0;
-	fps = 30;
+	fps = 75;
 
 	posx = 0.0f;
 	posy = 0.0f;
@@ -318,13 +305,13 @@ int main()
 
 		rm = mat4mat4(&pm, &cm);
 
-		//demo(3.0f*t);
-		ground(cam);
+		//cubedemo(3.0f*t);
+		//ground(cam);
 
 		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 4);
 		om = rotMatY(t);
 		om = rotateX(&om, t);
-		//drawcube(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 42, 12);
+		//drawcube(Vec3(0.0f, 2.0f, 1.0f), &om, 1.0f, 42, 12);
 		drawico(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 64, 1);
 
 		wireframe = 0;
@@ -335,8 +322,6 @@ int main()
 		r_sort();
 
 		r_draw();
-
-		//r_trifill(100, -50, 150, 30, 100, 60, 1);
 
 		//tridemo();
 		//linedemo();
