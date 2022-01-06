@@ -129,7 +129,11 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	int dy1;
 	int dy2;
 
+#ifdef FASTFILL
 	int clipping = triClips(x0, y0, x1, y1, x2, y2, 2);
+#else
+	int clipping = 1;
+#endif
 
 	// sort vertices by y
 	if (y0 > y2) {
@@ -368,10 +372,11 @@ void r_drawtri(float *v, byte c)
 #endif
 
 #ifdef MODEX
-	if (triClips(x0, y0, x1, y1, x2, y2, 2))
-		r_drawvtri(x0, y0, x1, y1, x2, y2, c);
-	else
-		r_drawhtri(x0, y0, x1, y1, x2, y2, c);
+#ifdef FASTFILL
+	r_drawhtri(x0, y0, x1, y1, x2, y2, c);
+#else
+	r_drawvtri(x0, y0, x1, y1, x2, y2, c);
+#endif
 #endif
 }
 

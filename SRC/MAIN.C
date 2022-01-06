@@ -46,6 +46,64 @@ void linedemo()
 	drawcount = n;
 }
 
+void drawico(vec3 pos, mat4 *rot, float a, byte c, byte ci)
+{
+	float phi = 1.618034f;
+
+	vec3 ico0 = Vec3(0.5f*a*phi, 0.5f*a, 0.0f*a);
+	vec3 ico1 = Vec3(0.5f*a*phi, -0.5f*a, 0.0f*a);
+	vec3 ico2 = Vec3(-0.5f*a*phi, -0.5f*a, 0.0f*a);
+	vec3 ico3 = Vec3(-0.5f*a*phi, 0.5f*a, 0.0f*a);
+
+	vec3 ico4 = Vec3(0.5f*a, 0.0f*a, 0.5f*a*phi);
+	vec3 ico5 = Vec3(-0.5f*a, 0.0f*a, 0.5f*a*phi);
+	vec3 ico6 = Vec3(-0.5f*a, 0.0f*a, -0.5f*a*phi);
+	vec3 ico7 = Vec3(0.5f*a, 0.0f*a, -0.5f*a*phi);
+
+	vec3 ico8 = Vec3(0.0f*a, 0.5f*a*phi, 0.5f*a);
+	vec3 ico9 = Vec3(0.0f*a, 0.5f*a*phi, -0.5f*a);
+	vec3 ico10 = Vec3(0.0f*a, -0.5f*a*phi, -0.5f*a);
+	vec3 ico11 = Vec3(0.0f*a, -0.5f*a*phi, 0.5f*a);
+
+	mat4 rm0 = rm;
+
+	rm = scale(&rm, a);
+	rm = translate(&rm, pos);
+	rm = mat4mat4(&rm, rot);
+
+	r_add(&ico0, &ico1, &ico4, c+ci*0);
+	r_add(&ico1, &ico0, &ico7, c+ci*1);
+
+	r_add(&ico2, &ico3, &ico5, c+ci*2);
+	r_add(&ico3, &ico2, &ico6, c+ci*3);
+
+	r_add(&ico4, &ico5, &ico8, c+ci*4);
+	r_add(&ico5, &ico4, &ico11, c+ci*5);
+
+	r_add(&ico6, &ico7, &ico9, c+ci*6);
+	r_add(&ico7, &ico6, &ico10, c+ci*7);
+
+	r_add(&ico8, &ico9, &ico0, c+ci*8);
+	r_add(&ico9, &ico8, &ico3, c+ci*9);
+
+	r_add(&ico10, &ico11, &ico1, c+ci*10);
+	r_add(&ico11, &ico10, &ico2, c+ci*11);
+
+	r_add(&ico0, &ico4, &ico8, c+ci*12);
+	r_add(&ico7, &ico0, &ico9, c+ci*13);
+
+	r_add(&ico4, &ico1, &ico11, c+ci*14);
+	r_add(&ico1, &ico7, &ico10, c+ci*15);
+
+	r_add(&ico2, &ico5, &ico11, c+ci*16);
+	r_add(&ico6, &ico2, &ico10, c+ci*17);
+
+	r_add(&ico3, &ico6, &ico9, c+ci*18);
+	r_add(&ico5, &ico3, &ico8, c+ci*19);
+
+	rm = rm0;
+}
+
 void drawcube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 {
 	vec3 cube00 = Vec3(-0.5f*a, -0.5f*a, -0.5f*a);
@@ -83,6 +141,34 @@ void drawcube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 	r_add(&cube03, &cube10, &cube00, c+ci*11);
 
 	rm = rm0;
+}
+
+#define GROUNDA 1.2f
+
+void ground(vec3 cam)
+{
+	int x, z;
+	int y = -2.0f;
+	int c1 = 50;
+	int c2 = 49;
+	int xn = 10, zn = 10;
+
+	for (x = 0; x < xn; ++x) {
+		for (z = 0; z < zn; ++z) {
+			r_addf(GROUNDA*(x-round(cam.x/GROUNDA)-xn/2.0f), y,
+				GROUNDA*(z-round(cam.z/GROUNDA)-zn/2.0f),
+				GROUNDA*(1.0f+x-round(cam.x/GROUNDA)-xn/2.0f), y,
+				GROUNDA*(z-round(cam.z/GROUNDA)-zn/2.0f),
+				GROUNDA*(1.0f+x-round(cam.x/GROUNDA)-xn/2.0f), y,
+				GROUNDA*(1.0f+z-round(cam.z/GROUNDA)-zn/2.0f), c1);
+			r_addf(GROUNDA*(x-round(cam.x/GROUNDA)-xn/2.0f), y,
+				GROUNDA*(z-round(cam.z/GROUNDA)-zn/2.0f),
+				GROUNDA*(1.0f+x-round(cam.x/GROUNDA)-xn/2.0f), y,
+				GROUNDA*(1.0f+z-round(cam.z/GROUNDA)-zn/2.0f),
+				GROUNDA*(x-round(cam.x/GROUNDA)-xn/2.0f), y,
+				GROUNDA*(1.0f+z-round(cam.z/GROUNDA)-zn/2.0f), c2);
+		}
+	}
 }
 
 void demo(float t)
@@ -184,7 +270,7 @@ int main()
 	lt = 0;
 
 	frames = 0;
-	fps = 70;
+	fps = 30;
 
 	posx = 0.0f;
 	posy = 0.0f;
@@ -232,12 +318,14 @@ int main()
 
 		rm = mat4mat4(&pm, &cm);
 
-		demo(3.0f*t);
+		//demo(3.0f*t);
+		ground(cam);
 
 		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 4);
 		om = rotMatY(t);
 		om = rotateX(&om, t);
-		drawcube(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 42, 12);
+		//drawcube(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 42, 12);
+		drawico(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 64, 1);
 
 		wireframe = 0;
 		filled = 1;
