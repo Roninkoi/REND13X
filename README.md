@@ -1,6 +1,9 @@
 # REND13X DOS software renderer
 
-![cube](https://media.giphy.com/media/S57czNBuL5ZxcZmrbN/giphy.gif)
+<p align="middle">
+  <img src="https://media.giphy.com/media/S57czNBuL5ZxcZmrbN/giphy.gif" width="45%" />
+  <img src="https://user-images.githubusercontent.com/12766039/148410578-ced829ff-7760-494f-97f8-0395313d4496.gif" width="45%" /> 
+</p>
 
 DOS software renderer written in C and x86 assembly. Mode 13h (320x200) or mode X (320x240), 256 colors.
 

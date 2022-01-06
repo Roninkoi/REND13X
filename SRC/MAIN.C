@@ -306,9 +306,8 @@ int main()
 		rm = mat4mat4(&pm, &cm);
 
 		//cubedemo(3.0f*t);
-		//ground(cam);
+		ground(cam);
 
-		//r_addf(0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 4);
 		om = rotMatY(t);
 		om = rotateX(&om, t);
 		//drawcube(Vec3(0.0f, 2.0f, 1.0f), &om, 1.0f, 42, 12);
