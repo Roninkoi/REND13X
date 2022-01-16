@@ -353,7 +353,12 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 
 void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
+	int k0l = (float) dx0 / (float) dy * 128.0f * 4.0f;
+	int k1l = (float) dx1 / (float) dy * 128.0f * 4.0f;
+	int x0l = x0 * 128 * 4;
+	int x1l = x1 * 128 * 4;
 	asm {
+		cli
 		push bp
 
 		mov dx, 0x0100
@@ -428,6 +433,8 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 
 		xor ax, ax
 		mov al, c // color
+
+		mov bp, sp
 	}
 	tfill:
 	asm {
@@ -444,17 +451,13 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 
 		add dx, W/4 // y += 1
 
-		pop di
+		mov di, [bp]
 		add bx, di // x0 += k0
-		pop cx
+		mov cx, [bp+2]
 		add si, cx // x1 += k1
 
-		pop bp
-		cmp dx, bp
-
-		push bp
-		push cx
-		push di
+		mov cx, [bp+4]
+		cmp dx, cx
 
 		jb tfill // lines left?
 
@@ -462,6 +465,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		pop ax
 		pop ax
 		pop bp
+		sti
 	}
 }
 

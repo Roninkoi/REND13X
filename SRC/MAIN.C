@@ -306,7 +306,7 @@ int main()
 		rm = mat4mat4(&pm, &cm);
 
 		//cubedemo(3.0f*t);
-		ground(cam);
+		//ground(cam);
 
 		om = rotMatY(t);
 		om = rotateX(&om, t);

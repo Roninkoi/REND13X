@@ -290,8 +290,6 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 
 		mov si, x1 // right point
 		shl si, 7
-		//sar ax, 1
-		//add si, ax
 		add si, 100 // right bias
 
 		mov ax, dx0
@@ -315,8 +313,6 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 
 		mov bx, x0 // left point
 		shl bx, 7
-		//sar ax, 1
-		//add bx, ax
 		sub bx, 100 // left bias
 
 		mov dx, W
@@ -326,6 +322,8 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 
 		xor ax, ax
 		mov al, c // color
+
+		mov bp, sp
 	}
 	tfill:
 	asm {
@@ -336,24 +334,19 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		shr cx, 7
 
 		sub cx, di
-		//inc cx // n = x1 - x0 + 1
 		add di, dx // calculate final address
 
 		rep stosb // fill line
 
 		add dx, W // y += 1
 
-		pop di
+		mov di, [bp]
 		add bx, di // x0 += k0
-		pop cx
+		mov cx, [bp+2]
 		add si, cx // x1 += k1
 
-		pop bp
-		cmp dx, bp
-
-		push bp
-		push cx
-		push di
+		mov cx, [bp+4]
+		cmp dx, cx
 
 		jb tfill // lines left?
 
