@@ -258,7 +258,9 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
 	asm {
+		cli
 		push bp
+
 		mov ax, VSTART
 		mov es, ax // video memory start
 
@@ -354,6 +356,7 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		pop ax
 		pop ax
 		pop bp
+		sti
 	}
 }
 

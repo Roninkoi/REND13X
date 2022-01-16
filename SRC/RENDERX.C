@@ -353,10 +353,6 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 
 void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
-	int k0l = (float) dx0 / (float) dy * 128.0f * 4.0f;
-	int k1l = (float) dx1 / (float) dy * 128.0f * 4.0f;
-	int x0l = x0 * 128 * 4;
-	int x1l = x1 * 128 * 4;
 	asm {
 		cli
 		push bp
