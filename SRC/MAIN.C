@@ -311,7 +311,7 @@ int main()
 		om = rotMatY(t);
 		om = rotateX(&om, t);
 		//drawcube(Vec3(0.0f, 2.0f, 1.0f), &om, 1.0f, 42, 12);
-		drawico(Vec3(0.0f, 0.0f, 1.0f), &om, 1.0f, 64, 1);
+		drawico(Vec3(0.0f, 0.0f, 0.3f), &om, 1.0f, 64, 1);
 
 		wireframe = 0;
 		filled = 1;

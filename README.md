@@ -26,13 +26,11 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). Open th
 
 ## CONTROLS
 
-WASD - Move 
-
-Arrows - Rotate camera
-
-R - Fly up
-
-F - Fly down
-
-Esc - Exit to DOS
+| Key | Action |
+| --- | ------ |
+| WASD | Move |
+| Arrows | Rotate camera |
+| R | Fly up |
+| F | Fly down |
+| Esc | Exit to DOS |
 

@@ -84,6 +84,17 @@ typedef unsigned char byte;
 	(y1 > B-mar) || (y1 < T+mar) || \
 	(y2 > B-mar) || (y2 < T+mar))
 
+// planar video mode utilities
+// select planes from right x offset
+#define rightp(x) (0x0f>>(x))
+// select planes from left x offset
+#define leftp(x) (0x0f&(0x0f<<(x)))
+// combined left and right offsets
+#define linep(x0, x1) (leftp(x0)&rightp(x1))
+// select planes in coordinates [x0, x1]
+#define linepx(x0, x1) (linep((x0)&3, 3-(x1)&3))
+// select plane for one pixel coordinate x
+#define pixpx(x) (1<<((x)&3))
 
 // random float in range [0, 1]
 #define RANDF ((rand() % 10000) / (10000.0f-1.0f))
@@ -143,12 +154,7 @@ void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
 void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
 
 // fast asm triangle fill using integers, no clipping
-//#ifdef MODE13
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
-//#endif
-//#ifdef MODEX
-//void r_trifill(int x0, int dx0, int y0, int dy0, int y1, int dy1, byte c);
-//#endif
 
 // DRAW
 

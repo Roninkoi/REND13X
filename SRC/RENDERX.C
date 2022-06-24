@@ -263,17 +263,6 @@ void r_planefill(int x, int y, int p, byte c)
 	}
 }
 
-// select planes from right x offset
-#define rightp(x) (0x0f>>(x))
-// select planes from left x offset
-#define leftp(x) (0x0f&(0x0f<<(x)))
-// combined left and right offsets
-#define linep(x0, x1) (leftp(x0)&rightp(x1))
-// select planes in coordinates [x0, x1]
-#define linepx(x0, x1) (linep((x0)&3, 3-(x1)&3))
-// select plane for one pixel coordinate x
-#define pixpx(x) (1<<((x)&3))
-
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
 	int px;
@@ -290,6 +279,41 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 
 	// fill center
 	r_hlinefill1(x0, x1, y, c);
+}
+
+// fill plane p from x0 to x1 using stosb
+void r_hplanefill(int x0, int x1, int y, int p, byte c)
+{
+	asm {
+		mov dx, 0x0100
+		mov ax, p // select planes to draw 0-16
+		mul dx
+		add ax, MAP_MASK
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov cx, x1
+		shr cx, 2
+		mov di, x0
+		shr di, 2 // plane coordinates
+
+		sub cx, di
+		add cx, 1 // n = x1 - x0 + 1
+		add di, ax // calculate address
+		add di, pgoffs // add page offset
+
+		xor ax, ax
+		mov al, c // color
+
+		rep stosb
+	}
 }
 
 void r_vplanefill(int x, int y0, int y1, int p, byte c)

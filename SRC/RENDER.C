@@ -70,9 +70,9 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	}
 }
 
-//#ifdef MODE13
+#ifdef MODE13
 
-void r_trihfillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
 	int i, diff0, diff1, d0, d1;
 	int s0 = 1, s1 = 1;
@@ -116,6 +116,65 @@ void r_trihfillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		}
 	}
 }
+
+#endif
+
+#ifdef MODEX
+
+void r_triplanefillb(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
+{
+	int i, diff0, diff1, d0, d1;
+	int s0 = 1, s1 = 1;
+	int y0 = y + dy;
+
+	if (dx0 < 0) {
+		s0 = -1;
+		dx0 = -dx0;
+	}
+	if (dx1 < 0) {
+		s1 = -1;
+		dx1 = -dx1;
+	}
+
+	diff0 = dx0 - dy;
+	diff1 = dx1 - dy;
+
+	// Bresenham
+	while (y <= y0) {
+		if (hlineVis(x0, x1, y))
+			r_hplanefill(max(x0, L), min(x1, R), y, p, c);
+
+		if (y > B || y >= y0)
+			return;
+
+		d0 = diff0;
+		d1 = diff1;
+		if (2 * d0 >= -dy) {
+			diff0 -= dy;
+			x0 += s0;
+		}
+		if (2 * d1 >= -dy) {
+			diff1 -= dy;
+			x1 += s1;
+		}
+
+		if (2 * d0 <= dx0 && 2 * d1 <= dx1) {
+			diff0 += dx0;
+			diff1 += dx1;
+			y += 1;
+		}
+	}
+}
+
+void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+{
+	r_triplanefillb(x0+3-1, dx0, x1+3-4, dx1, y, dy, pixpx(0), c);
+	r_triplanefillb(x0+2-1, dx0, x1+2-4, dx1, y, dy, pixpx(1), c);
+	r_triplanefillb(x0+1-1, dx0, x1+1-4, dx1, y, dy, pixpx(2), c);
+	r_triplanefillb(x0+0-1, dx0, x1+0-4, dx1, y, dy, pixpx(3), c);
+}
+
+#endif
 
 void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 {
@@ -188,7 +247,7 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	// top
 	if (dy1 > 0) {
 		if (clipping)
-			r_trihfillb(x0, dx0, x0, dx1, y0, dy1, c);
+			r_trifillb(x0, dx0, x0, dx1, y0, dy1, c);
 		else
 			r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
 	}
@@ -206,149 +265,13 @@ void r_drawhtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	// bottom
 	if (dy2 > 0) {
 		if (clipping)
-			r_trihfillb(x1, dx2, x2, dx01, y2, dy2, c);
+			r_trifillb(x1, dx2, x2, dx01, y2, dy2, c);
 		else
 			r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
 	}
 
 	++drawcount;
 }
-
-//#endif
-
-#ifdef MODEX
-
-void r_trivfillb(int x, int dx, int y0, int dy0, int y1, int dy1, byte c)
-{
-	int i, diff0, diff1, d0, d1;
-	int s0 = 1, s1 = 1;
-	int x0 = x + dx;
-
-	if (dy0 < 0) {
-		s0 = -1;
-		dy0 = -dy0;
-	}
-	if (dy1 < 0) {
-		s1 = -1;
-		dy1 = -dy1;
-	}
-
-	diff0 = dy0 - dx;
-	diff1 = dy1 - dx;
-
-	// Bresenham
-	while (x <= x0) {
-		if (vlineVis(x, y0, y1))
-			r_vlinefill(x, max(y0, T), min(y1, B), c);
-
-		if (x > R || x >= x0)
-			return;
-
-		d0 = diff0;
-		d1 = diff1;
-		if (2 * d0 >= -dx) {
-			diff0 -= dx;
-			y0 += s0;
-		}
-		if (2 * d1 >= -dx) {
-			diff1 -= dx;
-			y1 += s1;
-		}
-
-		if (2 * d0 <= dy0 && 2 * d1 <= dy1) {
-			diff0 += dy0;
-			diff1 += dy1;
-			x += 1;
-		}
-	}
-}
-
-void r_drawvtri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
-{
-	int to;
-
-	int dy0, dy01 = 0;
-	int dy1;
-	int dy2;
-
-	int dx0;
-	int dx1;
-	int dx2;
-
-	// sort vertices by x
-	if (x0 > x2) {
-		to = x0;
-		x0 = x2;
-		x2 = to;
-		to = y0;
-		y0 = y2;
-		y2 = to;
-	}
-	if (x1 > x2) {
-		to = x1;
-		x1 = x2;
-		x2 = to;
-		to = y1;
-		y1 = y2;
-		y2 = to;
-	}
-	if (x0 > x1) {
-		to = x0;
-		x0 = x1;
-		x1 = to;
-		to = y0;
-		y0 = y1;
-		y1 = to;
-	}
-
-	// first -> last
-	dx0 = x2 - x0;
-	dy0 = y2 - y0;
-
-	// first -> mid
-	dx1 = x1 - x0;
-	dy1 = y1 - y0;
-
-	// mid -> last
-	dx2 = x2 - x1;
-	dy2 = y2 - y1;
-
-	dy01 = dy0 * (float) dx2 / (float) dx0;
-	dy0 = dy0 * (float) dx1 / (float) dx0;
-
-	y2 = y0 + dy0;
-	x2 -= dx2;
-
-	if (dy0 > dy1) { // sort y
-		to = dy0;
-		dy0 = dy1;
-		dy1 = to;
-	}
-
-	// top
-	if (dx1 > 0) {
-		r_trivfillb(x0, dx1, y0, dy0, y0, dy1, c);
-	}
-
-	if (y1 > y2) { // sort y
-			to = y1;
-			y1 = y2;
-			y2 = to;
-
-			to = dy01;
-			dy01 = dy2;
-			dy2 = to;
-	}
-
-	// bottom
-	if (dx2 > 0) {
-		r_trivfillb(x2, dx2, y1, dy2, y2, dy01, c);
-	}
-
-	++drawcount;
-}
-
-#endif
 
 // TODO: clipping at triangle level
 void r_drawtri(float *v, byte c)
@@ -367,17 +290,7 @@ void r_drawtri(float *v, byte c)
 	if (!triVis(x0, y0, x1, y1, x2, y2))
 		return;
 
-#ifdef MODE13
 	r_drawhtri(x0, y0, x1, y1, x2, y2, c);
-#endif
-
-#ifdef MODEX
-#ifdef FASTFILL
-	r_drawhtri(x0, y0, x1, y1, x2, y2, c);
-#else
-	r_drawvtri(x0, y0, x1, y1, x2, y2, c);
-#endif
-#endif
 }
 
 void r_drawpoint3d(vec3 v, byte c)
