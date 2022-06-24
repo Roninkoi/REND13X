@@ -2,22 +2,22 @@
 
 int itime = 0;
 
-void interrupt (*oldtime) ();
+void interrupt (*oldTime) ();
 
-void interrupt getTime()
+void interrupt getITime()
 {
 	itime += 1;
 }
 
 void hookTime()
 {
-	oldtime = getvect(0x1c);
-	setvect(0x1c, getTime);
+	oldTime = getvect(0x1c);
+	setvect(0x1c, getITime);
 }
 
 void unhookTime()
 {
-	setvect(0x1c, oldtime);
+	setvect(0x1c, oldTime);
 }
 
 unsigned now()
