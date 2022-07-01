@@ -137,7 +137,7 @@ void r_flip()
 	int hi = CRTHI | (pgoffs & 0xff00);
 	int lo = CRTLO | (pgoffs << 8);
 
-	TRACESTART;
+	//TRACESTART;
 
 	asm {
 		cli
@@ -375,6 +375,249 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
+void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+{
+	asm {
+		cli
+		push bp
+
+		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax // video memory start
+
+		mov ax, y // final line
+		add ax, dy
+		mov cx, W/4
+		mul cx
+		add ax, pgoffs // page offset for cmp
+		push ax
+
+		mov cx, dy
+		mov ax, dx1 // slopes
+		mov si, ax
+		cmp si, 0
+		jg tfs1
+		neg ax
+	}
+	tfs1:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp si, 0
+		jg tfss1
+		neg ax
+	}
+	tfss1:
+	asm {
+		push ax // k1 to stack
+
+		mov si, x1 // right point
+		shl si, 7
+		add si, 100 // right bias
+
+		mov ax, dx0
+		mov bx, ax
+		cmp bx, 0
+		jg tfs0
+		neg ax
+	}
+	tfs0:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp bx, 0
+		jg tfss0
+		neg ax
+	}
+	tfss0:
+	asm {
+		push ax // k0 to stack
+
+		mov bx, x0
+		shl bx, 7
+		sub bx, 100 // left bias
+
+		mov dx, W/4
+		mov ax, y
+		mul dx // y offset
+		add ax, pgoffs // add page offset
+		mov dx, ax
+
+		xor ax, ax
+		mov al, c // color
+
+		mov bp, sp
+	}
+	tfill:
+	asm {
+		mov di, bx // x0
+		shr di, 9 // divide to calculate coordinates
+
+		mov cx, si // x1
+		shr cx, 9
+
+		inc di // increment to start of full plane
+
+		cmp di, cx // no line to draw?
+		jg tfnext
+
+		sub cx, di
+		add di, dx // calculate final address
+
+		rep stosb // fill line
+
+		//mov [es:di], al
+		//add di, cx
+		//mov [es:di], al
+ }
+ tfnext:
+ asm {
+		add dx, W/4 // y += 1
+
+		mov di, [bp]
+		add bx, di // x0 += k0
+		mov cx, [bp+2]
+		add si, cx // x1 += k1
+
+		mov cx, [bp+4]
+		cmp dx, cx
+
+		jb tfill // lines left?
+
+		pop ax
+		pop ax
+		pop ax
+		pop bp
+		sti
+	}
+}
+
+void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
+{
+	asm {
+		cli
+		push bp
+
+		mov dx, 0x0100
+		mov ax, p // select planes to draw 0-16
+		mul dx
+		add ax, MAP_MASK
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART
+		mov es, ax // video memory start
+
+		mov ax, y // final line
+		add ax, dy
+		mov cx, W/4
+		mul cx
+		add ax, pgoffs // page offset for cmp
+		push ax
+
+		mov cx, dy
+		mov ax, dx1 // slopes
+		mov si, ax
+		cmp si, 0
+		jg tfs1
+		neg ax
+	}
+	tfs1:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp si, 0
+		jg tfss1
+		neg ax
+	}
+	tfss1:
+	asm {
+		push ax // k1 to stack
+
+		mov si, x1 // right point
+		shl si, 7
+		add si, 100 // right bias
+
+		mov ax, dx0
+		mov bx, ax
+		cmp bx, 0
+		jg tfs0
+		neg ax
+	}
+	tfs0:
+	asm {
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp bx, 0
+		jg tfss0
+		neg ax
+	}
+	tfss0:
+	asm {
+		push ax // k0 to stack
+
+		mov bx, x0
+		shl bx, 7
+		sub bx, 100 // left bias
+
+		mov dx, W/4
+		mov ax, y
+		mul dx // y offset
+		add ax, pgoffs // add page offset
+		mov dx, ax
+
+		xor ax, ax
+		mov al, c // color
+
+		mov bp, sp
+	}
+	tfill:
+	asm {
+		mov di, bx // x0
+		shr di, 9 // divide to calculate coordinates
+
+		mov cx, si // x1
+		shr cx, 9
+
+		cmp di, cx // no line to draw?
+		jg tfnext
+
+		sub cx, di
+		add di, dx // calculate final address
+
+		mov [es:di], al // left line
+		add di, cx
+		mov [es:di], al // right line
+	}
+	tfnext:
+	asm {
+		add dx, W/4 // y += 1
+
+		mov di, [bp]
+		add bx, di // x0 += k0
+		mov cx, [bp+2]
+		add si, cx // x1 += k1
+
+		mov cx, [bp+4]
+		cmp dx, cx
+
+		jb tfill // lines left?
+
+		pop ax
+		pop ax
+		pop ax
+		pop bp
+		sti
+	}
+}
+
 void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
 	asm {
@@ -491,10 +734,22 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
+#if 1
+	// fill plane at a time
 	r_triplanefill(x0+3, dx0, x1+3, dx1, y, dy, pixpx(0), c);
 	r_triplanefill(x0+2, dx0, x1+2, dx1, y, dy, pixpx(1), c);
 	r_triplanefill(x0+1, dx0, x1+1, dx1, y, dy, pixpx(2), c);
 	r_triplanefill(x0+0, dx0, x1+0, dx1, y, dy, pixpx(3), c);
+#else
+	// fill edges
+	r_triplanefilledge(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
+	r_triplanefilledge(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
+	r_triplanefilledge(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
+	r_triplanefilledge(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
+
+	// fill center with full planes
+	r_triplanefillmid(x0, dx0, x1, dx1, y, dy, c);
+#endif
 }
 
 #endif

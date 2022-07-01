@@ -252,6 +252,8 @@ int main()
 	// camera position
 	vec3 cam;
 
+	FILE *outfile = fopen("out.log", "w");
+
 	t = 0.0f;
 	running = 1;
 	lt = 0;
@@ -305,7 +307,7 @@ int main()
 
 		rm = mat4mat4(&pm, &cm);
 
-		//cubedemo(3.0f*t);
+		cubedemo(3.0f*t);
 		//ground(cam);
 
 		om = rotMatY(t);
@@ -340,6 +342,8 @@ int main()
 		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
 				 fps, keycode, rt, drawcount);
 #endif
+		fprintf(outfile, "fps: %u, key: %i, rt: %.1f, dc: %u   \r",
+				 fps, keycode, rt, drawcount);
 
 		r_sync();
 
@@ -386,6 +390,8 @@ int main()
 	r_exit();
 	unhookKeys();
 	unhookTime();
+
+	fclose(outfile);
 
 	return 0;
 }
