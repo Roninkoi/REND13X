@@ -137,7 +137,7 @@ void r_flip()
 	int hi = CRTHI | (pgoffs & 0xff00);
 	int lo = CRTLO | (pgoffs << 8);
 
-	//TRACESTART;
+	TRACESTART;
 
 	asm {
 		cli
@@ -461,8 +461,6 @@ void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		mov cx, si // x1
 		shr cx, 9
 
-		inc di // increment to start of full plane
-
 		cmp di, cx // no line to draw?
 		jg tfnext
 
@@ -734,7 +732,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-#if 1
+#if 0
 	// fill plane at a time
 	r_triplanefill(x0+3, dx0, x1+3, dx1, y, dy, pixpx(0), c);
 	r_triplanefill(x0+2, dx0, x1+2, dx1, y, dy, pixpx(1), c);
@@ -742,13 +740,13 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	r_triplanefill(x0+0, dx0, x1+0, dx1, y, dy, pixpx(3), c);
 #else
 	// fill edges
-	r_triplanefilledge(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
-	r_triplanefilledge(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
-	r_triplanefilledge(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
-	r_triplanefilledge(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
+	r_triplanefilledge(x0+3, dx0, x1+3-4, dx1, y, dy, pixpx(0), c);
+	r_triplanefilledge(x0+2, dx0, x1+2-4, dx1, y, dy, pixpx(1), c);
+	r_triplanefilledge(x0+1, dx0, x1+1-4, dx1, y, dy, pixpx(2), c);
+	r_triplanefilledge(x0+0, dx0, x1+0-4, dx1, y, dy, pixpx(3), c);
 
 	// fill center with full planes
-	r_triplanefillmid(x0, dx0, x1, dx1, y, dy, c);
+	r_triplanefillmid(x0+4, dx0, x1, dx1, y, dy, c);
 #endif
 }
 
