@@ -100,7 +100,7 @@ vec4 mat4GetRow(mat4 *m, int r);
 vec4 mat4vec4(mat4 *m, vec4 *v);
 // matrix multiplication, mat4 x vec3
 vec3 mat4vec3(mat4 *m, vec3 *v);
-// mat4 x vec4
+// mat4 x mat4
 mat4 mat4mat4(mat4 *m0, mat4 *m1);
 
 void vec3Print(vec3 *v);

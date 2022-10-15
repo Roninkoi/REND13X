@@ -70,57 +70,6 @@ void r_drawline(int x0, int y0, int x1, int y1, byte c)
 	}
 }
 
-#ifdef MODE13
-
-void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
-{
-	int i, diff0, diff1, d0, d1;
-	int s0 = 1, s1 = 1;
-	int y0 = y + dy;
-
-	if (dx0 < 0) {
-		s0 = -1;
-		dx0 = -dx0;
-	}
-	if (dx1 < 0) {
-		s1 = -1;
-		dx1 = -dx1;
-	}
-
-	diff0 = dx0 - dy;
-	diff1 = dx1 - dy;
-
-	// Bresenham
-	while (y <= y0) {
-		if (hlineVis(x0, x1, y))
-			r_hlinefill(max(x0, L), min(x1, R), y, c);
-
-		if (y > B || y >= y0)
-			return;
-
-		d0 = diff0;
-		d1 = diff1;
-		if (2 * d0 >= -dy) {
-			diff0 -= dy;
-			x0 += s0;
-		}
-		if (2 * d1 >= -dy) {
-			diff1 -= dy;
-			x1 += s1;
-		}
-
-		if (2 * d0 <= dx0 && 2 * d1 <= dx1) {
-			diff0 += dx0;
-			diff1 += dx1;
-			y += 1;
-		}
-	}
-}
-
-#endif
-
-#ifdef MODEX
-
 void r_triplanefillb(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
 	int i, diff0, diff1, d0, d1;
@@ -141,8 +90,14 @@ void r_triplanefillb(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byt
 
 	// Bresenham
 	while (y <= y0) {
-		if (hlineVis(x0, x1, y))
+		if (hlineVis(x0, x1, y)) {
+#ifdef MODE13
+			r_hlinefill(max(x0, L), min(x1, R), y, c);
+#endif
+#ifdef MODEX
 			r_hplanefill(max(x0, L), min(x1, R), y, p, c);
+#endif
+		}
 
 		if (y > B || y >= y0)
 			return;
@@ -165,6 +120,18 @@ void r_triplanefillb(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byt
 		}
 	}
 }
+
+
+#ifdef MODE13
+
+void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+{
+	r_triplanefillb(x0, dx0, x1, dx1, y, dy, 0, c);
+}
+
+#endif
+
+#ifdef MODEX
 
 void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {

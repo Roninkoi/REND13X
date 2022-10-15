@@ -472,9 +472,9 @@ void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		//mov [es:di], al
 		//add di, cx
 		//mov [es:di], al
- }
- tfnext:
- asm {
+	}
+	tfnext:
+	asm {
 		add dx, W/4 // y += 1
 
 		mov di, [bp]
