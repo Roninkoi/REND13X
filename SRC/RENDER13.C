@@ -255,25 +255,8 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 	}
 }
 
-#define FP_FACTOR 7
-#define X_BIAS 100
-
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	int k0, k1, r0, r1;
-	k1 = abs(dx1);
-	k1 <<= FP_FACTOR;
-	r1 = k1 % dy;
-	k1 /= dy;
-	k1 *= sign(dx1);
-	if (r1 >= dy<<1) k1 += 10000;
-
-	k0 = abs(dx0);
-	k0 <<= FP_FACTOR;
-	r0 = k0 % dy;
-	k0 /= dy;
-	k0 *= sign(dx0);
-	if (r0 >= dy<<1) k0 += 10000;
 	asm {
 		cli
 		push bp
@@ -285,56 +268,54 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		add ax, dy
 		mov cx, W
 		mul cx
-		push ax // final line to stack
+		push ax
 
-		mov cx, dy // y diff
-		mov ax, dx1 // x diff
+		mov cx, dy
+		mov ax, dx1 // slopes
 		mov si, ax
-
-		cwd // sign of ax to dx
-		xor ax, dx
-		sub ax, dx // ax = abs(ax)
-
-		shl ax, FP_FACTOR // mul fixed point
-		xor dx, dx
-		div cx // calculate unsigned slope dx/dy
-
 		cmp si, 0
-		jg tk1
-		neg ax // put sign back
+		jg tfs1
+		neg ax
 	}
-	tk1:
+	tfs1:
 	asm {
-		mov ax, k1
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp si, 0
+		jg tfss1
+		neg ax
+	}
+	tfss1:
+	asm {
 		push ax // k1 to stack
 
 		mov si, x1 // right point
-		shl si, FP_FACTOR // mul fixed point
-		add si, X_BIAS // right bias
+		shl si, 7
+		add si, 100 // right bias
 
-		mov ax, dx0 // x diff
+		mov ax, dx0
 		mov bx, ax
-
-		cwd
-		xor ax, dx
-		sub ax, dx // ax = abs(ax)
-
-		shl ax, FP_FACTOR // mul fixed point
-		xor dx, dx
-		div cx // calculate unsigned slope dx/dy
-
 		cmp bx, 0
-		jg tk0
-		neg ax // put sign back
+		jg tfs0
+		neg ax
 	}
-	tk0:
+	tfs0:
 	asm {
-		mov ax, k0
+		shl ax, 7
+		xor dx, dx
+		div cx
+		cmp bx, 0
+		jg tfss0
+		neg ax
+	}
+	tfss0:
+	asm {
 		push ax // k0 to stack
 
 		mov bx, x0 // left point
-		shl bx, FP_FACTOR // mul fixed point
-		sub bx, X_BIAS // left bias
+		shl bx, 7
+		sub bx, 100 // left bias
 
 		mov dx, W
 		mov ax, y
@@ -349,10 +330,10 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	tfill:
 	asm {
 		mov di, bx // x0
-		shr di, FP_FACTOR // div to get coordinates
+		shr di, 7 // divide to calculate coordinates
 
 		mov cx, si // x1
-		shr cx, FP_FACTOR
+		shr cx, 7
 
 		sub cx, di
 		add di, dx // calculate final address
@@ -378,6 +359,7 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		sti
 	}
 }
+
 
 #endif
 
