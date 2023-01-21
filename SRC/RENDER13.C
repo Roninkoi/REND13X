@@ -7,7 +7,7 @@ void r_init()
 	asm {
 		mov ah, 0x0f
 		int 0x10
-		mov vmode, al // get current video mode
+		mov oldvmode, al // get current video mode
 
 		xor ah, ah
 		mov al, 0x13 // set mode 13h
@@ -24,7 +24,7 @@ void r_exit()
 	asm {
 		xor ah, ah
 		xor bx, bx
-		mov al, vmode // return original video mode
+		mov al, oldvmode // return original video mode
 		int 0x10
 	}
 }
@@ -255,8 +255,25 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 	}
 }
 
+#define FP_FACTOR 7
+#define X_BIAS 100
+
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
+	int k0, k1, r0, r1;
+	k1 = abs(dx1);
+	k1 <<= FP_FACTOR;
+	r1 = k1 % dy;
+	k1 /= dy;
+	k1 *= sign(dx1);
+	if (r1 >= dy<<1) k1 += 10000;
+
+	k0 = abs(dx0);
+	k0 <<= FP_FACTOR;
+	r0 = k0 % dy;
+	k0 /= dy;
+	k0 *= sign(dx0);
+	if (r0 >= dy<<1) k0 += 10000;
 	asm {
 		cli
 		push bp
@@ -268,54 +285,56 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		add ax, dy
 		mov cx, W
 		mul cx
-		push ax
+		push ax // final line to stack
 
-		mov cx, dy
-		mov ax, dx1 // slopes
+		mov cx, dy // y diff
+		mov ax, dx1 // x diff
 		mov si, ax
-		cmp si, 0
-		jg tfs1
-		neg ax
-	}
-	tfs1:
-	asm {
-		shl ax, 7
+
+		cwd // sign of ax to dx
+		xor ax, dx
+		sub ax, dx // ax = abs(ax)
+
+		shl ax, FP_FACTOR // mul fixed point
 		xor dx, dx
-		div cx
+		div cx // calculate unsigned slope dx/dy
+
 		cmp si, 0
-		jg tfss1
-		neg ax
+		jg tk1
+		neg ax // put sign back
 	}
-	tfss1:
+	tk1:
 	asm {
+		mov ax, k1
 		push ax // k1 to stack
 
 		mov si, x1 // right point
-		shl si, 7
-		add si, 100 // right bias
+		shl si, FP_FACTOR // mul fixed point
+		add si, X_BIAS // right bias
 
-		mov ax, dx0
+		mov ax, dx0 // x diff
 		mov bx, ax
-		cmp bx, 0
-		jg tfs0
-		neg ax
-	}
-	tfs0:
-	asm {
-		shl ax, 7
+
+		cwd
+		xor ax, dx
+		sub ax, dx // ax = abs(ax)
+
+		shl ax, FP_FACTOR // mul fixed point
 		xor dx, dx
-		div cx
+		div cx // calculate unsigned slope dx/dy
+
 		cmp bx, 0
-		jg tfss0
-		neg ax
+		jg tk0
+		neg ax // put sign back
 	}
-	tfss0:
+	tk0:
 	asm {
+		mov ax, k0
 		push ax // k0 to stack
 
 		mov bx, x0 // left point
-		shl bx, 7
-		sub bx, 100 // left bias
+		shl bx, FP_FACTOR // mul fixed point
+		sub bx, X_BIAS // left bias
 
 		mov dx, W
 		mov ax, y
@@ -330,10 +349,10 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	tfill:
 	asm {
 		mov di, bx // x0
-		shr di, 7 // divide to calculate coordinates
+		shr di, FP_FACTOR // div to get coordinates
 
 		mov cx, si // x1
-		shr cx, 7
+		shr cx, FP_FACTOR
 
 		sub cx, di
 		add di, dx // calculate final address

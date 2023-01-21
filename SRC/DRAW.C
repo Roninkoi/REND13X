@@ -4,9 +4,9 @@ struct tri r_buffer[RBUFFERLEN];
 unsigned r_sorted[RBUFFERLEN];
 unsigned r_num = 0;
 
-mat4 rm;
+mat4 r_matrix;
 
-unsigned drawcount = 0;
+unsigned drawCount = 0;
 
 void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
@@ -16,9 +16,9 @@ void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 
 	if (r_num >= RBUFFERLEN) return;
 
-	t.v0 = mat4vec3(&rm, v0); // transform vertices
-	t.v1 = mat4vec3(&rm, v1);
-	t.v2 = mat4vec3(&rm, v2);
+	t.v0 = mat4vec3(&r_matrix, v0); // transform vertices
+	t.v1 = mat4vec3(&r_matrix, v1);
+	t.v2 = mat4vec3(&r_matrix, v2);
 
 	//face culling
 	if ((t.v1.x/t.v1.z-t.v0.x/t.v0.z)*(t.v2.y/t.v2.z-t.v0.y/t.v0.z) -
@@ -85,23 +85,23 @@ void r_draw()
 {
 	int i;
 
-	drawcount = 0;
+	drawCount = 0;
 
 	// draw triangles back to front
 	for (i = 0; i < r_num; ++i) {
 		if (filled)
-			r_drawtri3d(&r_buffer[r_sorted[i]].v0,
+			r_drawTri3D(&r_buffer[r_sorted[i]].v0,
 				&r_buffer[r_sorted[i]].v1,
 				&r_buffer[r_sorted[i]].v2,
 				r_buffer[r_sorted[i]].c);
 		if (wireframe) {
-			r_drawline3d(r_buffer[r_sorted[i]].v0,
+			r_drawLine3D(r_buffer[r_sorted[i]].v0,
 				r_buffer[r_sorted[i]].v1,
 				r_buffer[r_sorted[i]].c);
-			r_drawline3d(r_buffer[r_sorted[i]].v0,
+			r_drawLine3D(r_buffer[r_sorted[i]].v0,
 				r_buffer[r_sorted[i]].v2,
 				r_buffer[r_sorted[i]].c);
-			r_drawline3d(r_buffer[r_sorted[i]].v1,
+			r_drawLine3D(r_buffer[r_sorted[i]].v1,
 				r_buffer[r_sorted[i]].v2,
 				r_buffer[r_sorted[i]].c);
 		}

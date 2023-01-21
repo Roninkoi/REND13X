@@ -26,7 +26,7 @@ void r_init13()
 	asm {
 		mov ah, 0x0f // get current video mode
 		int 0x10
-		mov vmode, al
+		mov oldvmode, al
 
 		mov ax, 0x13 // set 13
 		int 0x10
@@ -99,7 +99,7 @@ void r_exit()
 		mov ah, 0
 		mov bh, 0
 		mov bx, 0
-		mov al, vmode // return original video mode
+		mov al, oldvmode // return original video mode
 		int 0x10
 	}
 }

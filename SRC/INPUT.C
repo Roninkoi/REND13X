@@ -31,7 +31,7 @@ byte keycodei = 0;
 
 int keydown[256];
 
-void interrupt (*oldkb) ();
+void interrupt (*oldKeys) ();
 
 void interrupt getKeys()
 {
@@ -60,13 +60,13 @@ void interrupt getKeys()
 
 void hookKeys()
 {
-	oldkb = getvect(9);
+	oldKeys = getvect(9);
 	setvect(9, getKeys);
 }
 
 void unhookKeys()
 {
-	setvect(9, oldkb);
+	setvect(9, oldKeys);
 }
 
 void getInput()

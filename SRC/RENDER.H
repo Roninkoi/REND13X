@@ -19,11 +19,11 @@
 typedef unsigned char byte;
 
 // video mode selection (ifdef)
-//#define MODE13
-#define MODEX
+#define MODE13
+//#define MODEX
 
 // enable faster fills with less precision
-#define FASTFILL
+//#define FASTFILL
 
 // viewport dimensions
 #define L 0
@@ -105,7 +105,7 @@ typedef unsigned char byte;
 #define TRACESTART while (inportb(0x3da) & 8)
 #define TRACEEND while (!(inportb(0x3da) & 8))
 
-extern char vmode; // previous video mode
+extern char oldvmode; // previous video mode
 extern int wireframe; // draw wireframe triangles?
 extern int filled; // fill triangles?
 extern int faceculling; // cull back faces?
@@ -137,11 +137,12 @@ extern unsigned r_sorted[RBUFFERLEN];
 extern unsigned r_num; // number of triangles in buffer
 
 // total triangle draw count
-extern unsigned drawcount;
+extern unsigned drawCount;
 
 // render matrix for triangles used in r_add
-extern mat4 rm;
+extern mat4 r_matrix;
 
+// primitive VGA routines
 void r_init(); // initialize renderer, enter video mode
 void r_exit(); // return original video mode
 void r_scr(byte c); // clear screen with color c by int 10h, slightly faster than fill
@@ -151,8 +152,8 @@ void r_vfill(int y0, int h, byte c); // vertical fill from top y0, height h, col
 void r_hlinefill(int x0, int x1, int y, byte c); // horizontal line fill with optional x sort and clipping
 void r_vlinefill(int x, int y0, int y1, byte c); // vertical line fill
 void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
-void r_rectfill(int x, int y, int w, int h, byte c); // rectangle fill, left corner (x, y), size (w, h), color c
-
+// rectangle fill, left corner (x, y), size (w, h), color c
+void r_rectfill(int x, int y, int w, int h, byte c);
 // fast asm triangle fill using integers, no clipping
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
 
@@ -163,13 +164,14 @@ void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
 			float v2x, float v2y, float v2z, byte c);
 
-void r_drawline(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
-void r_drawtri(float *v, byte c); // draw triangle of color c with vertices v
+void r_drawLine(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
+void r_drawClipTri(float *v, byte c); // draw triangle of color c with vertices v
 
 // perspective projected draws
-void r_drawpoint3d(vec3 v, byte c);
-void r_drawline3d(vec3 v0, vec3 v1, byte c);
-void r_drawtri3d(vec3 *v0, vec3 *v1, vec3 *v2, byte c); // draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
+void r_drawPoint3D(vec3 v, byte c);
+void r_drawLine3D(vec3 v0, vec3 v1, byte c);
+// draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
+void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
 
 void r_sort(); // sort triangles by centroid z coordinate
 void r_draw(); // draw all triangles in render buffer

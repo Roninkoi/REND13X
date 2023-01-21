@@ -2,11 +2,11 @@
 
 int running = 1;
 
-int tricount = 0;
+int triCount = 0;
 
 #define TRIDEMOA 1.0f
 
-void tridemo()
+void triDemo()
 {
 	int i;
 	float vt[6];
@@ -24,30 +24,30 @@ void tridemo()
 		vt[4] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 		vt[5] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		r_drawtri(vt, (byte) (RANDF * 256.0f));
+		r_drawClipTri(vt, (byte) (RANDF * 256.0f));
 
-		++tricount;
+		++triCount;
 	}
 
-	drawcount = tricount;
+	drawCount = triCount;
 }
 
-void linedemo()
+void lineDemo()
 {
 	unsigned i;
 	float a;
 	unsigned n = 62832;
 	for (i = 0; i < n; ++i) {
 		a = (float) i / (float) n;
-		r_drawline(W/2, H/2,
+		r_drawLine(W/2, H/2,
 			round(W/2 + 0.45f*H*cos(2.0f*PI*a)),
 			round(H/2 + 0.45f*H*sin(2.0f*PI*a)),
 			256*a);
 	}
-	drawcount = n;
+	drawCount = n;
 }
 
-void drawico(vec3 pos, mat4 *rot, float a, byte c, byte ci)
+void drawIco(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 {
 	float phi = 1.618034f;
 
@@ -66,11 +66,11 @@ void drawico(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 	vec3 ico10 = Vec3(0.0f*a, -0.5f*a*phi, -0.5f*a);
 	vec3 ico11 = Vec3(0.0f*a, -0.5f*a*phi, 0.5f*a);
 
-	mat4 rm0 = rm;
+	mat4 rm0 = r_matrix;
 
-	rm = scale(&rm, a);
-	rm = translate(&rm, pos);
-	rm = mat4mat4(&rm, rot);
+	r_matrix = scale(&r_matrix, a);
+	r_matrix = translate(&r_matrix, pos);
+	r_matrix = mat4mat4(&r_matrix, rot);
 
 	r_add(&ico0, &ico1, &ico4, c+ci*0);
 	r_add(&ico1, &ico0, &ico7, c+ci*1);
@@ -102,10 +102,10 @@ void drawico(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 	r_add(&ico3, &ico6, &ico9, c+ci*18);
 	r_add(&ico5, &ico3, &ico8, c+ci*19);
 
-	rm = rm0;
+	r_matrix = rm0;
 }
 
-void drawcube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
+void drawCube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 {
 	vec3 cube00 = Vec3(-0.5f*a, -0.5f*a, -0.5f*a);
 	vec3 cube01 = Vec3(0.5f*a, -0.5f*a, -0.5f*a);
@@ -117,11 +117,11 @@ void drawcube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 	vec3 cube12 = Vec3(0.5f*a, 0.5f*a, 0.5f*a);
 	vec3 cube13 = Vec3(-0.5f*a, 0.5f*a, 0.5f*a);
 
-	mat4 rm0 = rm;
+	mat4 rm0 = r_matrix;
 
-	rm = scale(&rm, a);
-	rm = translate(&rm, pos);
-	rm = mat4mat4(&rm, rot);
+	r_matrix = scale(&r_matrix, a);
+	r_matrix = translate(&r_matrix, pos);
+	r_matrix = mat4mat4(&r_matrix, rot);
 
 	r_add(&cube00, &cube01, &cube02, c+ci*0);
 	r_add(&cube00, &cube02, &cube03, c+ci*1);
@@ -141,12 +141,12 @@ void drawcube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 	r_add(&cube03, &cube13, &cube10, c+ci*10);
 	r_add(&cube03, &cube10, &cube00, c+ci*11);
 
-	rm = rm0;
+	r_matrix = rm0;
 }
 
 #define GROUNDA 1.2f
 
-void ground(vec3 cam)
+void groundDemo(vec3 cam)
 {
 	int x, z;
 	int y = -2.0f;
@@ -172,7 +172,7 @@ void ground(vec3 cam)
 	}
 }
 
-void cubedemo(float t)
+void cubeDemo(float t)
 {
 	int i;
 	float ln;
@@ -189,13 +189,13 @@ void cubedemo(float t)
 	vec3 cube12 = Vec3(0.5f, 0.5f, 0.5f);
 	vec3 cube13 = Vec3(-0.5f, 0.5f, 0.5f);
 
-	mat4 rm0 = rm;
+	mat4 rm0 = r_matrix;
 
 	cn = 5;
 	for (i = 0; i < cn; ++i) {
-		rm = translate(&rm, Vec3(10.0f*sin(t+2*i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 10.0f+5.0f*sin(t/5.0f+i/PI/5.0f)));
-		rm = rotateY(&rm, sin(i/PI)*i/cn*t);
-		rm = rotateX(&rm, t);
+		r_matrix = translate(&r_matrix, Vec3(10.0f*sin(t+2*i/PI), 10.0f*cos(t/5.0f+i/PI/5.0f), 10.0f+5.0f*sin(t/5.0f+i/PI/5.0f)));
+		r_matrix = rotateY(&r_matrix, sin(i/PI)*i/cn*t);
+		r_matrix = rotateX(&r_matrix, t);
 
 		r_add(&cube00, &cube01, &cube02, 48+i%30);
 		r_add(&cube00, &cube02, &cube03, 50+i%30);
@@ -215,7 +215,7 @@ void cubedemo(float t)
 		r_add(&cube03, &cube13, &cube10, 42+i%30);
 		r_add(&cube03, &cube10, &cube00, 44+i%30);
 
-		rm = rm0;
+		r_matrix = rm0;
 	}
 }
 
@@ -229,28 +229,28 @@ int main()
 	unsigned frames;
 	unsigned fps;
 
-	float posx;
-	float posy;
-	float posz;
+	float posX;
+	float posY;
+	float posZ;
 
-	float rotx;
-	float roty;
+	float rotX;
+	float rotY;
 
-	float dt;
-	float rt;
-	int rs;
+	float dt; // time between frames
+	float rt; // render time
+	int rit; // render itime
 
-	float walk_spd, rot_spd;
+	float walkSpd, rotSpd;
 
 	// projection matrix
-	mat4 pm = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
+	mat4 projMatrix = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
 	// camera matrix
-	mat4 cm = Mat4(1.0f);
+	mat4 camMatrix = Mat4(1.0f);
 	// object matrix
-	mat4 om = Mat4(1.0f);
+	mat4 objMatrix = Mat4(1.0f);
 
 	// camera position
-	vec3 cam;
+	vec3 camPos;
 
 	FILE *outfile = fopen("out.log", "w");
 
@@ -261,19 +261,19 @@ int main()
 	frames = 0;
 	fps = 75;
 
-	posx = 0.0f;
-	posy = 0.0f;
-	posz = -2.0f;
+	posX = 0.0f;
+	posY = 0.0f;
+	posZ = -2.0f;
 
-	roty = 0.0f;
-	rotx = 0.0f;
+	rotX = 0.0f;
+	rotY = 0.0f;
 
-	walk_spd = 5.6f;
-	rot_spd = 1.4f;
+	walkSpd = 5.6f;
+	rotSpd = 1.4f;
 
 	dt = 1.0f/(float) fps;
 	rt = 1.0f;
-	rs = 0;
+	rit = 0;
 
 	for (i = 0; i < 256; ++i) {
 		keydown[i] = 0;
@@ -296,24 +296,24 @@ int main()
 			r_clear();
 		}
 
-		rs -= itime;
+		rit -= itime;
 
-		cam = Vec3(-posx, -posy, -posz);
+		camPos = Vec3(-posX, -posY, -posZ);
 
-		cm = rotMatX(rotx);
-		cm = rotateY(&cm, roty);
+		camMatrix = rotMatX(rotX);
+		camMatrix = rotateY(&camMatrix, rotY);
 
-		cm = translate(&cm, cam);
+		camMatrix = translate(&camMatrix, camPos);
 
-		rm = mat4mat4(&pm, &cm);
+		r_matrix = mat4mat4(&projMatrix, &camMatrix);
 
-		cubedemo(3.0f*t);
-		//ground(cam);
+		cubeDemo(3.0f*t);
+		//groundDemo(camPos);
 
-		om = rotMatY(t);
-		om = rotateX(&om, t);
-		//drawcube(Vec3(0.0f, 2.0f, 1.0f), &om, 1.0f, 42, 12);
-		drawico(Vec3(0.0f, 0.0f, 0.3f), &om, 1.0f, 64, 1);
+		objMatrix = rotMatY(t);
+		objMatrix = rotateX(&objMatrix, t);
+		//drawCube(Vec3(0.0f, 2.0f, 1.0f), &objMatrix, 1.0f, 42, 12);
+		drawIco(Vec3(0.0f, 0.0f, 0.3f), &objMatrix, 1.0f, 64, 1);
 
 		wireframe = 0;
 		filled = 1;
@@ -324,14 +324,14 @@ int main()
 
 		r_draw();
 
-		//tridemo();
-		//linedemo();
+		//triDemo();
+		//lineDemo();
 
-		rs += itime;
+		rit += itime;
 
 		if (itime - lt >= SECOND) { // runs every second
-			rt = (float) rs / (float) frames * TOSECOND * 1000.0f /* 0.25f + rt*0.75f*/;
-			rs = 0;
+			rt = (float) rit / (float) frames * TOSECOND * 1000.0f /* 0.25f + rt*0.75f*/;
+			rit = 0;
 			dt = min((float) (itime - lt), 2.0f * SECOND) * TOSECOND / (float) frames;
 			lt = itime;
 			fps = frames;
@@ -340,10 +340,10 @@ int main()
 
 #ifdef MODE13
 		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
-				 fps, keycode, rt, drawcount);
+				 fps, keycode, rt, drawCount);
 #endif
 		fprintf(outfile, "fps: %u, key: %i, rt: %.1f, dc: %u   \r",
-				 fps, keycode, rt, drawcount);
+				 fps, keycode, rt, drawCount);
 
 		r_sync();
 
@@ -351,42 +351,42 @@ int main()
 
 		// game input
 		if (keydown[wDownCode]) {
-			posz += cos(roty)*walk_spd*dt;
-			posx += -sin(roty)*walk_spd*dt;
+			posZ += cos(rotY)*walkSpd*dt;
+			posX += -sin(rotY)*walkSpd*dt;
 		}
 		if (keydown[aDownCode]) {
-			posx -= cos(roty)*walk_spd*dt;
-			posz -= sin(roty)*walk_spd*dt;
+			posX -= cos(rotY)*walkSpd*dt;
+			posZ -= sin(rotY)*walkSpd*dt;
 		}
 		if (keydown[sDownCode]) {
-			posz -= cos(roty)*walk_spd*dt;
-			posx -= -sin(roty)*walk_spd*dt;
+			posZ -= cos(rotY)*walkSpd*dt;
+			posX -= -sin(rotY)*walkSpd*dt;
 		}
 		if (keydown[dDownCode]) {
-			posx += cos(roty)*walk_spd*dt;
-			posz += sin(roty)*walk_spd*dt;
+			posX += cos(rotY)*walkSpd*dt;
+			posZ += sin(rotY)*walkSpd*dt;
 		}
 		if (keydown[rightDownCode]) {
-			roty -= rot_spd*dt;
+			rotY -= rotSpd*dt;
 		}
 		if (keydown[leftDownCode]) {
-			roty += rot_spd*dt;
+			rotY += rotSpd*dt;
 		}
 		if (keydown[upDownCode]) {
-			rotx += rot_spd*dt;
+			rotX += rotSpd*dt;
 		}
 		if (keydown[downDownCode]) {
-			rotx -= rot_spd*dt;
+			rotX -= rotSpd*dt;
 		}
 		if (keydown[rDownCode]) {
-			posy += walk_spd*dt;
+			posY += walkSpd*dt;
 		}
 		if (keydown[fDownCode]) {
-			posy -= walk_spd*dt;
+			posY -= walkSpd*dt;
 		}
 	}
 
-	// return previous
+	// return previous state
 	r_exit();
 	unhookKeys();
 	unhookTime();
@@ -395,3 +395,4 @@ int main()
 
 	return 0;
 }
+
