@@ -19,11 +19,11 @@
 typedef unsigned char byte;
 
 // video mode selection (ifdef)
-#define MODE13
-//#define MODEX
+//#define MODE13
+#define MODEX
 
 // enable faster fills with less precision
-//#define FASTFILL
+#define FASTFILL
 
 // viewport dimensions
 #define L 0
