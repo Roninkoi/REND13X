@@ -199,6 +199,9 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	dx2 = x2 - x1;
 	dy2 = y2 - y1;
 
+	if (dy0 == 0)
+		return;
+
 	dx01 = dx0 * (float) dy2 / (float) dy0;
 	dx0 = dx0 * (float) dy1 / (float) dy0;
 
