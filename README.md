@@ -16,9 +16,8 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The pro
 
 - "Fast" x86 assembly draw routines for line drawing and triangle fills.
 
-    - Two video modes: mode 13h or mode X, define MODE13 or MODEX in RENDER.C to enable/disable.
-
-    - Triangle filling is implemented in two ways: a non-clipped inaccurate fast fill and clipped accurate slow fill (using Bresenham's algorithm), define FASTFILL in RENDER.H to enable/disable. 
+    - Two video modes: mode 13h or mode X, define MODE13 or MODEX in RENDER.H to enable/disable.
+    - Triangle filling is implemented in two ways: a non-clipped inaccurate fast fill and clipped accurate slow fill (using Bresenham's algorithm), define FASTFILL in RENDER.H to enable/disable.
 
 - 3D perspective projected triangle draw with z sorting, face culling and wireframe rendering.
 
@@ -41,8 +40,11 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The pro
 ## TODO
 
 - Implement clipping at geometry level (currently clipping is only implemented at line level for slow triangle fill and pixel level for line fill).
+
 - Figure out a way to increase fast fill precision (error accumulates for long lines because of 16-bit precision).
+
 - Improve mode X fills for better plane handling (naive line fill, rectangle fill).
+
 - Wish list:
     - Sprite rendering
 	- Text rendering
