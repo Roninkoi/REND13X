@@ -10,7 +10,7 @@ DOS software renderer written in C and x86 assembly. Mode 13h (320x200) or mode 
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming.
 
-Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The program can be compiled using the project file REND13X.PRJ or batch file BUILD.BAT.
+Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The program can be compiled using the project file REND13X.PRJ or batch file BUILD.BAT. Runs on real hardware (486) or in DOSBox.
 
 ## FEATURES
 
