@@ -339,7 +339,7 @@ void r_drawTriClip(vec2 *v, byte c)
 	return;
 #endif
 
-	if (!triClips(x0, y0, x1, y1, x2, y2, 10)) {
+	if (!triClips(x0, y0, x1, y1, x2, y2, 0)) {
 		r_drawTri(x0, y0, x1, y1, x2, y2, c);
 		return;
 	}
@@ -418,6 +418,14 @@ void r_drawTriClip(vec2 *v, byte c)
 	xc = round((float) xc / (float) pn);
 	yc = round((float) yc / (float) pn);
 
+	if (pn == 3) {
+		r_drawTri(
+			p[ps[0]].x, p[ps[0]].y,
+			p[ps[1]].x, p[ps[1]].y,
+			p[ps[2]].x, p[ps[2]].y, c);
+		return;
+	}
+
 	for (i = 0; i < pn; ++i) {
 		smallest = 10.0f;
 		smallest_i = i;
@@ -435,6 +443,17 @@ void r_drawTriClip(vec2 *v, byte c)
 			ps[i] = ps[smallest_i];
 			ps[smallest_i] = tmp;
 		}
+	}
+	if (pn == 4) {
+		r_drawTri(
+			p[ps[0]].x, p[ps[0]].y,
+			p[ps[1]].x, p[ps[1]].y,
+			p[ps[2]].x, p[ps[2]].y, c);
+		r_drawTri(
+			p[ps[0]].x, p[ps[0]].y,
+			p[ps[2]].x, p[ps[2]].y,
+			p[ps[3]].x, p[ps[3]].y, c);
+		return;
 	}
 
 	for (i = 0; i < pn; ++i) {
