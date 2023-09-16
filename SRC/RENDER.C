@@ -444,6 +444,7 @@ void r_drawTriClip(vec2 *v, byte c)
 			ps[smallest_i] = tmp;
 		}
 	}
+
 	if (pn == 4) {
 		r_drawTri(
 			p[ps[0]].x, p[ps[0]].y,
