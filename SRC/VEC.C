@@ -1,5 +1,13 @@
 #include "SRC\VEC.H"
 
+pix Pix(int x, int y)
+{
+	pix p;
+	p.x = x;
+	p.y = y;
+	return p;
+}
+
 void vec3Print(vec3 *v)
 {
 	printf("(%.1f %.1f %.1f)\n", v->x, v->y, v->z);
@@ -26,6 +34,10 @@ vec2 Vec2(float x, float y)
 	return v;
 }
 
+vec2 vec2Copy(vec2 v) {
+	return Vec2(v.x, v.y);
+}
+
 vec3 Vec3(float x, float y, float z)
 {
 	vec3 v;
@@ -35,6 +47,10 @@ vec3 Vec3(float x, float y, float z)
 	return v;
 }
 
+vec3 vec3Copy(vec3 v) {
+	return Vec3(v.x, v.y, v.z);
+}
+
 vec4 Vec4(float x, float y, float z, float w)
 {
 	vec4 v;
@@ -42,6 +58,18 @@ vec4 Vec4(float x, float y, float z, float w)
 	v.y = y;
 	v.z = z;
 	v.w = w;
+	return v;
+}
+
+vec4 vec4Copy(vec4 v) {
+	return Vec4(v.x, v.y, v.z, v.w);
+}
+
+vec2 Zvec2()
+{
+	vec2 v;
+	v.x = 0.0f;
+	v.y = 0.0f;
 	return v;
 }
 
@@ -64,12 +92,22 @@ vec4 Zvec4()
 	return v;
 }
 
-vec3 Vec43(vec4 *v)
+vec2 Vec2From3(vec3 *v)
+{
+	return Vec2(v->x, v->y);
+}
+
+vec3 Vec3From2(vec2 *v)
+{
+	return Vec3(v->x, v->y, 0.0f);
+}
+
+vec3 Vec3From4(vec4 *v)
 {
 	return Vec3(v->x, v->y, v->z);
 }
 
-vec4 Vec34(vec3 *v)
+vec4 Vec4From3(vec3 *v)
 {
 	return Vec4(v->x, v->y, v->z, 1.0f);
 }

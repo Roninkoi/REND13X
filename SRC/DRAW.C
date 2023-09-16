@@ -54,9 +54,9 @@ void r_sort()
 {
 	int i;
 	int j;
-	int c;
-	int largest;
-	float largest_v;
+	int tmp;
+	int largest_i;
+	float largest;
 
 	for (i = 0; i < r_num; ++i) {
 		r_sorted[i] = i;
@@ -66,18 +66,18 @@ void r_sort()
 
 	// selection sort?
 	for (i = 0; i < r_num; ++i) {
-		largest = i;
-		largest_v = r_buffer[r_sorted[i]].fc;
+		largest_i = i;
+		largest = r_buffer[r_sorted[i]].fc;
 
 		for (j = i; j < r_num; ++j) {
-			if (r_buffer[r_sorted[j]].fc > largest_v) {
-				largest = j;
-				largest_v = r_buffer[r_sorted[j]].fc;
+			if (r_buffer[r_sorted[j]].fc > largest) {
+				largest_i = j;
+				largest = r_buffer[r_sorted[j]].fc;
 			}
 		}
-		c = r_sorted[i];
-		r_sorted[i] = r_sorted[largest];
-		r_sorted[largest] = c;
+		tmp = r_sorted[i];
+		r_sorted[i] = r_sorted[largest_i];
+		r_sorted[largest_i] = tmp;
 	}
 }
 

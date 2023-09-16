@@ -291,6 +291,7 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		push ax // k1 to stack
 
 		mov si, x1 // right point
+		inc si
 		shl si, 7
 		add si, 100 // right bias
 
@@ -314,6 +315,7 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		push ax // k0 to stack
 
 		mov bx, x0 // left point
+		inc bx
 		shl bx, 7
 		sub bx, 100 // left bias
 
@@ -350,7 +352,7 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		mov cx, [bp+4]
 		cmp dx, cx
 
-		jb tfill // lines left?
+		jbe tfill // lines left?
 
 		pop ax
 		pop ax

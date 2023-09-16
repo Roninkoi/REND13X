@@ -135,10 +135,10 @@ void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 
 void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	r_trihfill(x0+3-1, dx0, x1+3-4, dx1, y, dy, pixpx(0), c);
-	r_trihfill(x0+2-1, dx0, x1+2-4, dx1, y, dy, pixpx(1), c);
-	r_trihfill(x0+1-1, dx0, x1+1-4, dx1, y, dy, pixpx(2), c);
-	r_trihfill(x0+0-1, dx0, x1+0-4, dx1, y, dy, pixpx(3), c);
+	r_trihfill(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
+	r_trihfill(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
+	r_trihfill(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
+	r_trihfill(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
 }
 
 #endif
@@ -154,12 +154,6 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	int dy0;
 	int dy1;
 	int dy2;
-
-#ifdef FASTFILL
-	int clipping = triClips(x0, y0, x1, y1, x2, y2, 2);
-#else
-	int clipping = 1;
-#endif
 
 	// sort vertices by y
 	if (y0 > y2) {
@@ -216,10 +210,11 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 
 	// top
 	if (dy1 > 0) {
-		if (clipping)
-			r_trifillb(x0, dx0, x0, dx1, y0, dy1, c);
-		else
-			r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
+#ifndef FASTFILL
+		r_trifillb(x0, dx0, x0, dx1, y0, dy1, c);
+#else
+		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
+#endif
 	}
 
 	if (x1 > x2) { // sort x
@@ -234,33 +229,224 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 
 	// bottom
 	if (dy2 > 0) {
-		if (clipping)
+#ifndef FASTFILL
 			r_trifillb(x1, dx2, x2, dx01, y2, dy2, c);
-		else
+#else
 			r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
+#endif
 	}
 
 	++drawCount;
 }
 
-// TODO: clipping at triangle level
-void r_drawClipTri(float *v, byte c)
+#define zCross(ux, uy, vx, vy) ((ux) * (vy) - (uy) * (vx))
+
+int pointInTri(long px, long py,
+	long t0x, long t0y,
+	long t1x, long t1y,
+	long t2x, long t2y)
 {
+	long a, b;
+	long det1, det2, det01, det02, det12;
+
+	t1x -= t0x;
+	t1y -= t0y;
+	t2x -= t0x;
+	t2y -= t0y;
+
+	det1 = zCross(px, py, t1x, t1y);
+	det2 = zCross(px, py, t2x, t2y);
+	det01 = zCross(t0x, t0y, t1x, t1y);
+	det02 = zCross(t0x, t0y, t2x, t2y);
+	det12 = zCross(t1x, t1y, t2x, t2y);
+
+	a = (det2 - det02) * sign(det12);
+	b = (-det1 + det01) * sign(det12);
+
+	return a > 0 && b > 0 && a + b < abs(det12);
+}
+
+int pointCloser(long x0, long y0, long x1, long y1, long x2, long y2)
+{
+	unsigned long dx01, dy01, dx02, dy02, dx12, dy12;
+	unsigned long d01, d02, d12;
+
+	dx01 = x1 - x0;
+	dy01 = y1 - y0;
+	dx02 = x2 - x0;
+	dy02 = y2 - y0;
+	dx12 = x2 - x1;
+	dy12 = y2 - y1;
+
+	d01 = dx01 * dx01 + dy01 * dy01;
+	d02 = dx02 * dx02 + dy02 * dy02;
+	d12 = dx12 * dx12 + dy12 * dy12;
+
+	return d01 < d02 && d12 < d02;
+}
+
+pix clipLine(int x, int y, int dx, int dy)
+{
+	int x0, y0;
+	pix p = Pix(x, y);
+
+	if (dx != 0) {
+		x0 = p.x;
+		p.x = min(R, p.x);
+		p.x = max(L, p.x);
+		p.y += ((float) dy / (float) dx * (float) (p.x - x0));
+	}
+	if (dy != 0) {
+		y0 = p.y;
+		p.y = min(B, p.y);
+		p.y = max(T, p.y);
+		p.x += ((float) dx / (float) dy * (float) (p.y - y0));
+	}
+
+	return p;
+}
+
+void r_drawTriClip(vec2 *v, byte c)
+{
+	pix p[10];
+	pix pc;
+	int ps[10];
+	int smallest_i, tmp;
+	float smallest, ftmp;
+	int pn;
+	int i, j;
+	int dx01, dy01, dx02, dy02, dx12, dy12;
+	int clip0, clip1, clip2, clipn;
+
+	int xc, yc;
+
 	// transform from gl to pix
-	int x0 = round((v[0]+1.0f)*W*0.5f);
-	int y0 = round((-v[1]+1.0f)*H*0.5f);
+	int x0 = round((v[0].x+1.0f)*W*0.5f);
+	int y0 = round((-v[0].y+1.0f)*H*0.5f);
 
-	int x1 = round((v[2]+1.0f)*W*0.5f);
-	int y1 = round((-v[3]+1.0f)*H*0.5f);
+	int x1 = round((v[1].x+1.0f)*W*0.5f);
+	int y1 = round((-v[1].y+1.0f)*H*0.5f);
 
-	int x2 = round((v[4]+1.0f)*W*0.5f);
-	int y2 = round((-v[5]+1.0f)*H*0.5f);
+	int x2 = round((v[2].x+1.0f)*W*0.5f);
+	int y2 = round((-v[2].y+1.0f)*H*0.5f);
 
 	// bounds
 	if (!triVis(x0, y0, x1, y1, x2, y2))
 		return;
 
+#ifndef FASTFILL
 	r_drawTri(x0, y0, x1, y1, x2, y2, c);
+	return;
+#endif
+
+	if (!triClips(x0, y0, x1, y1, x2, y2, 10)) {
+		r_drawTri(x0, y0, x1, y1, x2, y2, c);
+		return;
+	}
+
+	clip0 = !pointVis(x0, y0);
+	clip1 = !pointVis(x1, y1);
+	clip2 = !pointVis(x2, y2);
+
+	p[0] = Pix(x0, y0);
+	p[1] = Pix(W, H);
+	p[2] = Pix(x1, y1);
+	p[3] = Pix(W, H);
+	p[4] = Pix(x2, y2);
+	p[5] = Pix(W, H);
+	p[6] = Pix(W, H);
+	p[7] = Pix(W, H);
+	p[8] = Pix(W, H);
+	p[9] = Pix(W, H);
+
+	dx01 = x1 - x0;
+	dy01 = y1 - y0;
+
+	dx02 = x2 - x0;
+	dy02 = y2 - y0;
+
+	dx12 = x2 - x1;
+	dy12 = y2 - y1;
+
+	if (clip0) {
+		pc = clipLine(x0, y0, dx01, dy01);
+		if (pointCloser(x0, y0, pc.x, pc.y, x1, y1))
+			p[1] = pc;
+		pc = clipLine(x0, y0, dx02, dy02);
+		if (pointCloser(x0, y0, pc.x, pc.y, x2, y2))
+			p[0] = pc;
+	}
+	if (clip1) {
+		pc = clipLine(x1, y1, dx01, dy01);
+		if (pointCloser(x1, y1, pc.x, pc.y, x0, y0))
+			p[2] = pc;
+		pc = clipLine(x1, y1, dx12, dy12);
+		if (pointCloser(x1, y1, pc.x, pc.y, x2, y2))
+			p[3] = pc;
+	}
+	if (clip2) {
+		pc = clipLine(x2, y2, dx02, dy02);
+		if (pointCloser(x2, y2, pc.x, pc.y, x0, y0))
+			p[5] = pc;
+		pc = clipLine(x2, y2, dx12, dy12);
+		if (pointCloser(x2, y2, pc.x, pc.y, x1, y1))
+			p[4] = pc;
+	}
+
+	if (pointInTri(L, T, x0, y0, x1, y1, x2, y2)) {
+		p[6] = Pix(L, T);
+	}
+	if (pointInTri(R, T, x0, y0, x1, y1, x2, y2)) {
+		p[7] = Pix(R, T);
+	}
+	if (pointInTri(R, B, x0, y0, x1, y1, x2, y2)) {
+		p[8] = Pix(R, B);
+	}
+	if (pointInTri(L, B, x0, y0, x1, y1, x2, y2)) {
+		p[9] = Pix(L, B);
+	}
+
+	xc = 0, yc = 0;
+	pn = 0;
+	for (i = 0; i < 10; ++i) {
+		if (pointVis(p[i].x, p[i].y)) {
+			ps[pn++] = i;
+			xc += p[i].x;
+			yc += p[i].y;
+		}
+	}
+	xc = round((float) xc / (float) pn);
+	yc = round((float) yc / (float) pn);
+
+	for (i = 0; i < pn; ++i) {
+		smallest = 10.0f;
+		smallest_i = i;
+		for (j = i; j < pn; ++j) {
+			if (p[ps[j]].y-yc == 0 && p[ps[j]].x-xc == 0)
+				continue;
+			ftmp = atan2(p[ps[j]].y-yc, p[ps[j]].x-xc);
+			if (ftmp < smallest) {
+				smallest = ftmp;
+				smallest_i = j;
+			}
+		}
+		if (smallest != 10.0f) {
+			tmp = ps[i];
+			ps[i] = ps[smallest_i];
+			ps[smallest_i] = tmp;
+		}
+	}
+
+	for (i = 0; i < pn; ++i) {
+		r_drawTri(xc, yc,
+			p[ps[(i)%pn]].x, p[ps[(i)%pn]].y,
+			p[ps[(i+1)%pn]].x, p[ps[(i+1)%pn]].y, c);
+	}
+
+	/*r_putpixel(xc, yc, 5);
+	for (i = 0; i < pn; ++i) {
+		r_putpixel(p[ps[i]].x, p[ps[i]].y, 5);
+	}*/
 }
 
 void r_drawPoint3D(vec3 v, byte c)
@@ -309,11 +495,15 @@ void r_drawLine3D(vec3 v0, vec3 v1, byte c)
 
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
-	float t[6];
+	vec2 v[3];
 
 	float z0 = v0->z;
 	float z1 = v1->z;
 	float z2 = v2->z;
+
+	v[0] = Vec2(v0->x, v0->y);
+	v[1] = Vec2(v1->x, v1->y);
+	v[2] = Vec2(v2->x, v2->y);
 
 	if (z0 <= ZNEAR || z1 <= ZNEAR || z2 <= ZNEAR)
 		return;
@@ -322,21 +512,15 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 		return;
 
 	// projection
-	t[0] = v0->x;
-	t[0] /= z0;
-	t[1] = v0->y;
-	t[1] /= z0;
+	v[0].x /= z0;
+	v[0].y /= z0;
 
-	t[2] = v1->x;
-	t[2] /= z1;
-	t[3] = v1->y;
-	t[3] /= z1;
+	v[1].x /= z1;
+	v[1].y /= z1;
 
-	t[4] = v2->x;
-	t[4] /= z2;
-	t[5] = v2->y;
-	t[5] /= z2;
+	v[2].x /= z2;
+	v[2].y /= z2;
 
-	r_drawClipTri(t, c);
+	r_drawTriClip(v, c);
 }
 

@@ -416,6 +416,7 @@ void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		push ax // k1 to stack
 
 		mov si, x1 // right point
+		inc si
 		shl si, 7
 		add si, 100 // right bias
 
@@ -438,7 +439,8 @@ void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	asm {
 		push ax // k0 to stack
 
-		mov bx, x0
+		mov bx, x0 // left point
+		inc bx
 		shl bx, 7
 		sub bx, 100 // left bias
 
@@ -485,7 +487,7 @@ void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		mov cx, [bp+4]
 		cmp dx, cx
 
-		jb tfill // lines left?
+		jbe tfill // lines left?
 
 		pop ax
 		pop ax
@@ -539,6 +541,7 @@ void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, 
 		push ax // k1 to stack
 
 		mov si, x1 // right point
+		inc si
 		shl si, 7
 		add si, 100 // right bias
 
@@ -561,7 +564,8 @@ void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, 
 	asm {
 		push ax // k0 to stack
 
-		mov bx, x0
+		mov bx, x0 // left point
+		inc bx
 		shl bx, 7
 		sub bx, 100 // left bias
 
@@ -606,7 +610,7 @@ void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, 
 		mov cx, [bp+4]
 		cmp dx, cx
 
-		jb tfill // lines left?
+		jbe tfill // lines left?
 
 		pop ax
 		pop ax
@@ -660,6 +664,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		push ax // k1 to stack
 
 		mov si, x1 // right point
+		inc si
 		shl si, 7
 		add si, 100 // right bias
 
@@ -682,7 +687,8 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 	asm {
 		push ax // k0 to stack
 
-		mov bx, x0
+		mov bx, x0 // left point
+		inc bx
 		shl bx, 7
 		sub bx, 100 // left bias
 
@@ -720,7 +726,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		mov cx, [bp+4]
 		cmp dx, cx
 
-		jb tfill // lines left?
+		jbe tfill // lines left?
 
 		pop ax
 		pop ax
@@ -732,22 +738,11 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-#if 0
 	// fill plane at a time
 	r_triplanefill(x0+3, dx0, x1+3, dx1, y, dy, pixpx(0), c);
 	r_triplanefill(x0+2, dx0, x1+2, dx1, y, dy, pixpx(1), c);
 	r_triplanefill(x0+1, dx0, x1+1, dx1, y, dy, pixpx(2), c);
 	r_triplanefill(x0+0, dx0, x1+0, dx1, y, dy, pixpx(3), c);
-#else
-	// fill edges
-	r_triplanefilledge(x0+3, dx0, x1+3-4, dx1, y, dy, pixpx(0), c);
-	r_triplanefilledge(x0+2, dx0, x1+2-4, dx1, y, dy, pixpx(1), c);
-	r_triplanefilledge(x0+1, dx0, x1+1-4, dx1, y, dy, pixpx(2), c);
-	r_triplanefilledge(x0+0, dx0, x1+0-4, dx1, y, dy, pixpx(3), c);
-
-	// fill center with full planes
-	r_triplanefillmid(x0+4, dx0, x1, dx1, y, dy, c);
-#endif
 }
 
 #endif

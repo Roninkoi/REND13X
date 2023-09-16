@@ -8,16 +8,21 @@
 #include <math.h>
 
 typedef struct {
-  float x;
-  float y;
-  float z;
-  float w;
+	int x;
+	int y;
+} pix;
+
+typedef struct {
+	float x;
+	float y;
+	float z;
+	float w;
 } vec4;
 
 typedef struct {
-  float x;
-  float y;
-  float z;
+	float x;
+	float y;
+	float z;
 } vec3;
 
 typedef struct {
@@ -29,17 +34,27 @@ typedef struct {
 	float m[4][4];
 } mat4;
 
+pix Pix(int x, int y);
+
 vec2 Vec2(float x, float y);
+vec2 vec2Copy(vec2 v);
+
 vec3 Vec3(float x, float y, float z);
+vec3 vec3Copy(vec3 v);
+
 vec4 Vec4(float x, float y, float z, float w);
+vec4 vec4Copy(vec4 v);
 
 // zero vector
+vec2 Zvec2();
 vec3 Zvec3();
 vec4 Zvec4();
 
 // vector conversion
-vec3 Vec43(vec4 *v);
-vec4 Vec34(vec3 *v);
+vec2 Vec2From3(vec3 *v);
+vec3 Vec3From2(vec2 *v);
+vec3 Vec3From4(vec4 *v);
+vec4 Vec4From3(vec3 *v);
 
 mat4 Mat4(float s);
 

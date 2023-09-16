@@ -61,9 +61,9 @@ typedef unsigned char byte;
 #define max(x, y) ((x) < (y) ? (y) : (x))
 #define clamp(x, min, max) ((x) > (max) ? (max) : ((x) < (min) ? (min) : (x)))
 
-#define sign(x) (x >= 0 ? 1 : -1)
-#define abs(x) (x < 0 ? -(x) : x)
-#define round(x) floor(x + 0.5f)
+#define sign(x) ((x) >= 0 ? 1 : -1)
+#define abs(x) ((x) < 0 ? -(x) : (x))
+#define round(x) floor((x) + 0.5f)
 
 // determine visibility of geometric primitives
 #define pointVis(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
@@ -165,7 +165,7 @@ void r_addf(float v0x, float v0y, float v0z,
 			float v2x, float v2y, float v2z, byte c);
 
 void r_drawLine(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
-void r_drawClipTri(float *v, byte c); // draw triangle of color c with vertices v
+void r_drawTriClip(vec2 *v, byte c); // draw triangle of color c with vertices v
 
 // perspective projected draws
 void r_drawPoint3D(vec3 v, byte c);
