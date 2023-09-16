@@ -415,6 +415,9 @@ void r_drawTriClip(vec2 *v, byte c)
 			yc += p[i].y;
 		}
 	}
+
+	if (pn == 0) return;
+
 	xc = round((float) xc / (float) pn);
 	yc = round((float) yc / (float) pn);
 

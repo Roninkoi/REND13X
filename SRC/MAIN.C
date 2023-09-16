@@ -24,7 +24,7 @@ void triDemo()
 		vt[4] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 		vt[5] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		r_drawClipTri(vt, (byte) (RANDF * 256.0f));
+		r_drawTriClip(vt, (byte) (RANDF * 256.0f));
 
 		++triCount;
 	}
