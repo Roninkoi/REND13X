@@ -39,11 +39,9 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The pro
 
 ## TODO
 
-- Implement clipping at geometry level (currently clipping is only implemented at line level for slow triangle fill and pixel level for line fill).
-
 - Figure out a way to increase fast fill precision (error accumulates for long lines because of 16-bit precision).
 
-- Improve mode X fills for better plane handling (naive line fill, rectangle fill).
+- Improve mode X fills for better plane handling.
 
 - Wish list:
     - Sprite rendering
