@@ -71,6 +71,12 @@ typedef unsigned char byte;
 #define lineVis(x0, y0, x1, y1) (\
 	min(x0, x1) <= R && max(x0, x1) >= L && \
 	min(y0, y1) <= B && max(y0, y1) >= T)
+#define lineNotVis(x0, y0, x1, y1) (\
+	(x0 > R) && (x1 > R) || \
+	(x0 < L) && (x1 < L) || \
+	(y0 > B) && (y1 > B) || \
+	(y0 < T) && (y1 < T) \
+)
 #define hlineVis(x0, x1, y) (\
 	x0 <= R && x1 >= L && y >= T && y <= B)
 #define vlineVis(x, y0, y1) (\
@@ -78,6 +84,12 @@ typedef unsigned char byte;
 #define triVis(x0, y0, x1, y1, x2, y2) (\
 	min(x0, min(x1, x2)) <= R && max(x0, max(x1, x2)) >= L && \
 	min(y0, min(y1, y2)) <= B && max(y0, max(y1, y2)) >= T)
+#define triNotVis(x0, y0, x1, y1, x2, y2) (\
+	(x0 > R) && (x1 > R) && (x2 > R) || \
+	(x0 < L) && (x1 < L) && (x2 < L) || \
+	(y0 > B) && (y1 > B) && (y2 > B) || \
+	(y0 < T) && (y1 < T) && (y2 < T) \
+)
 #define triClips(x0, y0, x1, y1, x2, y2, mar) (\
 	(x0 > R-mar) || (x0 < L+mar) || \
 	(x1 > R-mar) || (x1 < L+mar) || \

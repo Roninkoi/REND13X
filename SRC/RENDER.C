@@ -129,6 +129,9 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	dx = x1 - x0;
 	dy = y1 - y0;
 
+	if (lineNotVis(x0, y0, x1, y1))
+		return;
+
 	clip0 = !pointVis(x0, y0);
 	clip1 = !pointVis(x1, y1);
 
@@ -372,6 +375,9 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	int x2 = round((v2->x+1.0f)*W*0.5f);
 	int y2 = round((-v2->y+1.0f)*H*0.5f);
+
+	if (triNotVis(x0, y0, x1, y1, x2, y2))
+		return;
 
 #ifndef FASTFILL
 	r_drawTri(x0, y0, x1, y1, x2, y2, c);

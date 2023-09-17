@@ -308,7 +308,7 @@ int main()
 		r_matrix = mat4mat4(&projMatrix, &camMatrix);
 
 		cubeDemo(3.0f*t);
-		//groundDemo(camPos);
+		groundDemo(camPos);
 
 		objMatrix = rotMatY(t);
 		objMatrix = rotateX(&objMatrix, t);
