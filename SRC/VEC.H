@@ -37,13 +37,13 @@ typedef struct {
 pix Pix(int x, int y);
 
 vec2 Vec2(float x, float y);
-vec2 vec2Copy(vec2 v);
+vec2 vec2Copy(vec2 *v);
 
 vec3 Vec3(float x, float y, float z);
-vec3 vec3Copy(vec3 v);
+vec3 vec3Copy(vec3 *v);
 
 vec4 Vec4(float x, float y, float z, float w);
-vec4 vec4Copy(vec4 v);
+vec4 vec4Copy(vec4 *v);
 
 // zero vector
 vec2 Zvec2();

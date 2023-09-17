@@ -19,7 +19,6 @@ void r_waitRetrace()
 	TRACEEND;
 }
 
-// TODO: clipping at line level
 void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 {
 	int i, maxd;
@@ -68,6 +67,90 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 			x += sx;
 		}
 	}
+}
+
+pix clipLine(int x, int y, int dx, int dy)
+{
+	int x0, y0;
+	pix p = Pix(x, y);
+
+	if (dx != 0) {
+		x0 = p.x;
+		p.x = min(R, p.x);
+		p.x = max(L, p.x);
+		p.y += ((float) dy / (float) dx * (float) (p.x - x0));
+	}
+	if (dy != 0) {
+		y0 = p.y;
+		p.y = min(B, p.y);
+		p.y = max(T, p.y);
+		p.x += ((float) dx / (float) dy * (float) (p.y - y0));
+	}
+
+	return p;
+}
+
+int pointCloser(long x0, long y0, long x1, long y1, long x2, long y2)
+{
+	unsigned long dx01, dy01, dx02, dy02, dx12, dy12;
+	unsigned long d01, d02, d12;
+
+	dx01 = x1 - x0;
+	dy01 = y1 - y0;
+	dx02 = x2 - x0;
+	dy02 = y2 - y0;
+	dx12 = x2 - x1;
+	dy12 = y2 - y1;
+
+	d01 = dx01 * dx01 + dy01 * dy01;
+	d02 = dx02 * dx02 + dy02 * dy02;
+	d12 = dx12 * dx12 + dy12 * dy12;
+
+	return d01 < d02 && d12 < d02;
+}
+
+void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
+{
+	int x0, y0, x1, y1;
+	int dx, dy;
+	int clip0, clip1;
+	pix p0, p1, pc;
+
+	// transform from gl to pix
+	x0 = round((v0->x+1.0f)*W*0.5f);
+	y0 = round((-v0->y+1.0f)*H*0.5f);
+
+	x1 = round((v1->x+1.0f)*W*0.5f);
+	y1 = round((-v1->y+1.0f)*H*0.5f);
+
+	p0 = Pix(x0, y0);
+	p1 = Pix(x1, y1);
+
+	dx = x1 - x0;
+	dy = y1 - y0;
+
+	clip0 = !pointVis(x0, y0);
+	clip1 = !pointVis(x1, y1);
+
+	if (!clip0 && !clip1)
+		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
+
+	if (clip0) {
+		pc = clipLine(x0, y0, dx, dy);
+		if (pointCloser(x0, y0, pc.x, pc.y, x1, y1))
+			p0 = pc;
+	}
+	if (clip1) {
+		pc = clipLine(x1, y1, dx, dy);
+		if (pointCloser(x1, y1, pc.x, pc.y, x0, y0))
+			p1 = pc;
+	}
+
+	if (lineVis(p0.x, p0.y, p1.x, p1.y))
+		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
+
+	//r_putpixel(p0.x, p0.y, 5);
+	//r_putpixel(p1.x, p1.y, 5);
 }
 
 void r_trihfill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
@@ -266,47 +349,7 @@ int pointInTri(long px, long py,
 	return a > 0 && b > 0 && a + b < abs(det12);
 }
 
-int pointCloser(long x0, long y0, long x1, long y1, long x2, long y2)
-{
-	unsigned long dx01, dy01, dx02, dy02, dx12, dy12;
-	unsigned long d01, d02, d12;
-
-	dx01 = x1 - x0;
-	dy01 = y1 - y0;
-	dx02 = x2 - x0;
-	dy02 = y2 - y0;
-	dx12 = x2 - x1;
-	dy12 = y2 - y1;
-
-	d01 = dx01 * dx01 + dy01 * dy01;
-	d02 = dx02 * dx02 + dy02 * dy02;
-	d12 = dx12 * dx12 + dy12 * dy12;
-
-	return d01 < d02 && d12 < d02;
-}
-
-pix clipLine(int x, int y, int dx, int dy)
-{
-	int x0, y0;
-	pix p = Pix(x, y);
-
-	if (dx != 0) {
-		x0 = p.x;
-		p.x = min(R, p.x);
-		p.x = max(L, p.x);
-		p.y += ((float) dy / (float) dx * (float) (p.x - x0));
-	}
-	if (dy != 0) {
-		y0 = p.y;
-		p.y = min(B, p.y);
-		p.y = max(T, p.y);
-		p.x += ((float) dx / (float) dy * (float) (p.y - y0));
-	}
-
-	return p;
-}
-
-void r_drawTriClip(vec2 *v, byte c)
+void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 {
 	pix p[10];
 	pix pc;
@@ -321,32 +364,28 @@ void r_drawTriClip(vec2 *v, byte c)
 	int xc, yc;
 
 	// transform from gl to pix
-	int x0 = round((v[0].x+1.0f)*W*0.5f);
-	int y0 = round((-v[0].y+1.0f)*H*0.5f);
+	int x0 = round((v0->x+1.0f)*W*0.5f);
+	int y0 = round((-v0->y+1.0f)*H*0.5f);
 
-	int x1 = round((v[1].x+1.0f)*W*0.5f);
-	int y1 = round((-v[1].y+1.0f)*H*0.5f);
+	int x1 = round((v1->x+1.0f)*W*0.5f);
+	int y1 = round((-v1->y+1.0f)*H*0.5f);
 
-	int x2 = round((v[2].x+1.0f)*W*0.5f);
-	int y2 = round((-v[2].y+1.0f)*H*0.5f);
-
-	// bounds
-	if (!triVis(x0, y0, x1, y1, x2, y2))
-		return;
+	int x2 = round((v2->x+1.0f)*W*0.5f);
+	int y2 = round((-v2->y+1.0f)*H*0.5f);
 
 #ifndef FASTFILL
 	r_drawTri(x0, y0, x1, y1, x2, y2, c);
 	return;
 #endif
 
-	if (!triClips(x0, y0, x1, y1, x2, y2, 0)) {
-		r_drawTri(x0, y0, x1, y1, x2, y2, c);
-		return;
-	}
-
 	clip0 = !pointVis(x0, y0);
 	clip1 = !pointVis(x1, y1);
 	clip2 = !pointVis(x2, y2);
+
+	if (!clip0 && !clip1 && !clip2) {
+		r_drawTri(x0, y0, x1, y1, x2, y2, c);
+		return;
+	}
 
 	p[0] = Pix(x0, y0);
 	p[1] = Pix(W, H);
@@ -416,7 +455,7 @@ void r_drawTriClip(vec2 *v, byte c)
 		}
 	}
 
-	if (pn == 0) return;
+	if (pn < 3) return;
 
 	xc = round((float) xc / (float) pn);
 	yc = round((float) yc / (float) pn);
@@ -472,78 +511,84 @@ void r_drawTriClip(vec2 *v, byte c)
 	}*/
 }
 
-void r_drawPoint3D(vec3 v, byte c)
+void r_drawPoint3D(vec3 *v0, byte c)
 {
-	if (v.z <= ZNEAR || v.z >= ZFAR)
+	vec2 v;
+	pix p;
+
+	float z = v0->z;
+
+	v = Vec2From3(v0);
+
+	if (z < ZNEAR || z > ZFAR)
 		return;
 
-	v.x /= v.z;
-	v.y /= v.z;
+	v.x /= z;
+	v.y /= z;
 
-	v.x = (v.x+1.0f)*W*0.5f;
-	v.y = (-v.y+1.0f)*H*0.5f;
+	p.x = (v.x+1.0f)*W*0.5f;
+	p.y = (-v.y+1.0f)*H*0.5f;
 
-	if (!pointVis(v.x, v.y))
+	if (!pointVis(p.x, p.y))
 		return;
 
-	r_putpixel(v.x, v.y, c);
+	r_putpixel(p.x, p.y, c);
 }
 
-void r_drawLine3D(vec3 v0, vec3 v1, byte c)
+void r_drawLine3D(vec3 *v0, vec3 *v1, byte c)
 {
-	int x0, y0, x1, y1;
+	vec2 p0, p1, p2;
 
-	if (v0.z <= ZNEAR || v1.z <= ZNEAR)
+	float z0 = v0->z;
+	float z1 = v1->z;
+
+	p0 = Vec2From3(v0);
+	p1 = Vec2From3(v1);
+
+	if (z0 < ZNEAR || z1 < ZNEAR)
 		return;
 
-	if (v0.z >= ZFAR && v1.z >= ZFAR)
+	if (z0 > ZFAR && z1 > ZFAR)
 		return;
 
 	// projection
-	v0.x /= v0.z;
-	v0.y /= v0.z;
+	p0.x /= z0;
+	p0.y /= z0;
 
-	v1.x /= v1.z;
-	v1.y /= v1.z;
+	p1.x /= z1;
+	p1.y /= z1;
 
-	// transform from gl to pix
-	x0 = round((v0.x+1.0f)*W*0.5f);
-	y0 = round((-v0.y+1.0f)*H*0.5f);
-
-	x1 = round((v1.x+1.0f)*W*0.5f);
-	y1 = round((-v1.y+1.0f)*H*0.5f);
-
-	r_drawLine(x0, y0, x1, y1, c);
+	r_drawLineClip(&p0, &p1, c);
 }
 
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
-	vec2 v[3];
+	vec2 p0, p1, p2;
 
 	float z0 = v0->z;
 	float z1 = v1->z;
 	float z2 = v2->z;
 
-	v[0] = Vec2(v0->x, v0->y);
-	v[1] = Vec2(v1->x, v1->y);
-	v[2] = Vec2(v2->x, v2->y);
+	p0 = Vec2From3(v0);
+	p1 = Vec2From3(v1);
+	p2 = Vec2From3(v2);
 
-	if (z0 <= ZNEAR || z1 <= ZNEAR || z2 <= ZNEAR)
+	if (z0 < ZNEAR || z1 < ZNEAR || z2 < ZNEAR)
 		return;
 
-	if (z0 >= ZFAR && z1 >= ZFAR && z2 >= ZFAR)
+	if (z0 > ZFAR && z1 > ZFAR && z2 > ZFAR)
 		return;
 
 	// projection
-	v[0].x /= z0;
-	v[0].y /= z0;
+	p0.x /= z0;
+	p0.y /= z0;
 
-	v[1].x /= z1;
-	v[1].y /= z1;
+	p1.x /= z1;
+	p1.y /= z1;
 
-	v[2].x /= z2;
-	v[2].y /= z2;
+	p2.x /= z2;
+	p2.y /= z2;
 
-	r_drawTriClip(v, c);
+	r_drawTriClip(&p0, &p1, &p2, c);
 }
 

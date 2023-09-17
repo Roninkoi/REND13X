@@ -59,7 +59,8 @@ typedef unsigned char byte;
 
 #define min(x, y) ((x) > (y) ? (y) : (x))
 #define max(x, y) ((x) < (y) ? (y) : (x))
-#define clamp(x, min, max) ((x) > (max) ? (max) : ((x) < (min) ? (min) : (x)))
+#define clamp(x, min, max) ((x) > (max) ? \
+	(max) : ((x) < (min) ? (min) : (x)))
 
 #define sign(x) ((x) >= 0 ? 1 : -1)
 #define abs(x) ((x) < 0 ? -(x) : (x))
@@ -68,7 +69,8 @@ typedef unsigned char byte;
 // determine visibility of geometric primitives
 #define pointVis(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
 #define lineVis(x0, y0, x1, y1) (\
-	min(x0, x1) <= R && max(x0, x1) >= L && min(y0, y1) <= B && max(y0, y1) >= T)
+	min(x0, x1) <= R && max(x0, x1) >= L && \
+	min(y0, y1) <= B && max(y0, y1) >= T)
 #define hlineVis(x0, x1, y) (\
 	x0 <= R && x1 >= L && y >= T && y <= B)
 #define vlineVis(x, y0, y1) (\
@@ -143,38 +145,59 @@ extern unsigned drawCount;
 extern mat4 r_matrix;
 
 // primitive VGA routines
-void r_init(); // initialize renderer, enter video mode
-void r_exit(); // return original video mode
-void r_scr(byte c); // clear screen with color c by int 10h, slightly faster than fill
-void r_flip(); // flip page
-void r_fill(byte c); // fill entire screen area with color c
-void r_vfill(int y0, int h, byte c); // vertical fill from top y0, height h, color c
-void r_hlinefill(int x0, int x1, int y, byte c); // horizontal line fill with optional x sort and clipping
-void r_vlinefill(int x, int y0, int y1, byte c); // vertical line fill
-void r_putpixel(int x, int y, byte c); // put pixel of color c at (x, y)
+
+// initialize renderer, enter video mode
+void r_init();
+// return original video mode
+void r_exit();
+// initialize (clear) screen with color c by int 10h, slightly faster than fill
+void r_scr(byte c);
+// flip page
+void r_flip();
+// fill entire screen area with color c
+void r_fill(byte c);
+// vertical fill from top y0, height h, color c
+void r_vfill(int y0, int h, byte c);
+// horizontal line fill with color c (optional x sort and clipping)
+void r_hlinefill(int x0, int x1, int y, byte c);
+// vertical line fill with color c
+void r_vlinefill(int x, int y0, int y1, byte c);
+
+// put pixel of color c at (x, y)
+void r_putpixel(int x, int y, byte c);
 // rectangle fill, left corner (x, y), size (w, h), color c
 void r_rectfill(int x, int y, int w, int h, byte c);
-// fast asm triangle fill using integers, no clipping
+// fast asm triangle fill using integers, no clipping, color c
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
 
 // DRAW
 
-void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c); // add triangle to render buffer
+// add triangle to render buffer
+void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
 void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
 			float v2x, float v2y, float v2z, byte c);
 
-void r_drawLine(int x0, int y0, int x1, int y1, byte c); // draw line of color c from v0 to v1
-void r_drawTriClip(vec2 *v, byte c); // draw triangle of color c with vertices v
-
-// perspective projected draws
-void r_drawPoint3D(vec3 v, byte c);
-void r_drawLine3D(vec3 v0, vec3 v1, byte c);
-// draw 3D perspective projected triangle of color with vertices {v0, v1, v2}
-void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
-
 void r_sort(); // sort triangles by centroid z coordinate
 void r_draw(); // draw all triangles in render buffer
+
+// 2D draws
+// draw line of color c from (x0, y0) to (x1, y1)
+void r_drawLine(int x0, int y0, int x1, int y1, byte c);
+// draw line of color c from v0 to v1 (clipped)
+void r_drawLineClip(vec2 *v0, vec2 *v1, byte c);
+// draw triangle of color c with vertices (x0, y0), (x1, y1), (x2, y2)
+void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c);
+// draw triangle of color c with vertices {v0, v1, v2} (clipped)
+void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c);
+
+// 3D perspective projected draws
+// draw 3D point at v with color c
+void r_drawPoint3D(vec3 *v0, byte c);
+// draw 3D line from v0 to v1 with color c
+void r_drawLine3D(vec3 *v0, vec3 *v1, byte c);
+// draw 3D perspective projected triangle of color c with vertices {v0, v1, v2}
+void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
 
 void r_waitRetrace(); // wait for screen retrace to sync
 

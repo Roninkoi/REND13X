@@ -95,14 +95,14 @@ void r_draw()
 				&r_buffer[r_sorted[i]].v2,
 				r_buffer[r_sorted[i]].c);
 		if (wireframe) {
-			r_drawLine3D(r_buffer[r_sorted[i]].v0,
-				r_buffer[r_sorted[i]].v1,
+			r_drawLine3D(&r_buffer[r_sorted[i]].v0,
+				&r_buffer[r_sorted[i]].v1,
 				r_buffer[r_sorted[i]].c);
-			r_drawLine3D(r_buffer[r_sorted[i]].v0,
-				r_buffer[r_sorted[i]].v2,
+			r_drawLine3D(&r_buffer[r_sorted[i]].v0,
+				&r_buffer[r_sorted[i]].v2,
 				r_buffer[r_sorted[i]].c);
-			r_drawLine3D(r_buffer[r_sorted[i]].v1,
-				r_buffer[r_sorted[i]].v2,
+			r_drawLine3D(&r_buffer[r_sorted[i]].v1,
+				&r_buffer[r_sorted[i]].v2,
 				r_buffer[r_sorted[i]].c);
 		}
 	}

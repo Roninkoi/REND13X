@@ -9,22 +9,22 @@ int triCount = 0;
 void triDemo()
 {
 	int i;
-	float vt[6];
+	vec2 vt0, vt1, vt2;
 
 	clearscr = 0;
 	doublebuffer = 0;
 
 	for (i = 0; i < 1; ++i) {
-		vt[0] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt[1] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt0.x = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt0.y = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		vt[2] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt[3] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt1.x = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt1.y = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		vt[4] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt[5] = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt2.x = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt2.y = TRIDEMOA * (RANDF * 2.0f - 1.0f);
 
-		r_drawTriClip(vt, (byte) (RANDF * 256.0f));
+		r_drawTriClip(&vt0, &vt1, &vt2, (byte) (RANDF * 256.0f));
 
 		++triCount;
 	}

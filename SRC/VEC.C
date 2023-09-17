@@ -34,8 +34,8 @@ vec2 Vec2(float x, float y)
 	return v;
 }
 
-vec2 vec2Copy(vec2 v) {
-	return Vec2(v.x, v.y);
+vec2 vec2Copy(vec2 *v) {
+	return Vec2(v->x, v->y);
 }
 
 vec3 Vec3(float x, float y, float z)
@@ -47,8 +47,8 @@ vec3 Vec3(float x, float y, float z)
 	return v;
 }
 
-vec3 vec3Copy(vec3 v) {
-	return Vec3(v.x, v.y, v.z);
+vec3 vec3Copy(vec3 *v) {
+	return Vec3(v->x, v->y, v->z);
 }
 
 vec4 Vec4(float x, float y, float z, float w)
@@ -61,8 +61,8 @@ vec4 Vec4(float x, float y, float z, float w)
 	return v;
 }
 
-vec4 vec4Copy(vec4 v) {
-	return Vec4(v.x, v.y, v.z, v.w);
+vec4 vec4Copy(vec4 *v) {
+	return Vec4(v->x, v->y, v->z, v->w);
 }
 
 vec2 Zvec2()
