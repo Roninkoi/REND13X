@@ -39,9 +39,13 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The pro
 
 ## TODO
 
+- Split inline assembly from RENDER13.C, RENDERX.C and INPUT.C to separate .ASM files.
+
 - Figure out a way to increase fast fill precision (error accumulates for long lines because of 16-bit precision).
 
 - Improve mode X fills for better plane handling.
+
+- Clip geometry partially behind the camera.
 
 - Wish list:
     - Sprite rendering
