@@ -26,6 +26,7 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 	int dx, dy;
 	int sx = 1, sy = 1;
 	int diff, d;
+	int s0, s1;
 
 	if (!lineVis(x0, y0, x1, y1))
 		return;
@@ -33,18 +34,11 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 	dx = x1 - x0;
 	dy = y1 - y0;
 
-	dx = x1 - x0;
-	dy = y1 - y0;
+	sx = sign(dx);
+	sy = sign(dy);
 
-	if (dx < 0) {
-		sx = -1;
-		dx = -dx;
-	}
-
-	if (dy < 0) {
-		sy = -1;
-		dy = -dy;
-	}
+	dx = sx * dx;
+	dy = sy * dy;
 
 	maxd = max(dx, dy);
 
@@ -57,6 +51,14 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 		if (pointVis(x, y))
 			r_putpixel(x, y, c);
 
+#if 0
+		// non-branchy version?
+		s0 = -(2 * diff <= dx);
+		s1 = -(2 * diff >= -dy);
+		diff += (int)(dx & s0) - (int)(dy & s1);
+		y += (int)(sy & s0);
+		x += (int)(sx & s1);
+#else
 		d = diff;
 		if (2 * d <= dx) {
 			diff += dx;
@@ -66,6 +68,7 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 			diff -= dy;
 			x += sx;
 		}
+#endif
 	}
 }
 
@@ -114,6 +117,7 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	int x0, y0, x1, y1;
 	int dx, dy;
 	int clip0, clip1;
+	int tmp0, tmp1;
 	pix p0, p1, pc;
 
 	// transform from gl to pix
@@ -135,8 +139,14 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	clip0 = !pointVis(x0, y0);
 	clip1 = !pointVis(x1, y1);
 
-	if (!clip0 && !clip1)
+	if (!clip0 && !clip1) {
+#ifdef FASTFILL
+		r_linefill(p0.x, p0.y, p1.x, p1.y, c);
+#else
 		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
+#endif
+		return;
+	}
 
 	if (clip0) {
 		pc = clipLine(x0, y0, dx, dy);
@@ -149,8 +159,13 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 			p1 = pc;
 	}
 
-	if (lineVis(p0.x, p0.y, p1.x, p1.y))
+	if (lineVis(p0.x, p0.y, p1.x, p1.y)) {
+#ifdef FASTFILL
+		r_linefill(p0.x, p0.y, p1.x, p1.y, c);
+#else
 		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
+#endif
+	}
 
 	//r_putpixel(p0.x, p0.y, 5);
 	//r_putpixel(p1.x, p1.y, 5);
@@ -296,10 +311,10 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 
 	// top
 	if (dy1 > 0) {
-#ifndef FASTFILL
-		r_trifillb(x0, dx0, x0, dx1, y0, dy1, c);
-#else
+#ifdef FASTFILL
 		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
+#else
+		r_trifillb(x0, dx0, x0, dx1, y0, dy1, c);
 #endif
 	}
 
@@ -315,10 +330,10 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 
 	// bottom
 	if (dy2 > 0) {
-#ifndef FASTFILL
-			r_trifillb(x1, dx2, x2, dx01, y2, dy2, c);
-#else
+#ifdef FASTFILL
 			r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
+#else
+			r_trifillb(x1, dx2, x2, dx01, y2, dy2, c);
 #endif
 	}
 

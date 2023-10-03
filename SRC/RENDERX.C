@@ -375,129 +375,7 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
-void r_triplanefillmid(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
-{
-	asm {
-		cli
-		push bp
-
-		mov ax, 0x0f00 + MAP_MASK // select all planes
-		mov dx, SCI
-		out dx, ax
-
-		mov ax, VSTART
-		mov es, ax // video memory start
-
-		mov ax, y // final line
-		add ax, dy
-		mov cx, W/4
-		mul cx
-		add ax, pgoffs // page offset for cmp
-		push ax
-
-		mov cx, dy
-		mov ax, dx1 // slopes
-		mov si, ax
-		cmp si, 0
-		jg tfs1
-		neg ax
-	}
-	tfs1:
-	asm {
-		shl ax, 7
-		xor dx, dx
-		div cx
-		cmp si, 0
-		jg tfss1
-		neg ax
-	}
-	tfss1:
-	asm {
-		push ax // k1 to stack
-
-		mov si, x1 // right point
-		inc si
-		shl si, 7
-		add si, 100 // right bias
-
-		mov ax, dx0
-		mov bx, ax
-		cmp bx, 0
-		jg tfs0
-		neg ax
-	}
-	tfs0:
-	asm {
-		shl ax, 7
-		xor dx, dx
-		div cx
-		cmp bx, 0
-		jg tfss0
-		neg ax
-	}
-	tfss0:
-	asm {
-		push ax // k0 to stack
-
-		mov bx, x0 // left point
-		inc bx
-		shl bx, 7
-		sub bx, 100 // left bias
-
-		mov dx, W/4
-		mov ax, y
-		mul dx // y offset
-		add ax, pgoffs // add page offset
-		mov dx, ax
-
-		xor ax, ax
-		mov al, c // color
-
-		mov bp, sp
-	}
-	tfill:
-	asm {
-		mov di, bx // x0
-		shr di, 9 // divide to calculate coordinates
-
-		mov cx, si // x1
-		shr cx, 9
-
-		cmp di, cx // no line to draw?
-		jg tfnext
-
-		sub cx, di
-		add di, dx // calculate final address
-
-		rep stosb // fill line
-
-		//mov [es:di], al
-		//add di, cx
-		//mov [es:di], al
-	}
-	tfnext:
-	asm {
-		add dx, W/4 // y += 1
-
-		mov di, [bp]
-		add bx, di // x0 += k0
-		mov cx, [bp+2]
-		add si, cx // x1 += k1
-
-		mov cx, [bp+4]
-		cmp dx, cx
-
-		jbe tfill // lines left?
-
-		pop ax
-		pop ax
-		pop ax
-		pop bp
-		sti
-	}
-}
-
-void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
+void r_lineplanefill(int x0, int y0, int x1, int y1, int p, byte c)
 {
 	asm {
 		cli
@@ -505,6 +383,7 @@ void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, 
 
 		mov dx, 0x0100
 		mov ax, p // select planes to draw 0-16
+		push ax // plane to stack +10
 		mul dx
 		add ax, MAP_MASK
 		mov dx, SCI
@@ -513,105 +392,253 @@ void r_triplanefilledge(int x0, int dx0, int x1, int dx1, int y, int dy, int p, 
 		mov ax, VSTART
 		mov es, ax // video memory start
 
-		mov ax, y // final line
-		add ax, dy
-		mov cx, W/4
+		mov cx, x1
+		mov bx, x0
+		sub cx, bx // $cx = dx = x1 - x0
+
+		mov dx, y1
+		mov bx, y0
+		sub dx, bx // $dx = dy = y1 - y0
+
+		mov si, 1 // sx
+		mov di, W/4 // sy
+
+		cmp cx, 0
+		jge lfdxs
+
+		// if dx < 0
+		neg si
+		neg cx
+	}
+	lfdxs:
+	asm {
+		cmp dx, 0
+		jge lfdys
+
+		// if dy < 0
+		neg di
+		neg dx
+	}
+	lfdys:
+	asm {
+		push cx // dx to stack +8
+		push dx // dy to stack +6
+		push si // sx to stack +4
+		push di // sy to stack +2
+
+		mov di, cx
+		sub di, dx // $di = diff
+
+		cmp cx, dx
+		jg lfmaxd
+
+		// if dy > dx
+		mov cx, dx
+	}
+	lfmaxd:
+	asm {
+		push cx // end to stack
+
+		mov cx, y0 // start y
+		mov ax, W/4
 		mul cx
-		add ax, pgoffs // page offset for cmp
-		push ax
-
-		mov cx, dy
-		mov ax, dx1 // slopes
-		mov si, ax
-		cmp si, 0
-		jg tfs1
-		neg ax
-	}
-	tfs1:
-	asm {
-		shl ax, 7
-		xor dx, dx
-		div cx
-		cmp si, 0
-		jg tfss1
-		neg ax
-	}
-	tfss1:
-	asm {
-		push ax // k1 to stack
-
-		mov si, x1 // right point
-		inc si
-		shl si, 7
-		add si, 100 // right bias
-
-		mov ax, dx0
-		mov bx, ax
-		cmp bx, 0
-		jg tfs0
-		neg ax
-	}
-	tfs0:
-	asm {
-		shl ax, 7
-		xor dx, dx
-		div cx
-		cmp bx, 0
-		jg tfss0
-		neg ax
-	}
-	tfss0:
-	asm {
-		push ax // k0 to stack
-
-		mov bx, x0 // left point
-		inc bx
-		shl bx, 7
-		sub bx, 100 // left bias
-
-		mov dx, W/4
-		mov ax, y
-		mul dx // y offset
 		add ax, pgoffs // add page offset
-		mov dx, ax
+		mov bx, ax // $bx = y = y0
+		mov dx, x0 // $bx = x = x0
 
 		xor ax, ax
 		mov al, c // color
 
 		mov bp, sp
+
+		xor sp, sp // $sp = i
 	}
-	tfill:
+	lfill:
 	asm {
-		mov di, bx // x0
-		shr di, 9 // divide to calculate coordinates
+		mov cx, 3 // skip other planes
+		and cx, dx
+		mov si, 1
+		shl si, cl
+		mov cx, [bp+10] // plane
+		xor cx, si
+		cmp cx, 0
+		jne lfskip
 
-		mov cx, si // x1
-		shr cx, 9
+		mov si, dx
+		sar si, 2
+		add si, bx // calculate address x + y * W/4
 
-		cmp di, cx // no line to draw?
-		jg tfnext
-
-		sub cx, di
-		add di, dx // calculate final address
-
-		mov [es:di], al // left line
-		add di, cx
-		mov [es:di], al // right line
+		mov [es:si], al // write pixel
 	}
-	tfnext:
+	lfskip:
 	asm {
-		add dx, W/4 // y += 1
+		mov si, di
+		sal si, 1 // $si *= 2
+		mov cx, [bp+8] // dx
+		cmp si, cx
+		jg lfx
 
-		mov di, [bp]
-		add bx, di // x0 += k0
-		mov cx, [bp+2]
-		add si, cx // x1 += k1
+		// if 2*d <= dx
+		add di, cx // diff += dx
+		mov cx, [bp+2] // sy
+		add bx, cx // y += sy
+	}
+	lfx:
+	asm {
+		mov cx, [bp+6] // dy
+		neg cx
+		cmp si, cx
+		jl lfy
 
-		mov cx, [bp+4]
-		cmp dx, cx
+		// if 2*d >= -dy
+		add di, cx // diff += dy
+		mov cx, [bp+4] // sx
+		add dx, cx // x += sx
+	}
+	lfy:
+	asm {
+		mov cx, [bp] // maxd
+		inc sp // ++i
+		cmp sp, cx
+		jbe lfill // lines left?
 
-		jbe tfill // lines left?
+		mov sp, bp
 
+		pop ax
+		pop ax
+		pop ax
+		pop ax
+		pop ax
+		pop ax
+		pop bp
+		sti
+	}
+}
+
+void r_linefill(int x0, int y0, int x1, int y1, byte c)
+{
+	asm {
+		cli
+		push bp
+
+		mov ax, VSTART
+		mov es, ax // video memory start
+
+		mov cx, x1
+		mov bx, x0
+		sub cx, bx // $cx = dx = x1 - x0
+
+		mov dx, y1
+		mov bx, y0
+		sub dx, bx // $dx = dy = y1 - y0
+
+		mov si, 1 // sx
+		mov di, W/4 // sy
+
+		cmp cx, 0
+		jge lfdxs
+
+		// if dx < 0
+		neg si
+		neg cx
+	}
+	lfdxs:
+	asm {
+		cmp dx, 0
+		jge lfdys
+
+		// if dy < 0
+		neg di
+		neg dx
+	}
+	lfdys:
+	asm {
+		push cx // dx to stack +10
+		push dx // dy to stack +8
+		push si // sx to stack +6
+		push di // sy to stack +4
+
+		mov di, cx
+		sub di, dx // $di = diff
+
+		cmp cx, dx
+		jg lfmaxd
+
+		// if dy > dx
+		mov cx, dx
+	}
+	lfmaxd:
+	asm {
+		push cx // end to stack +2
+
+		mov cx, y0 // start y
+		mov ax, W/4
+		mul cx
+		add ax, pgoffs // add page offset
+		mov bx, ax // $bx = y = y0
+		mov dx, x0 // $dx = x = x0
+
+		xor ax, ax
+		mov al, c // color
+		push ax // color to stack
+
+		mov bp, sp
+
+		xor sp, sp // $sp = i
+	}
+	lfill:
+	asm {
+		mov cx, dx
+		and cx, 3 // plane of pixel
+		mov ax, 0x0100 + MAP_MASK
+		shl ah, cl
+		mov cx, dx
+		mov dx, SCI
+		out dx, ax // select plane
+		mov dx, cx
+
+		mov si, dx
+		sar si, 2
+		add si, bx // calculate address x + y * W/4
+
+		mov ax, [bp]
+		mov [es:si], al // write pixel
+
+		mov si, di
+		sal si, 1 // $si *= 2
+		mov cx, [bp+10] // dx
+		cmp si, cx
+		jg lfx
+
+		// if 2*d <= dx
+		add di, cx // diff += dx
+		mov cx, [bp+4] // sy
+		add bx, cx // y += sy
+	}
+	lfx:
+	asm {
+		mov cx, [bp+8] // dy
+		neg cx
+		cmp si, cx
+		jl lfy
+
+		// if 2*d >= -dy
+		add di, cx // diff += dy
+		mov cx, [bp+6] // sx
+		add dx, cx // x += sx
+	}
+	lfy:
+	asm {
+		mov cx, [bp+2] // maxd
+		inc sp // ++i
+		cmp sp, cx
+		jbe lfill // lines left?
+
+		mov sp, bp
+
+		pop ax
+		pop ax
+		pop ax
 		pop ax
 		pop ax
 		pop ax

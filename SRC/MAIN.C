@@ -1,6 +1,7 @@
 #include "SRC\RENDER.H"
 
 int running = 1;
+FILE *outfile;
 
 int triCount = 0;
 
@@ -39,10 +40,17 @@ void lineDemo()
 	unsigned n = 62832;
 	for (i = 0; i < n; ++i) {
 		a = (float) i / (float) n;
+#ifdef FASTFILL
+		r_linefill(W/2, H/2,
+			round(W/2 + 0.45f*H*cos(2.0f*PI*a)),
+			round(H/2 + 0.45f*H*sin(2.0f*PI*a)),
+			256*a);
+#else
 		r_drawLine(W/2, H/2,
 			round(W/2 + 0.45f*H*cos(2.0f*PI*a)),
 			round(H/2 + 0.45f*H*sin(2.0f*PI*a)),
 			256*a);
+#endif
 	}
 	drawCount = n;
 }
@@ -219,6 +227,18 @@ void cubeDemo(float t)
 	}
 }
 
+void lineTest(float t) {
+	int i;
+	float o;
+	vec2 v0, v1;
+	for (i = 0; i < 70; ++i) {
+		o = 2.0f * PI / 70.0f * i;
+		v0 = Vec2(0.0f, 0.0f);
+		v1 = Vec2(0.9f*cos(t+o), 0.9f*sin(t+o));
+		r_drawLineClip(&v0, &v1, i+32);
+	}
+}
+
 int main()
 {
 	unsigned i, n;
@@ -252,7 +272,7 @@ int main()
 	// camera position
 	vec3 camPos;
 
-	FILE *outfile = fopen("out.log", "w");
+	outfile = fopen("out.log", "w");
 
 	t = 0.0f;
 	running = 1;
@@ -312,8 +332,10 @@ int main()
 
 		objMatrix = rotMatY(t);
 		objMatrix = rotateX(&objMatrix, t);
-		//drawCube(Vec3(0.0f, 2.0f, 1.0f), &objMatrix, 1.0f, 42, 12);
+		//drawCube(Vec3(0.0f, 0.0f, 1.0f), &objMatrix, 1.0f, 42, 12);
 		drawIco(Vec3(0.0f, 0.0f, 0.3f), &objMatrix, 1.0f, 64, 1);
+
+		//lineTest(t);
 
 		wireframe = 0;
 		filled = 1;

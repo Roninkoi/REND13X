@@ -69,26 +69,31 @@ typedef unsigned char byte;
 // determine visibility of geometric primitives
 #define pointVis(x, y) ((x) >= L && (x) <= R && (y) >= T && (y) <= B)
 #define lineVis(x0, y0, x1, y1) (\
-	min(x0, x1) <= R && max(x0, x1) >= L && \
-	min(y0, y1) <= B && max(y0, y1) >= T)
+	(x0 >= L) && (x1 >= L) && \
+	(x0 <= R) && (x1 <= R) && \
+	(y0 >= T) && (y1 >= T) && \
+	(y0 <= B) && (y1 <= B))
 #define lineNotVis(x0, y0, x1, y1) (\
-	(x0 > R) && (x1 > R) || \
 	(x0 < L) && (x1 < L) || \
-	(y0 > B) && (y1 > B) || \
-	(y0 < T) && (y1 < T) \
+	(x0 > R) && (x1 > R) || \
+	(y0 < T) && (y1 < T) ||\
+	(y0 > B) && (y1 > B) \
 )
 #define hlineVis(x0, x1, y) (\
 	x0 <= R && x1 >= L && y >= T && y <= B)
 #define vlineVis(x, y0, y1) (\
 	x <= R && x >= L && y0 <= B && y1 >= T)
 #define triVis(x0, y0, x1, y1, x2, y2) (\
-	min(x0, min(x1, x2)) <= R && max(x0, max(x1, x2)) >= L && \
-	min(y0, min(y1, y2)) <= B && max(y0, max(y1, y2)) >= T)
+	(x0 >= L) && (x1 >= L) && (x2 >= L) && \
+	(x0 <= R) && (x1 <= R) && (x2 <= R) && \
+	(y0 >= T) && (y1 >= T) && (y2 >= T) && \
+	(y0 <= B) && (y1 <= B) && (y2 <= B) \
+)
 #define triNotVis(x0, y0, x1, y1, x2, y2) (\
-	(x0 > R) && (x1 > R) && (x2 > R) || \
 	(x0 < L) && (x1 < L) && (x2 < L) || \
-	(y0 > B) && (y1 > B) && (y2 > B) || \
-	(y0 < T) && (y1 < T) && (y2 < T) \
+	(x0 > R) && (x1 > R) && (x2 > R) || \
+	(y0 < T) && (y1 < T) && (y2 < T) || \
+	(y0 > B) && (y1 > B) && (y2 > B) \
 )
 #define triClips(x0, y0, x1, y1, x2, y2, mar) (\
 	(x0 > R-mar) || (x0 < L+mar) || \
@@ -166,6 +171,10 @@ void r_exit();
 void r_scr(byte c);
 // flip page
 void r_flip();
+
+// put pixel of color c at (x, y)
+void r_putpixel(int x, int y, byte c);
+
 // fill entire screen area with color c
 void r_fill(byte c);
 // vertical fill from top y0, height h, color c
@@ -174,9 +183,9 @@ void r_vfill(int y0, int h, byte c);
 void r_hlinefill(int x0, int x1, int y, byte c);
 // vertical line fill with color c
 void r_vlinefill(int x, int y0, int y1, byte c);
+// line fill from (x0, y0) to (x1, y1) with color c
+void r_linefill(int x0, int y0, int x1, int y1, byte c);
 
-// put pixel of color c at (x, y)
-void r_putpixel(int x, int y, byte c);
 // rectangle fill, left corner (x, y), size (w, h), color c
 void r_rectfill(int x, int y, int w, int h, byte c);
 // fast asm triangle fill using integers, no clipping, color c
@@ -218,6 +227,8 @@ void r_waitRetrace(); // wait for screen retrace to sync
 #define SECOND 18.206
 // convert itime 1/(18.206 s) to second
 #define TOSECOND 0.054927f
+
+extern FILE *outfile;
 
 extern int running; // program running?
 

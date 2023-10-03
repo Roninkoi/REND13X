@@ -98,21 +98,8 @@ void r_scr(byte c)
 	}
 }
 
-
-//#define RECTCLIP
 void r_rectfill(int x, int y, int w, int h, byte c)
 {
-#ifdef RECTCLIP
-	w = clamp(w + x, 0, W);
-	h = clamp(h + y, 0, H);
-	x = clamp(x, L, R);
-	y = clamp(y, T, B);
-
-	if (w <= x || h <= y) {
-		return;
-	}
-#endif
-
 	asm {
 		mov ax, VSTART
 		mov es, ax
@@ -153,28 +140,8 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 	}
 }
 
-//#define HLINESORT
-//#define HLINECLIP
 void r_hlinefill(int x0, int x1, int y, byte c)
 {
-#ifdef HLINESORT
-	int to;
-	if (x0 > x1) {
-		to = x0;
-		x0 = x1;
-		x1 = to;
-	}
-#endif
-
-#ifdef HLINECLIP
-	if (x0 > R || x1 < L || y > B || y < T)
-		return;
-	if (x0 < L)
-		x0 = L;
-	if (x1 > R)
-		x1 = R;
-#endif
-
 	asm {
 		mov ax, VSTART
 		mov es, ax
@@ -252,6 +219,122 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 		add di, W
 		cmp di, dx
 		jb vfill
+	}
+}
+
+void r_linefill(int x0, int y0, int x1, int y1, byte c)
+{
+	asm {
+		cli
+		push bp
+
+		mov ax, VSTART
+		mov es, ax // video memory start
+
+		mov cx, x1
+		mov bx, x0
+		sub cx, bx // cx = dx = x1 - x0
+
+		mov dx, y1
+		mov bx, y0
+		sub dx, bx // dx = dy = y1 - y0
+
+		mov si, 1 // sx
+		mov di, W // sy
+
+		cmp cx, 0
+		jge lfdxs
+
+		// if dx < 0
+		neg si
+		neg cx
+	}
+	lfdxs:
+	asm {
+		cmp dx, 0
+		jge lfdys
+
+		// if dy < 0
+		neg di
+		neg dx
+	}
+	lfdys:
+	asm {
+		push cx // dx to stack +8
+		push dx // dy to stack +6
+		push si // sx to stack +4
+		push di // sy to stack +2
+
+		mov di, cx
+		sub di, dx // di = diff
+
+		cmp cx, dx
+		jg lfmaxd
+
+		// if dx > cx
+		mov cx, dx
+	}
+	lfmaxd:
+	asm {
+		push cx // end to stack
+
+		mov bx, x0 // bx = x = x0
+		mov cx, y0 // cx = y = y0
+		mov ax, W
+		mul cx
+		mov cx, ax
+		add cx, bx
+
+		xor ax, ax
+		mov al, c // color
+
+		mov bp, sp
+
+		xor bx, bx // bx = i
+	}
+	lfill:
+	asm {
+		mov si, cx // calculate address x + y * W
+
+		mov [es:si], al
+
+		mov si, di
+		sal si, 1 // si *= 2
+		mov dx, [bp+8] // dx
+		cmp si, dx
+		jg lfx
+
+		// if 2*di <= dx
+		add di, dx
+		mov dx, [bp+2] // sy
+		add cx, dx
+	}
+	lfx:
+	asm {
+		mov dx, [bp+6] // dy
+		neg dx
+		cmp si, dx
+		jl lfy
+
+		// if 2*di >= -dy
+		add di, dx
+		mov dx, [bp+4] // sx
+		add cx, dx
+	}
+	lfy:
+	asm {
+		mov dx, [bp] // maxd
+		inc bx // ++i
+		cmp bx, dx
+		jbe lfill // sp <= dx?
+
+		pop ax
+		pop ax
+		pop ax
+		pop ax
+		pop ax
+		pop bp
+		sti
 	}
 }
 
@@ -361,7 +444,6 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		sti
 	}
 }
-
 
 #endif
 
