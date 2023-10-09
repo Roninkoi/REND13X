@@ -693,7 +693,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		mov si, x1 // right point
 		inc si
 		shl si, 7
-		add si, 100 // right bias
+		add si, 80 // right bias
 
 		mov ax, dx0
 		mov bx, ax
@@ -717,7 +717,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		mov bx, x0 // left point
 		inc bx
 		shl bx, 7
-		sub bx, 100 // left bias
+		sub bx, 80 // left bias
 
 		mov dx, W/4
 		mov ax, y
@@ -739,6 +739,8 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		shr cx, 9
 
 		sub cx, di
+		cmp cx, 0 // check if x backwards
+		jl tfend
 		add di, dx // calculate final address
 
 		rep stosb // fill line
@@ -754,7 +756,9 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		cmp dx, cx
 
 		jbe tfill // lines left?
-
+	}
+	tfend:
+  asm {
 		pop ax
 		pop ax
 		pop ax
