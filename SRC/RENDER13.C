@@ -364,6 +364,7 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 		pop ax
 		pop ax
 		pop ax
+
 		pop bp
 		sti
 	}
@@ -387,29 +388,25 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		mov cx, dy
 			
 		mov ax, dx1 // $ax = slope 1
-		mov si, ax
+		mov bx, ax
 		
-		cmp si, 0 // dx1 > 0?
+		cmp bx, 0 // dx1 > 0?
 		jg tfs1
 		neg ax // $ax = |dx1|
 	}
 	tfs1:
 	asm {
-		shl ax, 7 // 128 * |dx1|
+		shl ax, 7
 		xor dx, dx
 		div cx // |k1| = (128 * |dx1|) / dy
-		cmp si, 0 // dx1 > 0?
+
+		cmp bx, 0 // dx1 > 0?
 		jg tfss1
 		neg ax // k1 = -|k1|
 	}
 	tfss1:
 	asm {
 		push ax // k1 to stack
-
-		mov si, x1 // right point
-		inc si
-		shl si, 7
-		add si, 80 // right bias
 
 		mov ax, dx0 // $ax = slope 0
 		mov bx, ax
@@ -420,9 +417,10 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	}
 	tfs0:
 	asm {
-		shl ax, 7 // 128 * |dx0|
+		shl ax, 7
 		xor dx, dx
 		div cx // |k0| = (128 * |dx0|) / dy
+		
 		cmp bx, 0 // dx0 > 0?
 		jg tfss0
 		neg ax // k0 = -|k0|
@@ -431,15 +429,20 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	asm {
 		push ax // k0 to stack
 
+		mov dx, W
+		mov ax, y
+		mul dx // y offset
+		mov si, ax // $si = y
+
 		mov bx, x0 // left point
 		inc bx
 		shl bx, 7
 		sub bx, 80 // left bias
 
-		mov dx, W
-		mov ax, y
-		mul dx // y offset
-		mov dx, ax
+		mov dx, x1 // right point
+		inc dx
+		shl dx, 7
+		add dx, 80 // right bias
 
 		xor ax, ax
 		mov al, c // color
@@ -451,25 +454,26 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		mov di, bx // x0
 		shr di, 7 // divide to calculate coordinate
 
-		mov cx, si // x1
+		mov cx, dx // x1
 		shr cx, 7 // divide to calculate coordinate
 
 		sub cx, di
 		cmp cx, 0 // check if x backwards
 		jl tfend
-		add di, dx // calculate final address
+
+		add di, si // calculate start address x + y * W
 
 		rep stosb // fill line
 
-		add dx, W // y += 1
+		add si, W // y += 1
 
-		mov di, [bp]
-		add bx, di // x0 += k0
+		mov cx, [bp]
+		add bx, cx // x0 += k0
 		mov cx, [bp+2]
-		add si, cx // x1 += k1
+		add dx, cx // x1 += k1
 
 		mov cx, [bp+4] // yend
-		cmp dx, cx
+		cmp si, cx
 		jbe tfill // lines left?
 	}
 	tfend:
@@ -477,6 +481,7 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		pop ax
 		pop ax
 		pop ax
+
 		pop bp
 		sti
 	}

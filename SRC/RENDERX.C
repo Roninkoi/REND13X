@@ -483,6 +483,7 @@ void r_lineplanefill(int x0, int y0, int x1, int y1, int p, byte c)
 		pop ax
 		pop ax
 		pop ax
+
 		pop bp
 		sti
 	}
@@ -616,6 +617,7 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 		pop ax
 		pop ax
 		pop ax
+
 		pop bp
 		sti
 	}
@@ -645,59 +647,64 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		push ax
 
 		mov cx, dy
-		mov ax, dx1 // slopes
-		mov si, ax
-		cmp si, 0
+
+		mov ax, dx1 // $ax = slope 1
+		mov bx, ax
+
+		cmp bx, 0 // dx1 > 0?
 		jg tfs1
-		neg ax
+		neg ax // $ax = |dx1|
 	}
 	tfs1:
 	asm {
 		shl ax, 7
 		xor dx, dx
-		div cx
-		cmp si, 0
+		div cx // |k1| = (128 * |dx1|) / dy
+
+		cmp bx, 0 // dx1 > 0?
 		jg tfss1
-		neg ax
+		neg ax // k1 = -|k1|
 	}
 	tfss1:
 	asm {
 		push ax // k1 to stack
 
-		mov si, x1 // right point
-		inc si
-		shl si, 7
-		add si, 80 // right bias
-
-		mov ax, dx0
+		mov ax, dx0 // $ax = slope 0
 		mov bx, ax
-		cmp bx, 0
+
+		cmp bx, 0 // dx0 > 0?
 		jg tfs0
-		neg ax
+		neg ax // $ax = |dx0|
 	}
 	tfs0:
 	asm {
 		shl ax, 7
 		xor dx, dx
-		div cx
-		cmp bx, 0
+		div cx // |k0| = (128 * |dx0|) / dy
+
+		cmp bx, 0 // dx0 > 0?
 		jg tfss0
-		neg ax
+		neg ax // k0 = -|k0|
 	}
 	tfss0:
 	asm {
 		push ax // k0 to stack
+
+		mov dx, W/4
+		mov ax, y
+		mul dx // y offset
+		add ax, pgoffs // add page offset
+		mov si, ax
 
 		mov bx, x0 // left point
 		inc bx
 		shl bx, 7
 		sub bx, 80 // left bias
 
-		mov dx, W/4
-		mov ax, y
-		mul dx // y offset
-		add ax, pgoffs // add page offset
-		mov dx, ax
+		mov dx, x1 // right point
+		inc dx
+		shl dx, 7
+		add dx, 80 // right bias
 
 		xor ax, ax
 		mov al, c // color
@@ -709,26 +716,25 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		mov di, bx // x0
 		shr di, 9 // divide to calculate coordinates
 
-		mov cx, si // x1
+		mov cx, dx // x1
 		shr cx, 9
 
 		sub cx, di
 		cmp cx, 0 // check if x backwards
 		jl tfend
-		add di, dx // calculate final address
+		add di, si // calculate final address
 
 		rep stosb // fill line
 
-		add dx, W/4 // y += 1
+		add si, W/4 // y += 1
 
-		mov di, [bp]
-		add bx, di // x0 += k0
+		mov cx, [bp]
+		add bx, cx // x0 += k0
 		mov cx, [bp+2]
-		add si, cx // x1 += k1
+		add dx, cx // x1 += k1
 
 		mov cx, [bp+4]
-		cmp dx, cx
-
+		cmp si, cx
 		jbe tfill // lines left?
 	}
 	tfend:
@@ -736,6 +742,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		pop ax
 		pop ax
 		pop ax
+			
 		pop bp
 		sti
 	}

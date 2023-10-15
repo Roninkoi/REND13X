@@ -208,7 +208,7 @@ _r_rectfill PROC FAR
 	mov bx, W
 	sub bx, cx ;; $bx = w - W
 	
-	rfill:
+rfill:
 	rep stosb ;; fill line
 
 	mov cx, si ;; $cx = w
@@ -344,7 +344,7 @@ _r_vlinefill PROC FAR
 	xor ah, ah
 	mov al, [bp+12] ;; color
 	
-	vfill:
+vfill:
 	mov [es]:di, al ;; put pixel
 	add di, W ;; y += 1
 	cmp di, dx ;; end?
@@ -396,7 +396,7 @@ _r_linefill PROC FAR
 	neg si
 	neg cx
 	
-	lfdxs:
+lfdxs:
 	cmp dx, 0
 	jge lfdys
 
@@ -404,7 +404,7 @@ _r_linefill PROC FAR
 	neg di
 	neg dx
 	
-	lfdys:
+lfdys:
 	push cx ;; dx to stack +8
 	push dx ;; dy to stack +6
 	push si ;; sx to stack +4
@@ -419,7 +419,7 @@ _r_linefill PROC FAR
 	;; if dy > dx
 	mov cx, dx ;; maxd = dy
 	
-	lfmaxd:
+lfmaxd:
 	push cx ;; maxd to stack
 
 	mov bx, [bp+6] ;; $bx = x = x0
@@ -446,7 +446,7 @@ _r_linefill PROC FAR
 
 	xor bx, bx ;; i = $bx
 	
-	lfill:
+lfill:
 	mov si, cx ;; pixel address x + y * W
 
 	mov [es]:si, al ;; put pixel
@@ -462,7 +462,7 @@ _r_linefill PROC FAR
 	mov dx, [bp+2] ;; sy
 	add cx, dx ;; y += 1
 	
-	lfx:
+lfx:
 	mov dx, [bp+6] ;; dy
 	neg dx
 	cmp si, dx
@@ -473,7 +473,7 @@ _r_linefill PROC FAR
 	mov dx, [bp+4] ;; sx
 	add cx, dx ;; x += 1
 	
-	lfy:
+lfy:
 	mov dx, [bp] ;; maxd
 	inc bx ;; ++i
 	cmp bx, dx ;; end?
@@ -491,6 +491,9 @@ _r_linefill PROC FAR
 	sti
 	ret
 _r_linefill ENDP
+
+
+TRISH equ 15
 
 ;; void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 ;; sp+4 x0
@@ -525,102 +528,115 @@ _r_trifill PROC FAR
 	mul cx
 	push ax ;; final line start address y * W to stack
 
-	mov cx, [bp+16] ;; dy
+	mov ax, [bp+16] ;; dy
+	movsx ecx, ax
 
-	mov ax, [bp+12] ;; dx1
-	mov si, ax
+	mov ax, [bp+12]
+	movsx ebx, ax ;; dx1
+	mov eax, ebx
 
-	cmp si, 0 ;; dx1 > 0?
+	cmp ebx, 0 ;; dx1 > 0?
 	jg tfs1
-	neg ax ;; $ax = |dx1|
+	neg eax ;; $ax = |dx1|
 	
-	tfs1:
-	shl ax, 7 ;; 128 * |dx1|
-	xor dx, dx
-	div cx ;; |k1| = (128 * |dx1|) / dy
-	cmp si, 0 ;; dx1 > 0?
+tfs1:
+	shl eax, TRISH
+	xor edx, edx
+	div ecx ;; |k1| = (2^TRISH * |dx1|) / dy
+	
+	cmp ebx, 0 ;; dx1 > 0?
 	jg tfss1
-	neg ax ;; k1 = -|k1|
+	neg eax ;; k1 = -|k1|
 	
-	tfss1:
-	push ax ;; k1 to stack
-
-	mov si, [bp+10] ;; right point x1
-	inc si
-	shl si, 7
-	add si, 80 ;; right bias
+tfss1:
+	push eax ;; k1 to stack
 
 	mov ax, [bp+8] ;; dx0
-	mov bx, ax
+	movsx ebx, ax
+	mov eax, ebx
 
-	cmp bx, 0 ;; dx0 > 0?
+	cmp ebx, 0 ;; dx0 > 0?
 	jg tfs0
-	neg ax ;; $ax = |dx0|
+	neg eax ;; $ax = |dx0|
 	
-	tfs0:
-	shl ax, 7 ;; 128 * |dx0|
-	xor dx, dx
-	div cx ;; |k0| = (128 * |dx0|) / dy
-	cmp bx, 0 ;; dx0 > 0?
+tfs0:
+	shl eax, TRISH
+	xor edx, edx
+	div ecx ;; |k0| = (2^TRISH * |dx0|) / dy
+	
+	cmp ebx, 0 ;; dx0 > 0?
 	jg tfss0
-	neg ax ;; k0 = -|k0|
+	neg eax ;; k0 = -|k0|
 	
-	tfss0:
-	push ax ;; k0 to stack
-
-	mov bx, [bp+6] ;; left point x0
-	inc bx
-	shl bx, 7
-	sub bx, 80 ;; left bias
+tfss0:
+	push eax ;; k0 to stack
 
 	mov dx, W
 	mov ax, [bp+14] ;; y
 	mul dx ;; y offset
-	mov dx, ax
+	mov si, ax ;; $si = y
+
+	mov ax, [bp+6] ;; left point x0
+	inc ax
+	movsx ebx, ax
+	shl ebx, TRISH
+	mov eax, 1
+	shl eax, TRISH-1
+	sub ebx, eax ;; left bias
+
+	mov ax, [bp+10] ;; right point x1
+	inc ax
+	movsx edx, ax
+	shl edx, TRISH
+	mov eax, 1
+	shl eax, TRISH-1
+	add edx, eax ;; right bias
 
 	xor ax, ax
 	mov al, [bp+18] ;; color
 
 	mov bp, sp
 	;; bp k0
-	;; bp+2 k1
-	;; bp+4 yend
-	;; bp+6 x0
-	;; bp+8 dx0
-	;; bp+10 x1
-	;; bp+12 dx1
-	;; bp+14 y
-	;; bp+16 dy
-	;; bp+18 c
+	;; bp+4 k1
+	;; bp+8 yend
+	;; bp+10 x0
+	;; bp+12 dx0
+	;; bp+14 x1
+	;; bp+16 dx1
+	;; bp+18 y
+	;; bp+20 dy
+	;; bp+22 c
 	
-	tfill:
-	mov di, bx ;; x0
-	shr di, 7 ;; divide to calculate coordinate
+tfill:
+	mov ecx, ebx ;; x0
+	shr ecx, TRISH ;; divide to calculate coordinate
+	mov di, cx
 
-	mov cx, si ;; x1
-	shr cx, 7 ;; divide to calculate coordinate
+	mov ecx, edx ;; x1
+	shr ecx, TRISH ;; divide to calculate coordinate
 
 	sub cx, di
-	cmp cx, 0 ;; check if x backwards
-	jl tfend
-	add di, dx ;; calculate final address
+	;; cmp cx, 0 ;; check if x backwards
+	;; jl tfend
+	
+	add di, si ;; calculate start address x + y * W
 
 	rep stosb ;; fill line
 
-	add dx, W ;; y += 1
+	add si, W ;; y += 1
 
-	mov di, [bp]
-	add bx, di ;; x0 += k0
-	mov cx, [bp+2]
-	add si, cx ;; x1 += k1
+	mov ecx, [bp]
+	add ebx, ecx ;; x0 += k0
+	mov ecx, [bp+4]
+	add edx, ecx ;; x1 += k1
 
-	mov cx, [bp+4] ;; yend
-	cmp dx, cx
+	mov cx, [bp+8] ;; yend
+	cmp si, cx
 	jbe tfill ;; lines left?
 	
-	tfend:
-	pop ax
-	pop ax
+tfend:
+	pop eax
+	pop eax
 	pop ax
 
 	pop si

@@ -9,7 +9,7 @@ VGA software renderer written in C and x86 assembly. Mode 13h (320x200) or mode 
 
 The purpose of this project is to explore early game engine development and x86 assembly graphics programming.
 
-Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The program can be compiled using the project file REND13X.PRJ or batch file BUILD.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
+Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The program can be compiled using the project file REND13X.PRJ or batch file BUILDC.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 ## FEATURES
 
@@ -17,6 +17,7 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The pro
     - Two video modes: mode 13h or mode X, define MODE13 or MODEX in RENDER.H to enable/disable.
     - Line drawing is implemented using Bresenham's algorithm (mode 13h line draw is faster).
     - Triangle filling is implemented in two ways: a non-clipped inaccurate fast fill (using fixed-point) and clipped accurate slow fill (using Bresenham's algorithm), define FASTFILL in RENDER.H to enable/disable.
+	- Graphics routines written in assembly are available inline in C (16-bit) or assembled and linked separately (32-bit), define ASM in the corresponding C file.
 
 - 3D perspective projected triangle draw with z sorting, geometry clipping, face culling and wireframe rendering.
 
