@@ -35,21 +35,20 @@ void interrupt (*oldKeys) ();
 
 void interrupt getKeys()
 {
-
 	// get code from keyboard
 	asm {
 		cli
 
-		in al, 0x060	// read code
+		in al, 0x060 // read code
 		mov keycode, al
-		in al, 0x061	// status
+		in al, 0x061 // status
 		mov bl, al
 		or al, 0x080
 		out 0x061, al
 		mov al, bl
 		out 0x061, al
 
-		mov al, 0x020	// reset
+		mov al, 0x020 // reset
 		out 0x020, al
 
 		sti
@@ -144,3 +143,4 @@ void getInput()
 		}
 	}
 }
+

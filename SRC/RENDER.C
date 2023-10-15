@@ -3,7 +3,7 @@
 byte pg = 0;
 unsigned pgoffs = 0;
 
-char oldvmode = 0;
+int oldvmode = 0;
 
 int wireframe = 0;
 int faceculling = 1;

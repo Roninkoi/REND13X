@@ -300,7 +300,7 @@ int main()
 	}
 
 	// initialize renderer, hook up keyboard
-	r_init();
+	oldvmode = r_init();
 	hookKeys();
 	hookTime();
 
@@ -345,6 +345,15 @@ int main()
 		r_sort();
 
 		r_draw();
+
+		//r_putpixel(sin(t)*50+W/2, cos(t)*50+H/2, 5);
+		//r_vfill(100, 50, 1);
+		//r_rectfill(100, 100, W-100-1, H-100-1, 2);
+		//r_vlinefill(98, 50, H-1, 1);
+		//r_hlinefill2(98, 249, 99, 5);
+		//r_hlinefill(98, W-2, 97, 1);
+		//r_hlinefill(98, 249, 97, 5);
+		//r_rectfill(98, 100, 249-98+1, 50, 6);
 
 		//triDemo();
 		//lineDemo();
@@ -409,7 +418,7 @@ int main()
 	}
 
 	// return previous state
-	r_exit();
+	r_exit(oldvmode);
 	unhookKeys();
 	unhookTime();
 

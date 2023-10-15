@@ -7,6 +7,13 @@
 #define CRTI 0x03d4
 #define MISCOUT 0x03c2
 
+#define MAP_MASK 0x02
+#define ALL_PLANES 0x0f00
+#define PIX_PLANE 0x0100
+
+#define CRTHI 0x0c
+#define CRTLO 0x0d
+
 #define CRTPLEN 10
 const unsigned CRTPARAM[CRTPLEN] = {
 		0x00d06, // vert tot
@@ -21,21 +28,24 @@ const unsigned CRTPARAM[CRTPLEN] = {
 		0x0e317 // byte mode
 };
 
-void r_init13()
+int r_init13()
 {
+	int vmode;
 	asm {
 		mov ah, 0x0f // get current video mode
 		int 0x10
-		mov oldvmode, al
+		xor ah, ah
+		mov vmode, ax
 
 		mov ax, 0x13 // set 13
 		int 0x10
 	}
+	return vmode;
 }
 
-void r_init()
+int r_init()
 {
-	r_init13();
+	int vmode = r_init13();
 	asm {
 		mov dx, SCI // sequence controller
 		mov ax, 0x0604
@@ -69,17 +79,26 @@ void r_init()
 		out dx, ax
 		loop crtp
 	}
-
-	//r_fill(clearcol);
+	return vmode;
 }
 
-#define MAP_MASK 0x02
+void r_exit(int vmode)
+{
+	asm {
+		mov ah, 0
+		mov bh, 0
+		mov bx, 0
+		mov ax, vmode // return original video mode
+		int 0x10
+	}
+}
 
 void r_fill(byte c)
 {
 	asm {
 		mov dx, SCI
-		mov ax, 0x0f00 + MAP_MASK // all planes
+		mov ax, ALL_PLANES // all planes
+		add ax, MAP_MASK
 		out dx, ax
 
 		mov ax, VSTART
@@ -90,17 +109,6 @@ void r_fill(byte c)
 		mov al, c
 		mov cx, W*H/8
 		rep stosw
-	}
-}
-
-void r_exit()
-{
-	asm {
-		mov ah, 0
-		mov bh, 0
-		mov bx, 0
-		mov al, oldvmode // return original video mode
-		int 0x10
 	}
 }
 
@@ -119,7 +127,8 @@ void r_putpixel(int x, int y, byte c)
 
 		mov cx, x
 		and cx, 3 // plane of pixel
-		mov ax, 0x0100 + MAP_MASK
+		mov ax, PIX_PLANE // select pixel plane
+		add ax, MAP_MASK
 		shl ah, cl
 		mov dx, SCI
 		out dx, ax
@@ -128,9 +137,6 @@ void r_putpixel(int x, int y, byte c)
 		mov [es:bx], al
 	}
 }
-
-#define CRTHI 0x0c
-#define CRTLO 0x0d
 
 void r_flip()
 {
@@ -166,7 +172,8 @@ void r_flip()
 void r_hlinefill2(int x0, int x1, int y, byte c)
 {
 	asm {
-		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov ax, ALL_PLANES // select all planes
+		add ax, MAP_MASK
 		mov dx, SCI
 		out dx, ax
 
@@ -186,7 +193,7 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		dec cx
 
 		sub cx, di
-		add cx, 1 // n = x1 - x0 + 1
+		inc cx // w = x1 - x0 + 1
 		shr cx, 1 // words
 		add di, ax // calculate address
 		add di, pgoffs // add page offset
@@ -202,7 +209,8 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 void r_hlinefill1(int x0, int x1, int y, byte c)
 {
 	asm {
-		mov ax, 0x0f00 + MAP_MASK // select all planes
+		mov ax, ALL_PLANES // select all planes
+		add ax, MAP_MASK
 		mov dx, SCI
 		out dx, ax
 
@@ -236,7 +244,7 @@ void r_hlinefill1(int x0, int x1, int y, byte c)
 void r_planefill(int x, int y, int p, byte c)
 {
 	asm {
-		mov dx, 0x0100
+		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		mul dx
 		add ax, MAP_MASK
@@ -263,29 +271,11 @@ void r_planefill(int x, int y, int p, byte c)
 	}
 }
 
-void r_hlinefill(int x0, int x1, int y, byte c)
-{
-	int px;
-	// fill edges x0 and x1, selecting correct planes
-	px = min((x0/4)*4 + 3, x1);
-	if (x0 <= px)
-		r_planefill(x0, y, linepx(x0, px), c);
-	px = max(x0, (x1/4)*4);
-	if (px <= x1)
-		r_planefill(x1, y, linepx(px, x1), c);
-
-	if (x1 - x0 <= 4) // no center area?
-		return;
-
-	// fill center
-	r_hlinefill1(x0, x1, y, c);
-}
-
 // fill plane p from x0 to x1 using stosb
 void r_hplanefill(int x0, int x1, int y, int p, byte c)
 {
 	asm {
-		mov dx, 0x0100
+		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		mul dx
 		add ax, MAP_MASK
@@ -319,7 +309,7 @@ void r_hplanefill(int x0, int x1, int y, int p, byte c)
 void r_vplanefill(int x, int y0, int y1, int p, byte c)
 {
 	asm {
-		mov dx, 0x0100
+		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		mul dx
 		add ax, MAP_MASK
@@ -331,7 +321,6 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 
 		mov si, W/4
 		mov ax, y1
-		inc ax // account for x
 		mul si
 		mov bx, ax // end point
 		add bx, pgoffs // add page offset for cmp
@@ -359,29 +348,13 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 	}
 }
 
-void r_vlinefill(int x, int y0, int y1, byte c)
-{
-	r_vplanefill(x, y0, y1, pixpx(x), c);
-}
-
-void r_rectfill(int x, int y, int w, int h, byte c)
-{
-	int i;
-
-	r_vplanefill(x, y, y+h, linepx(x, min((x/4)*4 + 3, x+w)), c);
-	r_vplanefill(x+w, y, y+h, linepx(max(x, ((x+w)/4)*4), x+w), c);
-
-	for (i = 0; i < w/4; ++i)
-		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
-}
-
 void r_lineplanefill(int x0, int y0, int x1, int y1, int p, byte c)
 {
 	asm {
 		cli
 		push bp
 
-		mov dx, 0x0100
+		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		push ax // plane to stack +10
 		mul dx
@@ -499,8 +472,8 @@ void r_lineplanefill(int x0, int y0, int x1, int y1, int p, byte c)
 	asm {
 		mov cx, [bp] // maxd
 		inc sp // ++i
-		cmp sp, cx
-		jbe lfill // lines left?
+		cmp sp, cx // end?
+		jbe lfill
 
 		mov sp, bp
 
@@ -590,7 +563,8 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 	asm {
 		mov cx, dx
 		and cx, 3 // plane of pixel
-		mov ax, 0x0100 + MAP_MASK
+		mov ax, PIX_PLANE
+		add ax, MAP_MASK
 		shl ah, cl
 		mov cx, dx
 		mov dx, SCI
@@ -631,8 +605,8 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 	asm {
 		mov cx, [bp+2] // maxd
 		inc sp // ++i
-		cmp sp, cx
-		jbe lfill // lines left?
+		cmp sp, cx // end?
+		jbe lfill
 
 		mov sp, bp
 
@@ -653,7 +627,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		cli
 		push bp
 
-		mov dx, 0x0100
+		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		mul dx
 		add ax, MAP_MASK
@@ -758,13 +732,47 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		jbe tfill // lines left?
 	}
 	tfend:
-  asm {
+	asm {
 		pop ax
 		pop ax
 		pop ax
 		pop bp
 		sti
 	}
+}
+
+void r_hlinefill(int x0, int x1, int y, byte c)
+{
+	int px;
+	// fill edges x0 and x1, selecting correct planes
+	px = min((x0/4)*4 + 3, x1);
+	if (x0 <= px)
+		r_planefill(x0, y, linepx(x0, px), c);
+	px = max(x0, (x1/4)*4);
+	if (px <= x1)
+		r_planefill(x1, y, linepx(px, x1), c);
+
+	if (x1 - x0 <= 4) // no center area?
+		return;
+
+	// fill center
+	r_hlinefill1(x0, x1, y, c);
+}
+
+void r_vlinefill(int x, int y0, int y1, byte c)
+{
+	r_vplanefill(x, y0, y1, pixpx(x), c);
+}
+
+void r_rectfill(int x, int y, int w, int h, byte c)
+{
+	int i;
+
+	r_vplanefill(x, y, y+h, linepx(x, min((x/4)*4 + 3, x+w-1)), c);
+	r_vplanefill(x+w, y, y+h, linepx(max(x, ((x+w)/4)*4), x+w-1), c);
+
+	for (i = 0; i < (w-3)/4; ++i)
+		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)

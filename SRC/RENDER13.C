@@ -2,12 +2,45 @@
 
 #ifdef MODE13
 
-void r_init()
+// use routines refined in .ASM? (else inline C)
+//#define ASM
+
+#ifdef ASM
+
+extern int r_init();
+
+extern void r_exit(int vmode);
+
+extern void r_putpixel(int x, int y, byte c);
+
+extern void r_scr(byte c);
+
+extern void r_fill(byte c);
+
+extern void r_vfill(int y0, int h, byte c);
+
+extern void r_rectfill(int x, int y, int w, int h, byte c);
+
+extern void r_hlinefill(int x0, int x1, int y, byte c);
+
+extern void r_hlinefill2(int x0, int x1, int y, byte c);
+
+extern void r_vlinefill(int x, int y0, int y1, byte c);
+
+extern void r_linefill(int x0, int y0, int x1, int y1, byte c);
+
+extern void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
+
+#else
+
+int r_init()
 {
+	int vmode;
 	asm {
 		mov ah, 0x0f
 		int 0x10
-		mov oldvmode, al // get current video mode
+		xor ah, ah
+		mov vmode, ax // get current video mode
 
 		xor ah, ah
 		mov al, 0x13 // set mode 13h
@@ -17,14 +50,14 @@ void r_init()
 		mov bx, 0x10 // allocate 64k
 		int 0x21
 	}
+	return vmode;
 }
 
-void r_exit()
+void r_exit(int vmode)
 {
 	asm {
-		xor ah, ah
 		xor bx, bx
-		mov al, oldvmode // return original video mode
+		mov ax, vmode // return original video mode
 		int 0x10
 	}
 }
@@ -45,6 +78,19 @@ void r_putpixel(int x, int y, byte c)
 		xor dh, dh
 		mov dl, c
 		mov [es:di], dl
+	}
+}
+
+void r_scr(byte c)
+{
+	asm {
+		xor al, al
+		mov ah, 0x6
+		xor bl, bl
+		mov bh, c
+		mov cx, 0x0100
+		mov dx, 0x182a
+		int 0x10
 	}
 }
 
@@ -85,19 +131,6 @@ void r_vfill(int y0, int h, byte c)
 	}
 }
 
-void r_scr(byte c)
-{
-	asm {
-		xor al, al
-		mov ah, 0x6
-		xor bl, bl
-		mov bh, c
-		mov cx, 0x0100
-		mov dx, 0x182a
-		int 0x10
-	}
-}
-
 void r_rectfill(int x, int y, int w, int h, byte c)
 {
 	asm {
@@ -110,17 +143,16 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 
 		mov di, x // start points
 		mov cx, di
-		add cx, w
+		mov cx, w // right edge
 
-		sub cx, di
 		mov si, cx
-		add di, ax // calculate address
+		add di, ax // start address
 
 		mov dx, y
 		add dx, h
 		mov ax, W
 		mul dx
-		mov dx, ax // final line start address
+		mov dx, ax // final line address
 
 		xor ah, ah
 		mov al, c // color
@@ -153,14 +185,14 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 		mov cx, x1
 		mov di, x0
 
-		sub cx, di
-		inc cx // n = x1 - x0 + 1
-		add di, ax // calculate address
+		sub cx, di // x1 - x0
+		inc cx // w = x1 - x0 + 1
+		add di, ax // start address = x0 + y * W
 
 		xor ah, ah
 		mov al, c // color
 
-		rep stosb
+		rep stosb // fill line
 	}
 }
 
@@ -178,9 +210,9 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		mov cx, x1
 		mov di, x0
 
-		sub cx, di
+		sub cx, di // x1 - x0
+		inc cx // w = x1 - x0 + 1
 		shr cx, 1 // divide by 2, discard odd
-		inc cx // n = x1 - x0 + 1
 		add di, ax // calculate address
 
 		mov al, c // color
@@ -203,7 +235,6 @@ void r_vlinefill(int x, int y0, int y1, byte c)
 		add di, x // starting address
 
 		mov cx, y1
-		inc cx // n = y1 - y0 + 1
 		mov ax, W
 		mul cx
 
@@ -233,11 +264,11 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 
 		mov cx, x1
 		mov bx, x0
-		sub cx, bx // cx = dx = x1 - x0
+		sub cx, bx // $cx = dx = x1 - x0
 
 		mov dx, y1
 		mov bx, y0
-		sub dx, bx // dx = dy = y1 - y0
+		sub dx, bx // $dx = dy = y1 - y0
 
 		mov si, 1 // sx
 		mov di, W // sy
@@ -266,48 +297,48 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 		push di // sy to stack +2
 
 		mov di, cx
-		sub di, dx // di = diff
+		sub di, dx // $di = diff
 
 		cmp cx, dx
 		jg lfmaxd
 
-		// if dx > cx
-		mov cx, dx
+		// if dy > dx
+		mov cx, dx // maxd = dy
 	}
 	lfmaxd:
 	asm {
-		push cx // end to stack
+		push cx // maxd to stack
 
-		mov bx, x0 // bx = x = x0
-		mov cx, y0 // cx = y = y0
+		mov bx, x0 // $bx = x = x0
+		mov cx, y0 // $cx = y = y0
 		mov ax, W
 		mul cx
 		mov cx, ax
-		add cx, bx
+		add cx, bx // start address x0 + y0 * W
 
 		xor ax, ax
 		mov al, c // color
 
 		mov bp, sp
 
-		xor bx, bx // bx = i
+		xor bx, bx // i = $bx
 	}
 	lfill:
 	asm {
-		mov si, cx // calculate address x + y * W
+		mov si, cx // pixel address x + y * W
 
-		mov [es:si], al
+		mov [es:si], al // put pixel
 
 		mov si, di
-		sal si, 1 // si *= 2
+		sal si, 1 // $si *= 2
 		mov dx, [bp+8] // dx
 		cmp si, dx
 		jg lfx
 
-		// if 2*di <= dx
+		// if 2*d <= dx
 		add di, dx
 		mov dx, [bp+2] // sy
-		add cx, dx
+		add cx, dx // y += 1
 	}
 	lfx:
 	asm {
@@ -316,17 +347,17 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 		cmp si, dx
 		jl lfy
 
-		// if 2*di >= -dy
+		// if 2*d >= -dy
 		add di, dx
 		mov dx, [bp+4] // sx
-		add cx, dx
+		add cx, dx // x += 1
 	}
 	lfy:
 	asm {
 		mov dx, [bp] // maxd
 		inc bx // ++i
-		cmp bx, dx
-		jbe lfill // sp <= dx?
+		cmp bx, dx // end?
+		jbe lfill
 
 		pop ax
 		pop ax
@@ -351,23 +382,25 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		add ax, dy
 		mov cx, W
 		mul cx
-		push ax
+		push ax // final line start address y * W to stack
 
 		mov cx, dy
-		mov ax, dx1 // slopes
+			
+		mov ax, dx1 // $ax = slope 1
 		mov si, ax
-		cmp si, 0
+		
+		cmp si, 0 // dx1 > 0?
 		jg tfs1
-		neg ax
+		neg ax // $ax = |dx1|
 	}
 	tfs1:
 	asm {
-		shl ax, 7
+		shl ax, 7 // 128 * |dx1|
 		xor dx, dx
-		div cx
-		cmp si, 0
+		div cx // |k1| = (128 * |dx1|) / dy
+		cmp si, 0 // dx1 > 0?
 		jg tfss1
-		neg ax
+		neg ax // k1 = -|k1|
 	}
 	tfss1:
 	asm {
@@ -378,20 +411,21 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		shl si, 7
 		add si, 80 // right bias
 
-		mov ax, dx0
+		mov ax, dx0 // $ax = slope 0
 		mov bx, ax
-		cmp bx, 0
+
+		cmp bx, 0 // dx0 > 0?
 		jg tfs0
-		neg ax
+		neg ax // $ax = |dx0|
 	}
 	tfs0:
 	asm {
-		shl ax, 7
+		shl ax, 7 // 128 * |dx0|
 		xor dx, dx
-		div cx
-		cmp bx, 0
+		div cx // |k0| = (128 * |dx0|) / dy
+		cmp bx, 0 // dx0 > 0?
 		jg tfss0
-		neg ax
+		neg ax // k0 = -|k0|
 	}
 	tfss0:
 	asm {
@@ -415,10 +449,10 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	tfill:
 	asm {
 		mov di, bx // x0
-		shr di, 7 // divide to calculate coordinates
+		shr di, 7 // divide to calculate coordinate
 
 		mov cx, si // x1
-		shr cx, 7
+		shr cx, 7 // divide to calculate coordinate
 
 		sub cx, di
 		cmp cx, 0 // check if x backwards
@@ -434,9 +468,8 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		mov cx, [bp+2]
 		add si, cx // x1 += k1
 
-		mov cx, [bp+4]
+		mov cx, [bp+4] // yend
 		cmp dx, cx
-
 		jbe tfill // lines left?
 	}
 	tfend:
@@ -448,6 +481,8 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 		sti
 	}
 }
+
+#endif
 
 #endif
 

@@ -124,7 +124,7 @@ typedef unsigned char byte;
 #define TRACESTART while (inportb(0x3da) & 8)
 #define TRACEEND while (!(inportb(0x3da) & 8))
 
-extern char oldvmode; // previous video mode
+extern int oldvmode; // previous video mode
 extern int wireframe; // draw wireframe triangles?
 extern int filled; // fill triangles?
 extern int faceculling; // cull back faces?
@@ -164,9 +164,9 @@ extern mat4 r_matrix;
 // primitive VGA routines
 
 // initialize renderer, enter video mode
-void r_init();
+int r_init();
 // return original video mode
-void r_exit();
+void r_exit(int vmode);
 // initialize (clear) screen with color c by int 10h, slightly faster than fill
 void r_scr(byte c);
 // flip page
