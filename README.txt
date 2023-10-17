@@ -8,9 +8,7 @@ or mode X (320x240), 256 colors.
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming
 
-Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly).
-The program can be compiled using the project file REND13X.PRJ or batch file
-BUILDC.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
+Compiled using Turbo C++ 3 or equivalent (supporting inline assembly). Assembly versions assembled using Turbo Assembler 5. The program can be compiled using the project file REND13X.PRJ or batch file BUILDC.BAT (inline version). Assembly versions built using BUILD13.BAT and BUILDX.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 --- Features ---
 

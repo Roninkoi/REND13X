@@ -9,7 +9,7 @@ VGA software renderer written in C and x86 assembly. Mode 13h (320x200) or mode 
 
 The purpose of this project is to explore early game engine development and x86 assembly graphics programming.
 
-Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The program can be compiled using the project file REND13X.PRJ or batch file BUILDC.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
+Compiled using Turbo C++ 3 or equivalent (supporting inline assembly). Assembly versions assembled using Turbo Assembler 5. The program can be compiled using the project file REND13X.PRJ or batch file BUILDC.BAT (inline version). Assembly versions built using BUILD13.BAT and BUILDX.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 ## FEATURES
 
@@ -38,10 +38,6 @@ Compiled using Turbo C++ 3.0 or equivalent (supporting inline assembly). The pro
 | Esc | Exit to DOS |
 
 ## TODO
-
-- Split inline assembly from RENDER13.C, RENDERX.C and INPUT.C to separate .ASM files.
-
-- Figure out a way to increase fast fill precision (error accumulates for long lines because of 16-bit precision).
 
 - Improve mode X fills for better plane handling.
 
