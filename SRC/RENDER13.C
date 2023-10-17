@@ -11,6 +11,8 @@ extern int r_init();
 
 extern void r_exit(int vmode);
 
+extern void r_waitretrace();
+
 extern void r_putpixel(int x, int y, byte c);
 
 extern void r_scr(byte c);
@@ -59,6 +61,30 @@ void r_exit(int vmode)
 		xor bx, bx
 		mov ax, vmode // return original video mode
 		int 0x10
+	}
+}
+
+void r_waitretrace()
+{
+	asm cli
+	
+	twaits:
+	asm {
+		mov dx, 0x3da
+		in al, dx
+		and al, 8
+		cmp al, 0
+		jg twaits
+	}
+	twaite:
+	asm {
+		mov dx, 0x3da
+		in al, dx
+		and al, 8
+		cmp al, 0
+		jle twaite
+
+		sti
 	}
 }
 
@@ -488,6 +514,14 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 }
 
 #endif
+
+void r_clear() {
+	r_scr(clearcol);
+}
+
+void r_sync() {
+	r_waitretrace();
+}
 
 #endif
 

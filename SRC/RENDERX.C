@@ -2,6 +2,41 @@
 
 #ifdef MODEX
 
+// use routines refined in .ASM? (else inline C)
+//#define ASM
+
+#ifdef ASM
+
+extern int r_init13();
+
+extern int r_init();
+
+extern void r_exit(int vmode);
+
+extern void r_waitretrace();
+
+extern int r_flip(int pgo);
+
+extern void r_putpixel(int x, int y, byte c);
+
+extern void r_fill(byte c);
+
+extern void r_planefill(int x, int y, int p, byte c);
+
+extern void r_hlinefill1(int x0, int x1, int y, byte c);
+
+extern void r_hlinefill2(int x0, int x1, int y, byte c);
+
+extern void r_hplanefill(int x0, int x1, int y, int p, byte c);
+
+extern void r_vplanefill(int x, int y0, int y1, int p, byte c);
+
+extern void r_linefill(int x0, int y0, int x1, int y1, byte c);
+
+extern void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c);
+
+#else
+
 #define SCI 0x03c4
 #define SCD 0x03c5
 #define CRTI 0x03d4
@@ -14,8 +49,9 @@
 #define CRTHI 0x0c
 #define CRTLO 0x0d
 
-#define CRTPLEN 10
-const unsigned CRTPARAM[CRTPLEN] = {
+int pgoffs; // offset of page being written
+
+const unsigned crtparam[10] = {
 		0x00d06, // vert tot
 		0x03e07, // overflow
 		0x04109, // cell height
@@ -70,8 +106,8 @@ int r_init()
 
 		mov dx, CRTI
 		cld
-		mov si, offset CRTPARAM
-		mov cx, CRTPLEN
+		mov si, offset crtparam
+		mov cx, 10 // length of crtparam
 	}
 	crtp:
 	asm {
@@ -93,23 +129,85 @@ void r_exit(int vmode)
 	}
 }
 
-void r_fill(byte c)
+void r_waitretrace()
 {
+	asm cli
+	
+	twaits:
 	asm {
-		mov dx, SCI
-		mov ax, ALL_PLANES // all planes
-		add ax, MAP_MASK
+		mov dx, 0x3da
+		in al, dx
+		and al, 8
+		cmp al, 0
+		jg twaits
+	}
+	twaite:
+	asm {
+		mov dx, 0x3da
+		in al, dx
+		and al, 8
+		cmp al, 0
+		jle twaite
+
+		sti
+	}
+}
+
+int r_flip(int pg)
+{
+	int newpg;
+	
+	asm cli
+
+	ftwaits:
+	asm {
+		mov dx, 0x3da // trace start
+		in al, dx
+		and al, 8
+		cmp al, 0
+		jg ftwaits
+
+		mov dx, CRTI
+
+		mov cx, pgoffs
+		and cx, 0xff00
+		or cx, CRTHI
+		mov ax, cx // hi = CRTHI | (pgo & 0xff00);
+
 		out dx, ax
 
-		mov ax, VSTART
-		mov es, ax
-		//xor di, di
-		mov di, pgoffs
-		mov ah, c
-		mov al, c
-		mov cx, W*H/8
-		rep stosw
+		mov cx, pgoffs
+		shl cx, 8
+		or cx, CRTLO
+		mov ax, cx // lo = CRTLO | (pgo << 8);
+
+		out dx, ax
 	}
+	ftwaite:
+	asm {
+		mov dx, 0x3da // trace end
+		in al, dx
+		and al, 8
+		cmp al, 0
+		jle ftwaite
+
+		mov newpg, 0 // pg = 0
+		mov pgoffs, 0 // pgoffs = 0
+
+		mov ax, pg
+		cmp ax, 0
+		jg pge // pg > 0?
+
+		mov newpg, 1 // pg = 1
+		mov ax, W/4
+		mov cx, H
+		mul cx
+		mov pgoffs, ax // pgoffs = W/4*H
+	}
+	pge:
+	asm sti
+
+	return newpg;
 }
 
 void r_putpixel(int x, int y, byte c)
@@ -117,12 +215,13 @@ void r_putpixel(int x, int y, byte c)
 	asm {
 		mov ax, W/4
 		mul y
-		mov bx, x
-		shr bx, 2
-		add bx, ax
-		mov ax, pgoffs
-		add bx, ax
-		mov ax, VSTART
+		mov di, x
+		shr di, 2
+		add di, ax // calculate address x>>2 + y * W/4
+		mov ax, pgoffs // page offset
+		add di, ax
+		
+		mov ax, VSTART // video memory start
 		mov es, ax
 
 		mov cx, x
@@ -134,37 +233,103 @@ void r_putpixel(int x, int y, byte c)
 		out dx, ax
 
 		mov al, c
-		mov [es:bx], al
+		mov [es:di], al // put pixel
 	}
 }
 
-void r_flip()
+void r_fill(byte c)
 {
-	int hi = CRTHI | (pgoffs & 0xff00);
-	int lo = CRTLO | (pgoffs << 8);
-
-	TRACESTART;
-
 	asm {
 		cli
-		mov dx, CRTI
-		mov ax, hi
+
+		mov dx, SCI
+		mov ax, ALL_PLANES // select all planes
+		add ax, MAP_MASK
 		out dx, ax
-		mov ax, lo
-		out dx, ax
+
+		mov ax, VSTART // video memory start
+		mov es, ax
+
+		mov di, pgoffs // page offset
+
+		mov ah, c // color
+		mov al, c
+
+		mov cx, W*H/8 // size
+		
+		rep stosw // fill
+
 		sti
 	}
+}
 
-	TRACEEND;
+void r_planefill(int x, int y, int p, byte c)
+{
+	asm {
+		mov dx, PIX_PLANE
+		mov ax, p // select planes to draw 0-16
+		mul dx
+		add ax, MAP_MASK
+		mov dx, SCI
+		out dx, ax
 
-	if (pg > 0) {
-		pg = 0;
-		pgoffs = 0;
+		mov ax, VSTART // video memory start
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov di, x
+		shr di, 2 // x coordinate of plane
+
+		add di, ax // calculate address
+		add di, pgoffs // add page offset
+
+		xor ax, ax
+		mov al, c // color
+
+		mov [es:di], al // draw planes
 	}
-	else {
-		pg = 1;
-		pgoffs = W/4; // has to be done like this
-		pgoffs *= H;
+}
+
+// fill all planes from x0 to x1 using stosb
+void r_hlinefill1(int x0, int x1, int y, byte c)
+{
+	asm {
+		cli
+
+		mov ax, ALL_PLANES // select all planes
+		add ax, MAP_MASK
+		mov dx, SCI
+		out dx, ax
+
+		mov ax, VSTART // video memory start
+		mov es, ax
+
+		mov dx, y
+		mov ax, W/4
+		mul dx // y offset
+
+		mov cx, x1
+		shr cx, 2
+		mov di, x0
+		shr di, 2 // plane coordinates
+
+		inc di // remove ends
+		dec cx
+
+		sub cx, di
+		inc cx // n = x1 - x0 + 1
+		add di, ax // calculate address x0>>2 + y * W/4
+		add di, pgoffs // add page offset
+
+		xor ax, ax
+		mov al, c // color
+
+		rep stosb // fill line
+
+		sti
 	}
 }
 
@@ -172,12 +337,14 @@ void r_flip()
 void r_hlinefill2(int x0, int x1, int y, byte c)
 {
 	asm {
+		cli
+		
 		mov ax, ALL_PLANES // select all planes
 		add ax, MAP_MASK
 		mov dx, SCI
 		out dx, ax
 
-		mov ax, VSTART
+		mov ax, VSTART // video memory start
 		mov es, ax
 
 		mov dx, y
@@ -195,79 +362,15 @@ void r_hlinefill2(int x0, int x1, int y, byte c)
 		sub cx, di
 		inc cx // w = x1 - x0 + 1
 		shr cx, 1 // words
-		add di, ax // calculate address
+		add di, ax // calculate address x0>>2 + y * W/4
 		add di, pgoffs // add page offset
 
 		mov al, c // color
 		mov ah, c
 
-		rep stosw
-	}
-}
+		rep stosw // fill line
 
-// fill all planes from x0 to x1 using stosb
-void r_hlinefill1(int x0, int x1, int y, byte c)
-{
-	asm {
-		mov ax, ALL_PLANES // select all planes
-		add ax, MAP_MASK
-		mov dx, SCI
-		out dx, ax
-
-		mov ax, VSTART
-		mov es, ax
-
-		mov dx, y
-		mov ax, W/4
-		mul dx // y offset
-
-		mov cx, x1
-		shr cx, 2
-		mov di, x0
-		shr di, 2 // plane coordinates
-
-		inc di // remove ends
-		dec cx
-
-		sub cx, di
-		add cx, 1 // n = x1 - x0 + 1
-		add di, ax // calculate address
-		add di, pgoffs // add page offset
-
-		xor ax, ax
-		mov al, c // color
-
-		rep stosb
-	}
-}
-
-void r_planefill(int x, int y, int p, byte c)
-{
-	asm {
-		mov dx, PIX_PLANE
-		mov ax, p // select planes to draw 0-16
-		mul dx
-		add ax, MAP_MASK
-		mov dx, SCI
-		out dx, ax
-
-		mov ax, VSTART
-		mov es, ax
-
-		mov dx, y
-		mov ax, W/4
-		mul dx // y offset
-
-		mov di, x
-		shr di, 2 // x coordinate of plane
-
-		add di, ax // calculate address
-		add di, pgoffs // add page offset
-
-		xor ax, ax
-		mov al, c // color
-
-		mov [es:di], al
+		sti
 	}
 }
 
@@ -275,6 +378,8 @@ void r_planefill(int x, int y, int p, byte c)
 void r_hplanefill(int x0, int x1, int y, int p, byte c)
 {
 	asm {
+		cli
+
 		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		mul dx
@@ -282,7 +387,7 @@ void r_hplanefill(int x0, int x1, int y, int p, byte c)
 		mov dx, SCI
 		out dx, ax
 
-		mov ax, VSTART
+		mov ax, VSTART // video memory start
 		mov es, ax
 
 		mov dx, y
@@ -295,20 +400,24 @@ void r_hplanefill(int x0, int x1, int y, int p, byte c)
 		shr di, 2 // plane coordinates
 
 		sub cx, di
-		add cx, 1 // n = x1 - x0 + 1
+		inc cx // n = x1 - x0 + 1
 		add di, ax // calculate address
 		add di, pgoffs // add page offset
 
 		xor ax, ax
 		mov al, c // color
 
-		rep stosb
+		rep stosb // fill line
+
+		sti
 	}
 }
 
 void r_vplanefill(int x, int y0, int y1, int p, byte c)
 {
 	asm {
+		cli
+
 		mov dx, PIX_PLANE
 		mov ax, p // select planes to draw 0-16
 		mul dx
@@ -316,7 +425,7 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 		mov dx, SCI
 		out dx, ax
 
-		mov ax, VSTART
+		mov ax, VSTART // video memory start
 		mov es, ax
 
 		mov si, W/4
@@ -331,20 +440,21 @@ void r_vplanefill(int x, int y0, int y1, int p, byte c)
 
 		mov di, x
 		shr di, 2
-
-		add di, cx // calculate address
-		add di, pgoffs
+		add di, cx // calculate address x>>2 + y0 * W/4
+		add di, pgoffs // page offset
 
 		xor ax, ax
 		mov al, c // color
 	}
 	vfill:
 	asm {
-		mov [es:di], al
-		add di, si
+		mov [es:di], al // put pixel
+		add di, si // y += 1
 
-		cmp di, bx
+		cmp di, bx // end?
 		jb vfill
+
+		sti
 	}
 }
 
@@ -410,7 +520,7 @@ void r_lineplanefill(int x0, int y0, int x1, int y1, int p, byte c)
 	}
 	lfmaxd:
 	asm {
-		push cx // end to stack
+		push cx // maxd to stack
 
 		mov cx, y0 // start y
 		mov ax, W/4
@@ -543,7 +653,7 @@ void r_linefill(int x0, int y0, int x1, int y1, byte c)
 	}
 	lfmaxd:
 	asm {
-		push cx // end to stack +2
+		push cx // maxd to stack +2
 
 		mov cx, y0 // start y
 		mov ax, W/4
@@ -644,7 +754,7 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		mov cx, W/4
 		mul cx
 		add ax, pgoffs // page offset for cmp
-		push ax
+		push ax // end to stack
 
 		mov cx, dy
 
@@ -742,9 +852,24 @@ void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte
 		pop ax
 		pop ax
 		pop ax
-			
+
 		pop bp
 		sti
+	}
+}
+
+#endif
+
+void r_clear() {
+	r_fill(clearcol);
+}
+
+void r_sync() {
+	if (doublebuffer) {
+		page = r_flip(page);
+	}
+	else {
+		r_waitretrace();
 	}
 }
 

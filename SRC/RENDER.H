@@ -34,18 +34,12 @@ typedef unsigned char byte;
 #define T 8
 #define B 199
 #define H 200
-
-#define r_clear() r_scr(clearcol);
-#define r_sync() r_waitRetrace();
 #endif
 
 #ifdef MODEX
 #define T 0
 #define B 239
 #define H 240
-
-#define r_clear() r_fill(clearcol);
-#define r_sync() if (doublebuffer) r_flip(); else r_waitRetrace();
 #endif
 
 // start of video memory
@@ -120,10 +114,6 @@ typedef unsigned char byte;
 
 #define PI 3.1415926
 
-// wait around for start/end of trace to sync
-#define TRACESTART while (inportb(0x3da) & 8)
-#define TRACEEND while (!(inportb(0x3da) & 8))
-
 extern int oldvmode; // previous video mode
 extern int wireframe; // draw wireframe triangles?
 extern int filled; // fill triangles?
@@ -133,8 +123,7 @@ extern int clearscr; // screen clearing enabled
 extern int clearcol; // screen clear color
 extern int doublebuffer; // enable double buffering in MODEX
 
-extern byte pg; // page number
-extern unsigned pgoffs; // offset of page being written
+extern byte page; // page number
 
 struct tri {
 	vec3 v0; // vertices
@@ -170,7 +159,11 @@ void r_exit(int vmode);
 // initialize (clear) screen with color c by int 10h, slightly faster than fill
 void r_scr(byte c);
 // flip page
-void r_flip();
+int r_flip();
+// clear screen
+void r_clear();
+// synchronize screen (wait/flip)
+void r_sync();
 
 // put pixel of color c at (x, y)
 void r_putpixel(int x, int y, byte c);
@@ -219,8 +212,6 @@ void r_drawPoint3D(vec3 *v0, byte c);
 void r_drawLine3D(vec3 *v0, vec3 *v1, byte c);
 // draw 3D perspective projected triangle of color c with vertices {v0, v1, v2}
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
-
-void r_waitRetrace(); // wait for screen retrace to sync
 
 // INPUT
 

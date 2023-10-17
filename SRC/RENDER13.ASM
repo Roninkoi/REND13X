@@ -1,6 +1,6 @@
 code SEGMENT para public 'CODE'
 ASSUME cs:code
-
+	
 .386
 
 VSTART equ 0a000h
@@ -43,6 +43,29 @@ _r_exit PROC FAR
 	pop bp
 	ret
 _r_exit ENDP
+
+;; void r_waitretrace()
+public _r_waitretrace
+_r_waitretrace PROC FAR
+	cli
+	
+twaits: ;; trace start
+	mov dx, 3dah
+	in al, dx
+	and al, 8
+	cmp al, 0
+	jg twaits
+	
+twaite: ;; trace end
+	mov dx, 3dah
+	in al, dx
+	and al, 8
+	cmp al, 0
+	jle twaite
+
+	sti
+	ret
+_r_waitretrace ENDP
 
 ;; void r_putpixel(int x, int y, byte c)
 ;; sp+4 x

@@ -346,14 +346,15 @@ int main()
 
 		r_draw();
 
-		//r_putpixel(sin(t)*50+W/2, cos(t)*50+H/2, 5);
-		//r_vfill(100, 50, 1);
-		//r_rectfill(100, 100, W-100-1, H-100-1, 2);
-		//r_vlinefill(98, 50, H-1, 1);
-		//r_hlinefill2(98, 249, 99, 5);
-		//r_hlinefill(98, W-2, 97, 1);
-		//r_hlinefill(98, 249, 97, 5);
-		//r_rectfill(98, 100, 249-98+1, 50, 6);
+		// r_putpixel(sin(t)*50+W/2, cos(t)*50+H/2, 5);
+		// r_planefill(100, 100, linepx(0, 3), 1);
+		// r_vfill(100, 50, 1);
+		// r_rectfill(100, 100, W-100-1, H-100-1, 2);
+		// r_vlinefill(98, 50, H-1, 1);
+		// r_hlinefill2(98, 249, 99, 5);
+		// r_hlinefill(98, W-2, 97, 1);
+		// r_hlinefill(98, 249, 97, 5);
+		// r_rectfill(98, 100, 249-98+1, 50, 6);
 
 		//triDemo();
 		//lineDemo();

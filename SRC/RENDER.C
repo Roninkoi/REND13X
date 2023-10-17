@@ -1,7 +1,6 @@
 #include "SRC\RENDER.H"
 
-byte pg = 0;
-unsigned pgoffs = 0;
+byte page = 0;
 
 int oldvmode = 0;
 
@@ -12,12 +11,6 @@ int clearscr = 1;
 int clearcol = 0;
 int doublebuffer = 0;
 int filled = 1;
-
-void r_waitRetrace()
-{
-	TRACESTART;
-	TRACEEND;
-}
 
 void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 {
