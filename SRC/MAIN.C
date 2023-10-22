@@ -5,25 +5,24 @@ FILE *outfile;
 
 int triCount = 0;
 
-#define TRIDEMOA 1.0f
-
 void triDemo()
 {
 	int i;
+	float size = 1.0f;
 	vec2 vt0, vt1, vt2;
 
 	clearscr = 0;
 	doublebuffer = 0;
 
 	for (i = 0; i < 1; ++i) {
-		vt0.x = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt0.y = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt0.x = size * (RANDF * 2.0f - 1.0f);
+		vt0.y = size * (RANDF * 2.0f - 1.0f);
 
-		vt1.x = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt1.y = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt1.x = size * (RANDF * 2.0f - 1.0f);
+		vt1.y = size * (RANDF * 2.0f - 1.0f);
 
-		vt2.x = TRIDEMOA * (RANDF * 2.0f - 1.0f);
-		vt2.y = TRIDEMOA * (RANDF * 2.0f - 1.0f);
+		vt2.x = size * (RANDF * 2.0f - 1.0f);
+		vt2.y = size * (RANDF * 2.0f - 1.0f);
 
 		r_drawTriClip(&vt0, &vt1, &vt2, (byte) (RANDF * 256.0f));
 
@@ -152,30 +151,29 @@ void drawCube(vec3 pos, mat4 *rot, float a, byte c, byte ci)
 	r_matrix = rm0;
 }
 
-#define GROUNDA 1.2f
-
 void groundDemo(vec3 cam)
 {
 	int x, z;
-	int y = -2.0f;
+	int y = -3.0f;
 	int c1 = 50;
 	int c2 = 49;
 	int xn = 10, zn = 10;
+	float size = 1.5f;
 
 	for (x = 0; x < xn; ++x) {
 		for (z = 0; z < zn; ++z) {
-			r_addf(GROUNDA*(x-round(cam.x/GROUNDA)-xn/2.0f), y,
-				GROUNDA*(z-round(cam.z/GROUNDA)-zn/2.0f),
-				GROUNDA*(1.0f+x-round(cam.x/GROUNDA)-xn/2.0f), y,
-				GROUNDA*(z-round(cam.z/GROUNDA)-zn/2.0f),
-				GROUNDA*(1.0f+x-round(cam.x/GROUNDA)-xn/2.0f), y,
-				GROUNDA*(1.0f+z-round(cam.z/GROUNDA)-zn/2.0f), c1);
-			r_addf(GROUNDA*(x-round(cam.x/GROUNDA)-xn/2.0f), y,
-				GROUNDA*(z-round(cam.z/GROUNDA)-zn/2.0f),
-				GROUNDA*(1.0f+x-round(cam.x/GROUNDA)-xn/2.0f), y,
-				GROUNDA*(1.0f+z-round(cam.z/GROUNDA)-zn/2.0f),
-				GROUNDA*(x-round(cam.x/GROUNDA)-xn/2.0f), y,
-				GROUNDA*(1.0f+z-round(cam.z/GROUNDA)-zn/2.0f), c2);
+			r_addf(size*(x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f),
+				size*(1.0f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f),
+				size*(1.0f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(1.0f+z-round(cam.z/size)-zn/2.0f), c1);
+			r_addf(size*(x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f),
+				size*(1.0f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(1.0f+z-round(cam.z/size)-zn/2.0f),
+				size*(x-round(cam.x/size)-xn/2.0f), y,
+				size*(1.0f+z-round(cam.z/size)-zn/2.0f), c2);
 		}
 	}
 }
@@ -231,8 +229,9 @@ void lineTest(float t) {
 	int i;
 	float o;
 	vec2 v0, v1;
-	for (i = 0; i < 70; ++i) {
-		o = 2.0f * PI / 70.0f * i;
+	int num = 64;
+	for (i = 0; i < num; ++i) {
+		o = 2.0f * PI / (float) num * i;
 		v0 = Vec2(0.0f, 0.0f);
 		v1 = Vec2(0.9f*cos(t+o), 0.9f*sin(t+o));
 		r_drawLineClip(&v0, &v1, i+32);
