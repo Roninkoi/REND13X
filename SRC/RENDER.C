@@ -164,7 +164,7 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	//r_putpixel(p1.x, p1.y, 5);
 }
 
-void r_trihfill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
+void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
 	int i, diff0, diff1, d0, d1;
 	int s0 = 1, s1 = 1;
@@ -218,21 +218,21 @@ void r_trihfill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 
 #ifdef MODE13
 
-void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+void fillTriSlow(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	r_trihfill(x0, dx0, x1, dx1, y, dy, 0, c);
+	fillTri(x0, dx0, x1, dx1, y, dy, 0, c);
 }
 
 #endif
 
 #ifdef MODEX
 
-void r_trifillb(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+void fillTriSlow(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
-	r_trihfill(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
-	r_trihfill(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
-	r_trihfill(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
-	r_trihfill(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
+	fillTri(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
+	fillTri(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
+	fillTri(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
+	fillTri(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
 }
 
 #endif
@@ -307,7 +307,7 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 #ifdef FASTFILL
 		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
 #else
-		r_trifillb(x0, dx0, x0, dx1, y0, dy1, c);
+		fillTriSlow(x0, dx0, x0, dx1, y0, dy1, c);
 #endif
 	}
 
@@ -326,7 +326,7 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 #ifdef FASTFILL
 			r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
 #else
-			r_trifillb(x1, dx2, x2, dx01, y2, dy2, c);
+			fillTriSlow(x1, dx2, x2, dx01, y2, dy2, c);
 #endif
 	}
 

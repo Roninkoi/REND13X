@@ -23,7 +23,7 @@ typedef unsigned char byte;
 #define MODEX
 
 // enable faster fills with less precision
-#define FASTFILL
+//#define FASTFILL
 
 // viewport dimensions
 #define L 0
