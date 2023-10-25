@@ -36,20 +36,14 @@ void lineDemo()
 {
 	unsigned i;
 	float a;
-	unsigned n = 62832;
+	unsigned n = 64000;
 	for (i = 0; i < n; ++i) {
 		a = (float) i / (float) n;
-#ifdef FASTFILL
-		r_linefill(W/2, H/2,
-			round(W/2 + 0.45f*H*cos(2.0f*PI*a)),
-			round(H/2 + 0.45f*H*sin(2.0f*PI*a)),
-			256*a);
-#else
+
 		r_drawLine(W/2, H/2,
 			round(W/2 + 0.45f*H*cos(2.0f*PI*a)),
 			round(H/2 + 0.45f*H*sin(2.0f*PI*a)),
 			256*a);
-#endif
 	}
 	drawCount = n;
 }

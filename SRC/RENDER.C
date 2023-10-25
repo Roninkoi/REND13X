@@ -12,7 +12,7 @@ int clearcol = 0;
 int doublebuffer = 0;
 int filled = 1;
 
-void r_drawLine(int x0, int y0, int x1, int y1, byte c)
+void fillLine(int x0, int y0, int x1, int y1, byte c)
 {
 	int i, maxd;
 	int x = 0, y = 0;
@@ -63,6 +63,15 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 		}
 #endif
 	}
+}
+
+void r_drawLine(int x0, int y0, int x1, int y1, byte c)
+{
+#ifdef FASTFILL
+	r_linefill(x0, y0, x1, y1, c);
+#else
+	fillLine(x0, y0, x1, y1, c);
+#endif
 }
 
 pix clipLine(int x, int y, int dx, int dy)
@@ -133,11 +142,7 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	clip1 = !pointVis(x1, y1);
 
 	if (!clip0 && !clip1) {
-#ifdef FASTFILL
-		r_linefill(p0.x, p0.y, p1.x, p1.y, c);
-#else
 		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
-#endif
 		return;
 	}
 
@@ -152,13 +157,8 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 			p1 = pc;
 	}
 
-	if (lineVis(p0.x, p0.y, p1.x, p1.y)) {
-#ifdef FASTFILL
-		r_linefill(p0.x, p0.y, p1.x, p1.y, c);
-#else
+	if (lineVis(p0.x, p0.y, p1.x, p1.y))
 		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
-#endif
-	}
 
 	//r_putpixel(p0.x, p0.y, 5);
 	//r_putpixel(p1.x, p1.y, 5);
@@ -214,7 +214,6 @@ void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 		}
 	}
 }
-
 
 #ifdef MODE13
 
