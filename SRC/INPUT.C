@@ -33,26 +33,11 @@ int keydown[256];
 
 void interrupt (*oldKeys) ();
 
+extern int get_keycode();
+
 void interrupt getKeys()
 {
-	// get code from keyboard
-	asm {
-		cli
-
-		in al, 0x060 // read code
-		mov keycode, al
-		in al, 0x061 // status
-		mov bl, al
-		or al, 0x080
-		out 0x061, al
-		mov al, bl
-		out 0x061, al
-
-		mov al, 0x020 // reset
-		out 0x020, al
-
-		sti
-	}
+	keycode = get_keycode();
 
 	keycodeBuffer[keycodei++] = keycode;
 }
