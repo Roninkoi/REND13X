@@ -1,136 +1,141 @@
-#
-# Borland C++ IDE generated makefile
-#
-.AUTODEPEND
+# Microsoft Visual C++ generated build script - Do not modify
+
+PROJ = REND13X
+DEBUG = 0
+PROGTYPE = 6
+CALLER = 
+ARGS = 
+DLLS = 
+D_RCDEFINES = -d_DEBUG
+R_RCDEFINES = -dNDEBUG
+ORIGIN = MSVC
+ORIGIN_VER = 1.00
+PROJPATH = D:\REND13X\
+USEMFC = 0
+CC = cl
+CPP = cl
+CXX = cl
+CCREATEPCHFLAG = 
+CPPCREATEPCHFLAG = 
+CUSEPCHFLAG = 
+CPPUSEPCHFLAG = 
+FIRSTC = DRAW.C      
+FIRSTCPP =             
+RC = rc
+CFLAGS_D_DEXE = /nologo /W3 /FR /G2 /Zi /D_DEBUG /Od /AM /D_DOS /Fd"REND13.PDB"
+CFLAGS_R_DEXE = /nologo /W3 /FR /G2 /DNDEBUG /Gs /Ox /AM /D_DOS
+LFLAGS_D_DEXE = /NOLOGO /NOI /STACK:5120 /ONERROR:NOEXE /CO 
+LFLAGS_R_DEXE = /NOLOGO /NOD /NOI /STACK:5120 /ONERROR:NOEXE 
+LIBS_D_DEXE = oldnames mlibce 
+LIBS_R_DEXE = oldnames mlibce 
+RCFLAGS = /nologo
+RESFLAGS = /nologo
+RUNFLAGS = 
+OBJS_EXT = IN.OBJ RX.OBJ 
+LIBS_EXT = 
+!if "$(DEBUG)" == "1"
+CFLAGS = $(CFLAGS_D_DEXE)
+LFLAGS = $(LFLAGS_D_DEXE)
+LIBS = $(LIBS_D_DEXE)
+MAPFILE = nul
+RCDEFINES = $(D_RCDEFINES)
+!else
+CFLAGS = $(CFLAGS_R_DEXE)
+LFLAGS = $(LFLAGS_R_DEXE)
+LIBS = $(LIBS_R_DEXE)
+MAPFILE = nul
+RCDEFINES = $(R_RCDEFINES)
+!endif
+!if [if exist MSVC.BND del MSVC.BND]
+!endif
+SBRS = DRAW.SBR \
+		INPUT.SBR \
+		MAIN.SBR \
+		RENDER.SBR \
+		RENDER13.SBR \
+		RENDERX.SBR \
+		VEC.SBR
 
 
-#
-# Borland C++ tools
-#
-IMPLIB  = Implib
-BCCDOS  = Bcc +BccDos.cfg 
-TLINK   = TLink
-TLIB    = TLib
-TASM    = Tasm
-#
-# IDE macros
-#
+IN_DEP = 
+
+RX_DEP = 
+
+DRAW_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h
 
 
-#
-# Options
-#
-IDE_LFLAGSDOS =  -LC:\BC45\LIB
-IDE_BFLAGS = 
-LLATDOS_DcbREND13Xbrend13xdexe =  -c -LC:\TC\LIB -Tde
-RLATDOS_DcbREND13Xbrend13xdexe = 
-BLATDOS_DcbREND13Xbrend13xdexe = 
-CNIEAT_DcbREND13Xbrend13xdexe = -IC:\TC\INCLUDE -D
-LNIEAT_DcbREND13Xbrend13xdexe = -x
-LEAT_DcbREND13Xbrend13xdexe = $(LLATDOS_DcbREND13Xbrend13xdexe)
-REAT_DcbREND13Xbrend13xdexe = $(RLATDOS_DcbREND13Xbrend13xdexe)
-BEAT_DcbREND13Xbrend13xdexe = $(BLATDOS_DcbREND13Xbrend13xdexe)
-
-#
-# Dependency List
-#
-Dep_rend13x = \
-   D:\REND13X\rend13x.exe
-
-rend13x : BccDos.cfg $(Dep_rend13x)
-  echo MakeNode 
-
-Dep_DcbREND13Xbrend13xdexe = \
-   in.obj\
-   rx.obj\
-   draw.obj\
-   main.obj\
-   render.obj\
-   renderx.obj\
-   render13.obj\
-   vec.obj\
-   input.obj
-
-D:\REND13X\rend13x.exe : $(Dep_DcbREND13Xbrend13xdexe)
-  $(TLINK)   @&&|
- /v $(IDE_LFLAGSDOS) $(LEAT_DcbREND13Xbrend13xdexe) $(LNIEAT_DcbREND13Xbrend13xdexe) +
-C:\TC\LIB\c0l.obj+
-in.obj+
-rx.obj+
-draw.obj+
-main.obj+
-render.obj+
-renderx.obj+
-render13.obj+
-vec.obj+
-input.obj
-$<,$*
-C:\TC\LIB\fp87.lib+
-C:\TC\LIB\mathl.lib+
-C:\TC\LIB\cl.lib
-
-|
-
-in.obj :  src\in.asm
-  $(TASM) @&&|
- /ml D:\REND13X\src\in.asm ,in.obj
-|
-
-rx.obj :  src\rx.asm
-  $(TASM) @&&|
- /ml D:\REND13X\src\rx.asm ,rx.obj
-|
-
-draw.obj :  src\draw.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\draw.c
-|
-
-main.obj :  src\main.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\main.c
-|
-
-render.obj :  src\render.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\render.c
-|
-
-renderx.obj :  src\renderx.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\renderx.c
-|
-
-render13.obj :  src\render13.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\render13.c
-|
-
-vec.obj :  src\vec.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\vec.c
-|
-
-input.obj :  src\input.c
-  $(BCCDOS) -P- -c @&&|
- $(CEAT_DcbREND13Xbrend13xdexe) $(CNIEAT_DcbREND13Xbrend13xdexe) -o$@ src\input.c
-|
-
-# Compiler configuration file
-BccDos.cfg : 
-   Copy &&|
--W-
--R
--v
--vi
--H
--H=rend13x.csm
--R-
--f287
--i32
--O
--ml
--3
-| $@
+INPUT_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h
 
 
+MAIN_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h
+
+
+RENDER_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h
+
+
+RENDER13_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h
+
+
+RENDERX_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h
+
+
+VEC_DEP = d:\rend13x\src\vec.h
+
+
+all:	$(PROJ).EXE $(PROJ).BSC
+
+DRAW.OBJ:	SRC\DRAW.C $(DRAW_DEP)
+	$(CC) $(CFLAGS) $(CCREATEPCHFLAG) /c SRC\DRAW.C
+
+INPUT.OBJ:	SRC\INPUT.C $(INPUT_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\INPUT.C
+
+MAIN.OBJ:	SRC\MAIN.C $(MAIN_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\MAIN.C
+
+RENDER.OBJ:	SRC\RENDER.C $(RENDER_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\RENDER.C
+
+RENDER13.OBJ:	SRC\RENDER13.C $(RENDER13_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\RENDER13.C
+
+RENDERX.OBJ:	SRC\RENDERX.C $(RENDERX_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\RENDERX.C
+
+VEC.OBJ:	SRC\VEC.C $(VEC_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\VEC.C
+
+$(PROJ).EXE::	DRAW.OBJ INPUT.OBJ MAIN.OBJ RENDER.OBJ RENDER13.OBJ RENDERX.OBJ VEC.OBJ $(OBJS_EXT) $(DEFFILE)
+	echo >NUL @<<$(PROJ).CRF
+DRAW.OBJ +
+INPUT.OBJ +
+MAIN.OBJ +
+RENDER.OBJ +
+RENDER13.OBJ +
+RENDERX.OBJ +
+VEC.OBJ +
+$(OBJS_EXT)
+$(PROJ).EXE
+$(MAPFILE)
+c:\msvc\lib\+
+c:\msvc\mfc\lib\+
+d:\rend13x\+
+$(LIBS)
+$(DEFFILE);
+<<
+	link $(LFLAGS) @$(PROJ).CRF
+
+run: $(PROJ).EXE
+	$(PROJ) $(RUNFLAGS)
+
+
+$(PROJ).BSC: $(SBRS)
+	bscmake @<<
+/o$@ $(SBRS)
+<<

@@ -52,7 +52,7 @@ Esc - Exit to DOS
 
 Compiled using Turbo C++ 3 in DOS, Borland C++ 4 or Visual C++ 6 in Windows
 or equivalent. Assembled using Turbo Assembler 5 or Microsoft Macro
-Assembler 6.
+Assembler 6. File paths in projects may need to be adjusted depending on where the project is placed.
 
 -- Turbo C++ --
 
