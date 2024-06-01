@@ -1,0 +1,2 @@
+ML /c SRC/IN.ASM /Fo IN.OBJ
+ML /c SRC/RX.ASM /Fo RX.OBJ

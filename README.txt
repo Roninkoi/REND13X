@@ -48,3 +48,35 @@ F - Fly down
 
 Esc - Exit to DOS
 
+--- Building ---
+
+Compiled using Turbo C++ 3 in DOS, Borland C++ 4 or Visual C++ 6 in Windows
+or equivalent. Assembled using Turbo Assembler 5 or Microsoft Macro
+Assembler 6.
+
+-- Turbo C++ --
+
+Building requires Turbo Assembler. The project can also be completely built
+using the given batch files.
+
+Project file: REND13X.PRJ
+Build Mode 13: BUILD13.BAT
+Build Mode X: BUILDX.BAT
+
+-- Borland C++ --
+
+Building requires Turbo Assembler. Include either R13.ASM or RX.ASM in the
+project (not both).
+
+Project file: REND13X.IDE
+
+-- Visual C++ --
+
+Building requires Microsoft Macro Assembler. Visual C++ won't assemble the
+.ASM files for you, so they need to be assembled separately before building
+the project. Include the object files IN.OBJ and either R13.OBJ or RX.OBJ.
+
+Project file: REND13X.MAK
+Assemble Mode 13: MASM13.BAT
+Assemble Mode X: MASMX.BAT
+

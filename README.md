@@ -9,9 +9,9 @@ VGA software renderer written in C and x86 assembly. Mode 13h (320x200) or mode 
 
 The purpose of this project is to explore early game engine development and x86 assembly graphics programming.
 
-Compiled using Turbo C++ 3 in DOS, Borland C++ 4.5 in Windows or equivalent. Assembly versions assembled using Turbo Assembler 5. The program can be compiled using the project files REND13X.PRJ or REND13X.IDE. The program can also be built using the batch files BUILD13.BAT and BUILDX.BAT. Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
+Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
-## FEATURES
+## Features
 
 - "Fast" x86 assembly draw routines for line drawing and triangle fills.
     - Two video modes: mode 13h or mode X, define MODE13 or MODEX in RENDER.H to enable/disable.
@@ -27,7 +27,7 @@ Compiled using Turbo C++ 3 in DOS, Borland C++ 4.5 in Windows or equivalent. Ass
 
 - Keyboard interrupt handler for smooth multi-key input.
 
-## CONTROLS
+## Controls
 
 | Key | Action |
 | --- | ------ |
@@ -36,6 +36,36 @@ Compiled using Turbo C++ 3 in DOS, Borland C++ 4.5 in Windows or equivalent. Ass
 | R | Fly up |
 | F | Fly down |
 | Esc | Exit to DOS |
+
+## Building
+
+Compiled using Turbo C++ 3 in DOS, Borland C++ 4 or Microsoft Visual C++ 6 in Windows or equivalent. Assembled using Turbo Assembler 5 or Microsoft Macro Assembler 6.
+
+### Turbo C++
+
+Building requires Turbo Assembler. The project can also be completely built using the given batch files.
+
+Project file: `REND13X.PRJ`
+
+Build Mode 13: `BUILD13.BAT`
+
+Build Mode X: `BUILDX.BAT`
+
+### Borland C++
+
+Building requires Turbo Assembler. Include either `R13.ASM` or `RX.ASM` in the project (not both).
+
+Project file: `REND13X.IDE`
+
+### Visual C++
+
+Building requires Microsoft Macro Assembler. Visual C++ won't assemble the .ASM files for you, so they need to be assembled separately before building the project. Include the object files `IN.OBJ` and either `R13.OBJ` or `RX.OBJ`.
+
+Project file: `REND13X.MAK`
+
+Assemble Mode 13: `MASM13.BAT`
+
+Assemble Mode X: `MASMX.BAT`
 
 ## TODO
 

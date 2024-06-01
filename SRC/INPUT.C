@@ -2,7 +2,7 @@
 
 int itime = 0;
 
-void interrupt (*oldTime) ();
+void (interrupt *oldTime) ();
 
 void interrupt getITime()
 {
@@ -11,13 +11,13 @@ void interrupt getITime()
 
 void hookTime()
 {
-	oldTime = getvect(0x1c);
-	setvect(0x1c, getITime);
+	oldTime = _dos_getvect(0x1c);
+	_dos_setvect(0x1c, getITime);
 }
 
 void unhookTime()
 {
-	setvect(0x1c, oldTime);
+	_dos_setvect(0x1c, oldTime);
 }
 
 unsigned now()
@@ -31,7 +31,7 @@ byte keycodei = 0;
 
 int keydown[256];
 
-void interrupt (*oldKeys) ();
+void (interrupt *oldKeys) ();
 
 extern int get_keycode();
 
@@ -44,13 +44,13 @@ void interrupt getKeys()
 
 void hookKeys()
 {
-	oldKeys = getvect(9);
-	setvect(9, getKeys);
+	oldKeys = _dos_getvect(9);
+	_dos_setvect(9, getKeys);
 }
 
 void unhookKeys()
 {
-	setvect(9, oldKeys);
+	_dos_setvect(9, oldKeys);
 }
 
 void getInput()

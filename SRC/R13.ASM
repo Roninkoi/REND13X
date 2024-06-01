@@ -93,7 +93,7 @@ _r_putpixel PROC FAR
 	xor ax, ax
 	mov al, [bp+10] ;; color
 	
-	mov [es]:di, al ;; put pixel
+	mov es:[di], al ;; put pixel
 	
 	pop di
 	pop bp
@@ -368,7 +368,7 @@ _r_vlinefill PROC FAR
 	mov al, [bp+12] ;; color
 	
 vfill:
-	mov [es]:di, al ;; put pixel
+	mov es:[di], al ;; put pixel
 	add di, W ;; y += 1
 	cmp di, dx ;; end?
 	jb vfill
@@ -472,7 +472,7 @@ lfmaxd:
 lfill:
 	mov si, cx ;; pixel address x + y * W
 
-	mov [es]:si, al ;; put pixel
+	mov es:[si], al ;; put pixel
 
 	mov si, di
 	sal si, 1 ;; $si *= 2

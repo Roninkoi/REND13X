@@ -120,7 +120,7 @@ _r_exit ENDP
 public _r_waitretrace
 _r_waitretrace PROC FAR
 	cli
-	
+
 twaits: ;; trace start
 	mov dx, 3dah
 	in al, dx
@@ -230,7 +230,7 @@ _r_putpixel PROC FAR
 	out dx, ax
 
 	mov al, [bp+10] ;; color
-	mov [es]:di, al ;; put pixel
+	mov es:[di], al ;; put pixel
 
 	pop di
 	pop bp
@@ -306,7 +306,7 @@ _r_planefill PROC FAR
 	xor ax, ax
 	mov al, [bp+12] ;; color
 
-	mov [es]:di, al ;; draw planes
+	mov es:[di], al ;; draw planes
 
 	pop di
 	pop bp
@@ -519,7 +519,7 @@ _r_vplanefill PROC FAR
 	mov al, [bp+14] ;; color
 	
 vfill:
-	mov [es]:di, al ;; put pixel
+	mov es:[di], al ;; put pixel
 	add di, si ;; y += 1
 
 	cmp di, bx ;; end?
@@ -640,7 +640,7 @@ lfill:
 	add si, bx ;; calculate address x + y * W/4
 
 	mov ax, [bp]
-	mov [es]:si, al ;; write pixel
+	mov es:[si], al ;; write pixel
 
 	mov si, di
 	sal si, 1 ;; $si *= 2
