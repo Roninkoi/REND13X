@@ -8,11 +8,7 @@ or mode X (320x240), 256 colors.
 The purpose of this project is to explore early game engine
 development and x86 assembly graphics programming
 
-Compiled using Turbo C++ 3 in DOS, Borland C++ 4.5 in Windows or equivalent.
-Assembled using Turbo Assembler 5. The program can be compiled using the project
-files REND13X.PRJ or REND13X.IDE. The program can also be built using the batch
-files BUILD13.BAT and BUILDX.BAT. Runs on real hardware
-(DOS, i486 or equivalent) or in DOSBox.
+Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 --- Features ---
 
@@ -50,9 +46,10 @@ Esc - Exit to DOS
 
 --- Building ---
 
-Compiled using Turbo C++ 3 in DOS, Borland C++ 4 or Visual C++ 6 in Windows
+Compiled using Turbo C++ 3 in DOS, Borland C++ 4 or Visual C++ 1 in Windows
 or equivalent. Assembled using Turbo Assembler 5 or Microsoft Macro
-Assembler 6. File paths in projects may need to be adjusted depending on where the project is placed.
+Assembler 6. File paths in projects may need to be adjusted depending on where
+the project is placed.
 
 -- Turbo C++ --
 
