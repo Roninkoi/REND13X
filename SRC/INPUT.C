@@ -53,9 +53,49 @@ void unhookKeys()
 	_dos_setvect(9, oldKeys);
 }
 
+pix mousepos;
+unsigned mouseleft = 0;
+unsigned mouseright = 0;
+
+extern void set_mouse(void (interrupt *handler) ());
+extern void reset_mouse();
+
+extern unsigned get_mousepos();
+extern void set_mousepos(int x, int y);
+extern unsigned get_mouseclick();
+
+void /*interrupt*/ getMouse()
+{
+	unsigned pos = 0, click = 0;
+	pos = get_mousepos();
+
+	mousepos.x = pos % W;
+	mousepos.y = pos / W;
+
+	click = get_mouseclick();
+
+	mouseleft = click & 0x1;
+	mouseright = (click & 0x2) >> 1;
+
+	// reset mouse position to center
+	set_mousepos(W/2, H/2);
+}
+
+void hookMouse()
+{
+	mousepos = Pix(W/2, H/2);
+	//set_mouse(getMouse);
+}
+
+void unhookMouse()
+{
+	//reset_mouse();
+}
+
 void getInput()
 {
 	int i, key;
+
 	for (i = 0; i < 256; ++i) {
 		key = keycodeBuffer[i];
 		keycodeBuffer[i] = 0;
@@ -127,5 +167,7 @@ void getInput()
 				break;
 		}
 	}
+	
+	getMouse();
 }
 

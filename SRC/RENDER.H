@@ -230,8 +230,14 @@ unsigned now(); // get system time
 
 extern byte keycode; // keycode of currently pressed/released key
 extern int keydown[256]; // key pressed down?
-void hookKeys();
+extern pix mousepos; // mouse position
+extern unsigned mouseleft; // mouse left button pressed down?
+extern unsigned mouseright; // mouse right button pressed down?
+
+void hookKeys(); // attach keyboard interrupt handler
 void unhookKeys();
+void hookMouse(); // attach mouse interrupt handler
+void unhookMouse();
 void getInput(); // get which keys are pressed down
 
 // keyboard codes

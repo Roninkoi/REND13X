@@ -159,9 +159,6 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 
 	if (lineVis(p0.x, p0.y, p1.x, p1.y))
 		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
-
-	//r_putpixel(p0.x, p0.y, 5);
-	//r_putpixel(p1.x, p1.y, 5);
 }
 
 void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
@@ -517,11 +514,6 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 			p[ps[(i)%pn]].x, p[ps[(i)%pn]].y,
 			p[ps[(i+1)%pn]].x, p[ps[(i+1)%pn]].y, c);
 	}
-
-	/*r_putpixel(xc, yc, 5);
-	for (i = 0; i < pn; ++i) {
-		r_putpixel(p[ps[i]].x, p[ps[i]].y, 5);
-	}*/
 }
 
 void r_drawPoint3D(vec3 *v0, byte c)

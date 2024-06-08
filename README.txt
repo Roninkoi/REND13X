@@ -32,11 +32,13 @@ Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 - Keyboard interrupt handler for smooth multi-key input.
 
+- Mouse support via interrupt 33h
+
 --- Controls ---
 
 WASD - Move 
 
-Arrows - Rotate camera
+Arrows/mouse - Rotate camera
 
 R - Fly up
 

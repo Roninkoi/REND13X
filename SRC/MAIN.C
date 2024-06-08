@@ -172,6 +172,59 @@ void groundDemo(vec3 cam)
 	}
 }
 
+void groundLines(vec3 cam)
+{
+	int x, z;
+	vec3 v0, v1;
+	int y = -3.0f;
+	int c = 49;
+	int xn = 10, zn = 10;
+	float size = 1.5f;
+
+	for (x = 0; x < xn; ++x) {
+		for (z = 0; z < zn; ++z) {
+			v0 = Vec3(size*(x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f));
+			v0 = mat4vec3(&r_matrix, &v0);
+			v1 = Vec3(size*(1.0f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f));
+			v1 = mat4vec3(&r_matrix, &v1);
+			r_drawLine3D(&v0, &v1, c);
+
+			v0 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(-0.5f+z-round(cam.z/size)-zn/2.0f));
+			v0 = mat4vec3(&r_matrix, &v0);
+			v1 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(0.5f+z-round(cam.z/size)-zn/2.0f));
+			v1 = mat4vec3(&r_matrix, &v1);
+			r_drawLine3D(&v0, &v1, c);
+		}
+	}
+		/* clipping issue
+		for (x = 0; x < xn; ++x) {
+		z = 0;
+			v0 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f));
+			v0 = mat4vec3(&r_matrix, &v0);
+			z = zn;
+			v1 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
+				size*(z-round(cam.z/size)-zn/2.0f));
+			v1 = mat4vec3(&r_matrix, &v1);
+			r_drawLine3D(&v0, &v1, c);
+		 }
+		for (z = 0; z < zn; ++z) {
+		x = 0;
+			v0 = Vec3(size*(x-round(cam.x/size)-xn/2.0f), y,
+				size*(0.5f+z-round(cam.z/size)-zn/2.0f));
+			v0 = mat4vec3(&r_matrix, &v0);
+			x = xn;
+			v1 = Vec3(size*(x-round(cam.x/size)-xn/2.0f), y,
+				size*(0.5f+z-round(cam.z/size)-zn/2.0f));
+			v1 = mat4vec3(&r_matrix, &v1);
+			r_drawLine3D(&v0, &v1, c);
+		}*/
+}
+
 void cubeDemo(float t)
 {
 	int i;
@@ -253,7 +306,8 @@ int main()
 	float rt; // render time
 	int rit; // render itime
 
-	float walkSpd, rotSpd;
+	float walkSpd, rotSpd, rotSpdMouse;
+	int mouseDiffX, mouseDiffY;
 
 	// projection matrix
 	mat4 projMatrix = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
@@ -283,6 +337,7 @@ int main()
 
 	walkSpd = 5.6f;
 	rotSpd = 1.4f;
+	rotSpdMouse = 0.3f;
 
 	dt = 1.0f/(float) fps;
 	rt = 1.0f;
@@ -295,6 +350,7 @@ int main()
 	// initialize renderer, hook up keyboard
 	oldvmode = r_init();
 	hookKeys();
+	hookMouse();
 	hookTime();
 
 	doublebuffer = 1;
@@ -320,13 +376,15 @@ int main()
 
 		r_matrix = mat4mat4(&projMatrix, &camMatrix);
 
-		cubeDemo(3.0f*t);
+		//cubeDemo(3.0f*t);
 		//groundDemo(camPos);
 
 		objMatrix = rotMatY(t);
 		objMatrix = rotateX(&objMatrix, t);
 		//drawCube(Vec3(0.0f, 0.0f, 1.0f), &objMatrix, 1.0f, 42, 12);
 		drawIco(Vec3(0.0f, 0.0f, 0.3f), &objMatrix, 1.0f, 64, 1);
+
+		groundLines(camPos);
 
 		//lineTest(t);
 
@@ -338,6 +396,8 @@ int main()
 		r_sort();
 
 		r_draw();
+
+		//r_putpixel(mousepos.x, mousepos.y, 2);
 
 		//triDemo();
 		//lineDemo();
@@ -354,11 +414,11 @@ int main()
 		}
 
 #ifdef MODE13
-		printf("fps: %u, key: %i, rt: %.1f, dc: %u   \r",
-				 fps, keycode, rt, drawCount);
+		printf("fps: %u, k: %i %i%i, r: %.1f, d: %u   \r",
+				 fps, keycode, mouseleft, mouseright, rt, drawCount);
 #endif
-		fprintf(outfile, "fps: %u, key: %i, rt: %.1f, dc: %u   \r",
-				 fps, keycode, rt, drawCount);
+		fprintf(outfile, "fps: %u, k: %i %i%i, r: %.1f, d: %u   \r",
+				 fps, keycode, mouseleft, mouseright, rt, drawCount);
 
 		r_sync();
 
@@ -381,6 +441,12 @@ int main()
 			posX += cos(rotY)*walkSpd*dt;
 			posZ += sin(rotY)*walkSpd*dt;
 		}
+		if (keydown[rDownCode]) {
+			posY += walkSpd*dt;
+		}
+		if (keydown[fDownCode]) {
+			posY -= walkSpd*dt;
+		}
 		if (keydown[rightDownCode]) {
 			rotY -= rotSpd*dt;
 		}
@@ -393,17 +459,25 @@ int main()
 		if (keydown[downDownCode]) {
 			rotX -= rotSpd*dt;
 		}
-		if (keydown[rDownCode]) {
-			posY += walkSpd*dt;
+
+		mouseDiffX = W/2 - mousepos.x;
+		mouseDiffY = H/2 - mousepos.y;
+		// mouse input
+		if (abs(mouseDiffY) > 0) {
+			rotX += rotSpdMouse*dt*mouseDiffY;
 		}
-		if (keydown[fDownCode]) {
-			posY -= walkSpd*dt;
+		if (abs(mouseDiffX) > 0) {
+			rotY += rotSpdMouse*dt*mouseDiffX;
 		}
+
+		// reset mouse position
+		mousepos = Pix(W/2, H/2);
 	}
 
 	// return previous state
 	r_exit(oldvmode);
 	unhookKeys();
+   unhookMouse();
 	unhookTime();
 
 	fclose(outfile);
