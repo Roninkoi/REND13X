@@ -172,57 +172,80 @@ void groundDemo(vec3 cam)
 	}
 }
 
+#define groundLineX(x0, x1, z0, z1) \
+for (x = x0; x < x1; ++x) { \
+z = z0; \
+v0 = Vec3(size*(0.5f+x-round(cam.x/size)-xoffs), y, \
+size*(-0.5f+z-round(cam.z/size)-zoffs)); \
+v0 = mat4vec3(&r_matrix, &v0); \
+z = z1; \
+v1 = Vec3(size*(0.5f+x-round(cam.x/size)-xoffs), y, \
+size*(-0.5f+z-round(cam.z/size)-zoffs)); \
+v1 = mat4vec3(&r_matrix, &v1); \
+r_drawLine3D(&v0, &v1, c); \
+}
+
+#define groundLineZ(z0, z1, x0, x1) \
+for (z = z0; z < z1; ++z) { \
+x = x0; \
+v0 = Vec3(size*(x-round(cam.x/size)-xoffs), y, \
+size*(z-round(cam.z/size)-zoffs)); \
+v0 = mat4vec3(&r_matrix, &v0); \
+x = x1; \
+v1 = Vec3(size*(x-round(cam.x/size)-xoffs), y, \
+size*(z-round(cam.z/size)-zoffs)); \
+v1 = mat4vec3(&r_matrix, &v1); \
+r_drawLine3D(&v0, &v1, c); \
+}
+
 void groundLines(vec3 cam)
 {
 	int x, z;
 	vec3 v0, v1;
 	int y = -3.0f;
 	int c = 49;
-	int xn = 10, zn = 10;
-	float size = 1.5f;
+	int xn = 9, zn = 9;
+	int fnear = 3;
+	float xoffs, zoffs;
+	float size = 2.0f;
+	xoffs = (xn)/2.0f;
+	zoffs = (zn-1)/2.0f;
 
-	for (x = 0; x < xn; ++x) {
-		for (z = 0; z < zn; ++z) {
-			v0 = Vec3(size*(x-round(cam.x/size)-xn/2.0f), y,
-				size*(z-round(cam.z/size)-zn/2.0f));
+	// draw crosses closest 1/fnear to camera (TODO: z clipping)
+	for (x = xn/fnear; x < xn - xn/fnear; x++) {
+		for (z = xn/fnear; z < zn - zn/fnear; z++) {
+			v0 = Vec3(size*(x-round(cam.x/size)-xoffs), y,
+				size*(z-round(cam.z/size)-zoffs));
 			v0 = mat4vec3(&r_matrix, &v0);
-			v1 = Vec3(size*(1.0f+x-round(cam.x/size)-xn/2.0f), y,
-				size*(z-round(cam.z/size)-zn/2.0f));
+			v1 = Vec3(size*(1.0f+x-round(cam.x/size)-xoffs), y,
+				size*(z-round(cam.z/size)-zoffs));
 			v1 = mat4vec3(&r_matrix, &v1);
 			r_drawLine3D(&v0, &v1, c);
 
-			v0 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
-				size*(-0.5f+z-round(cam.z/size)-zn/2.0f));
+			v0 = Vec3(size*(0.5f+x-round(cam.x/size)-xoffs), y,
+				size*(-0.5f+z-round(cam.z/size)-zoffs));
 			v0 = mat4vec3(&r_matrix, &v0);
-			v1 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
-				size*(0.5f+z-round(cam.z/size)-zn/2.0f));
+			v1 = Vec3(size*(0.5f+x-round(cam.x/size)-xoffs), y,
+				size*(0.5f+z-round(cam.z/size)-zoffs));
 			v1 = mat4vec3(&r_matrix, &v1);
 			r_drawLine3D(&v0, &v1, c);
 		}
 	}
-		/* clipping issue
-		for (x = 0; x < xn; ++x) {
-		z = 0;
-			v0 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
-				size*(z-round(cam.z/size)-zn/2.0f));
-			v0 = mat4vec3(&r_matrix, &v0);
-			z = zn;
-			v1 = Vec3(size*(0.5f+x-round(cam.x/size)-xn/2.0f), y,
-				size*(z-round(cam.z/size)-zn/2.0f));
-			v1 = mat4vec3(&r_matrix, &v1);
-			r_drawLine3D(&v0, &v1, c);
-		 }
-		for (z = 0; z < zn; ++z) {
-		x = 0;
-			v0 = Vec3(size*(x-round(cam.x/size)-xn/2.0f), y,
-				size*(0.5f+z-round(cam.z/size)-zn/2.0f));
-			v0 = mat4vec3(&r_matrix, &v0);
-			x = xn;
-			v1 = Vec3(size*(x-round(cam.x/size)-xn/2.0f), y,
-				size*(0.5f+z-round(cam.z/size)-zn/2.0f));
-			v1 = mat4vec3(&r_matrix, &v1);
-			r_drawLine3D(&v0, &v1, c);
-		}*/
+
+	// draw long lines far away
+	groundLineX(0, xn, 0, zn/fnear);
+	groundLineX(0, xn, zn - zn/fnear, zn);
+	groundLineZ(0, zn/fnear, xn/fnear, xn/2);
+	groundLineZ(0, zn/fnear, xn/2, xn - xn/fnear);
+	groundLineZ(zn - zn/fnear, zn, xn/fnear, xn/2);
+	groundLineZ(zn - zn/fnear, zn, xn/2, xn - xn/fnear);
+	
+	groundLineZ(0, zn, 0, xn/fnear);
+	groundLineZ(0, zn, xn - xn/fnear, xn);
+	groundLineX(0, xn/fnear, zn/fnear, zn/2);
+	groundLineX(0, xn/fnear, zn/2, zn - zn/fnear);
+	groundLineX(xn - xn/fnear, xn, zn/fnear, zn/2);
+	groundLineX(xn - xn/fnear, xn, zn/2, zn - zn/fnear);
 }
 
 void cubeDemo(float t)
@@ -370,6 +393,7 @@ int main()
 		drawIco(Vec3(0.0f, 0.0f, 0.3f), &objMatrix, 1.0f, 64, 1);
 
 		groundLines(camPos);
+		//drawFloor(camPos, camRot.y, 49, 2);
 
 		//lineTest(t);
 
