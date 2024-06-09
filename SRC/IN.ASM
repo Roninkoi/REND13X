@@ -4,7 +4,7 @@ ASSUME cs:code
 
 .386
 
-;; int get_keycode()
+;; unsigned get_keycode()
 public _get_keycode
 _get_keycode PROC FAR
 	cli
@@ -29,7 +29,7 @@ _get_keycode PROC FAR
 	ret
 _get_keycode ENDP
 
-;; int get_mousepos()
+;; unsigned get_mousepos()
 public _get_mousepos
 _get_mousepos PROC FAR
 	cli
@@ -66,7 +66,9 @@ _get_mouseclick PROC FAR
 	ret
 _get_mouseclick ENDP
 
-;; void set_mousepos(x, y)
+;; void set_mousepos(int x, int y)
+;; bp+4 x
+;; bp+6 y
 public _set_mousepos
 _set_mousepos PROC FAR
 	push bp
@@ -81,11 +83,12 @@ _set_mousepos PROC FAR
 	int 33h
 
 	pop bp
-	sti
 	ret
 _set_mousepos ENDP
 
-;; void set_mouse(handler)
+;; void set_mouse(void (interrupt *handler) ())
+;; bp+4 handler near
+;; bp+6 handler far
 public _set_mouse
 _set_mouse PROC FAR
 	push bp

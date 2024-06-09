@@ -289,23 +289,15 @@ int main()
 {
 	unsigned i, n;
 
-	float t;
-	unsigned lt;
-
-	unsigned frames;
-	unsigned fps;
-
-	float posX;
-	float posY;
-	float posZ;
-
-	float rotX;
-	float rotY;
-
+	unsigned frames; // frame number
+	unsigned fps; // frames per second
+	float t; // time in seconds
+	unsigned lt; // last frame time
 	float dt; // time between frames
 	float rt; // render time
-	int rit; // render itime
+	unsigned rit; // render itime
 
+	// walk and look speed
 	float walkSpd, rotSpd, rotSpdMouse;
 	int mouseDiffX, mouseDiffY;
 
@@ -318,37 +310,32 @@ int main()
 
 	// camera position
 	vec3 camPos;
+	// camera rotation
+	vec3 camRot;
 
+	// open log file
 	outfile = fopen("out.log", "w");
 
-	t = 0.0f;
 	running = 1;
-	lt = 0;
-
+	
 	frames = 0;
 	fps = 75;
+	t = 0.0f;
+	lt = 0;
+	dt = 1.0f/(float) fps;
+	rt = 1.0f;
+	rit = 0;
 
-	posX = 0.0f;
-	posY = 0.0f;
-	posZ = -2.0f;
-
-	rotX = 0.0f;
-	rotY = 0.0f;
+	camPos = Vec3(0.0f, 0.0f, 2.0f);
+	camRot = Zvec3();
 
 	walkSpd = 5.6f;
 	rotSpd = 1.4f;
 	rotSpdMouse = 0.3f;
 
-	dt = 1.0f/(float) fps;
-	rt = 1.0f;
-	rit = 0;
-
-	for (i = 0; i < 256; ++i) {
-		keydown[i] = 0;
-	}
-
-	// initialize renderer, hook up keyboard
+	// initialize renderer
 	oldvmode = r_init();
+	// hook up keyboard, mouse, timer
 	hookKeys();
 	hookMouse();
 	hookTime();
@@ -361,16 +348,13 @@ int main()
 		++frames;
 		t += dt;
 
-		if (clearscr) {
+		if (clearscr)
 			r_clear();
-		}
 
 		rit -= itime;
 
-		camPos = Vec3(-posX, -posY, -posZ);
-
-		camMatrix = rotMatX(rotX);
-		camMatrix = rotateY(&camMatrix, rotY);
+		camMatrix = rotMatX(camRot.x);
+		camMatrix = rotateY(&camMatrix, camRot.y);
 
 		camMatrix = translate(&camMatrix, camPos);
 
@@ -381,7 +365,8 @@ int main()
 
 		objMatrix = rotMatY(t);
 		objMatrix = rotateX(&objMatrix, t);
-		//drawCube(Vec3(0.0f, 0.0f, 1.0f), &objMatrix, 1.0f, 42, 12);
+		
+		//drawCube(Vec3(0.0f, 0.0f, 2.0f), &objMatrix, 1.0f, 42, 12);
 		drawIco(Vec3(0.0f, 0.0f, 0.3f), &objMatrix, 1.0f, 64, 1);
 
 		groundLines(camPos);
@@ -396,8 +381,6 @@ int main()
 		r_sort();
 
 		r_draw();
-
-		//r_putpixel(mousepos.x, mousepos.y, 2);
 
 		//triDemo();
 		//lineDemo();
@@ -415,69 +398,67 @@ int main()
 
 #ifdef MODE13
 		printf("fps: %u, k: %i %i%i, r: %.1f, d: %u   \r",
-				 fps, keycode, mouseleft, mouseright, rt, drawCount);
+				 fps, keycode, mouseLeft, mouseRight, rt, drawCount);
 #endif
 		fprintf(outfile, "fps: %u, k: %i %i%i, r: %.1f, d: %u   \r",
-				 fps, keycode, mouseleft, mouseright, rt, drawCount);
+				 fps, keycode, mouseLeft, mouseRight, rt, drawCount);
 
 		r_sync();
 
 		getInput();
 
 		// game input
-		if (keydown[wDownCode]) {
-			posZ += cos(rotY)*walkSpd*dt;
-			posX += -sin(rotY)*walkSpd*dt;
+		if (keyDown[wDownCode]) {
+			camPos.z -= cos(camRot.y)*walkSpd*dt;
+			camPos.x += sin(camRot.y)*walkSpd*dt;
 		}
-		if (keydown[aDownCode]) {
-			posX -= cos(rotY)*walkSpd*dt;
-			posZ -= sin(rotY)*walkSpd*dt;
+		if (keyDown[aDownCode]) {
+			camPos.x += cos(camRot.y)*walkSpd*dt;
+			camPos.z += sin(camRot.y)*walkSpd*dt;
 		}
-		if (keydown[sDownCode]) {
-			posZ -= cos(rotY)*walkSpd*dt;
-			posX -= -sin(rotY)*walkSpd*dt;
+		if (keyDown[sDownCode]) {
+			camPos.z += cos(camRot.y)*walkSpd*dt;
+			camPos.x -= sin(camRot.y)*walkSpd*dt;
 		}
-		if (keydown[dDownCode]) {
-			posX += cos(rotY)*walkSpd*dt;
-			posZ += sin(rotY)*walkSpd*dt;
+		if (keyDown[dDownCode]) {
+			camPos.x -= cos(camRot.y)*walkSpd*dt;
+			camPos.z -= sin(camRot.y)*walkSpd*dt;
 		}
-		if (keydown[rDownCode]) {
-			posY += walkSpd*dt;
-		}
-		if (keydown[fDownCode]) {
-			posY -= walkSpd*dt;
-		}
-		if (keydown[rightDownCode]) {
-			rotY -= rotSpd*dt;
-		}
-		if (keydown[leftDownCode]) {
-			rotY += rotSpd*dt;
-		}
-		if (keydown[upDownCode]) {
-			rotX += rotSpd*dt;
-		}
-		if (keydown[downDownCode]) {
-			rotX -= rotSpd*dt;
-		}
+		
+		if (keyDown[rDownCode])
+			camPos.y -= walkSpd*dt;
+		if (keyDown[fDownCode])
+			camPos.y += walkSpd*dt;
+		if (keyDown[rightDownCode])
+			camRot.y -= rotSpd*dt;
+		if (keyDown[leftDownCode])
+			camRot.y += rotSpd*dt;
+		if (keyDown[upDownCode])
+			camRot.x += rotSpd*dt;
+		if (keyDown[downDownCode])
+			camRot.x -= rotSpd*dt;
 
-		mouseDiffX = W/2 - mousepos.x;
-		mouseDiffY = H/2 - mousepos.y;
-		// mouse input
-		if (abs(mouseDiffY) > 0) {
-			rotX += rotSpdMouse*dt*mouseDiffY;
-		}
-		if (abs(mouseDiffX) > 0) {
-			rotY += rotSpdMouse*dt*mouseDiffX;
-		}
+		if (hasMouse) {
+			mouseDiffX = W/2 - mousePos.x;
+			mouseDiffY = H/2 - mousePos.y;
+			
+			// mouse input
+			if (abs(mouseDiffY) > 0)
+				camRot.x += rotSpdMouse*dt*mouseDiffY;
+			if (abs(mouseDiffX) > 0)
+				camRot.y += rotSpdMouse*dt*mouseDiffX;
 
-		// reset mouse position
-		mousepos = Pix(W/2, H/2);
+			// reset mouse position
+			mousePos = Pix(W/2, H/2);
+		}
 	}
 
-	// return previous state
+	// return previous video mode
 	r_exit(oldvmode);
+
+	// unhook keys, mouse, timer
 	unhookKeys();
-   unhookMouse();
+	unhookMouse();
 	unhookTime();
 
 	fclose(outfile);

@@ -109,3 +109,4 @@ void r_draw()
 
 	r_num = 0;
 }
+

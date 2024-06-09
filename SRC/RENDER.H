@@ -223,16 +223,17 @@ extern FILE *outfile;
 
 extern int running; // program running?
 
-extern int itime;  // time since start of program via int 0x1c (18.206/s)
+extern unsigned itime;  // time since start of program via int 0x1c (18.206/s)
 void hookTime();
 void unhookTime();
 unsigned now(); // get system time
 
 extern byte keycode; // keycode of currently pressed/released key
-extern int keydown[256]; // key pressed down?
-extern pix mousepos; // mouse position
-extern unsigned mouseleft; // mouse left button pressed down?
-extern unsigned mouseright; // mouse right button pressed down?
+extern int keyDown[256]; // key pressed down?
+extern pix mousePos; // mouse position
+extern unsigned mouseLeft; // mouse left button pressed down?
+extern unsigned mouseRight; // mouse right button pressed down?
+extern unsigned hasMouse; // mouse driver present?
 
 void hookKeys(); // attach keyboard interrupt handler
 void unhookKeys();

@@ -27,7 +27,7 @@ Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 - Keyboard interrupt handler for smooth multi-key input.
 
-- Mouse support via interrupt 33h
+- Mouse support via interrupt 33h.
 
 ## Controls
 
