@@ -49,7 +49,7 @@ typedef unsigned char byte;
 
 // near and far planes
 #define ZNEAR 0.2
-#define ZFAR 20.0
+#define ZFAR 16.0
 
 #define min(x, y) ((x) > (y) ? (y) : (x))
 #define max(x, y) ((x) < (y) ? (y) : (x))

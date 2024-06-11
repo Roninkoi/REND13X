@@ -267,7 +267,52 @@ _r_fill PROC FAR
 	sti
 	ret
 _r_fill ENDP
+	
+;; void r_vfill(int y0, int h, byte c)
+;; sp+4 y0
+;; sp+6 h
+;; sp+8 c
+public _r_vfill
+_r_vfill PROC FAR
+	cli
+	push bp
+	mov bp, sp
+	;; bp+6 y0
+	;; bp+8 h
+	;; bp+10 c
+	push di
+	
+	mov dx, SCI
+	mov ax, ALL_PLANES ;; select all planes
+	add ax, MAP_MASK
+	out dx, ax
 
+	mov ax, VSTART ;; video memory start
+	mov es, ax
+
+	mov di, W/4
+	mov ax, [bp+6]
+	mul di
+	mov di, ax
+
+	add di, _pgoffs ;; page offset
+	
+	mov cx, W/8
+	mov ax, [bp+8]
+	mul cx
+	mov cx, ax
+
+	mov ah, [bp+10] ;; color
+	mov al, [bp+10]
+	
+	rep stosw ;; fill
+
+	pop di
+	pop bp
+	sti
+	ret
+_r_vfill ENDP
+	
 ;; void r_planefill(int x, int y, int p, byte c)
 ;; sp+4 x
 ;; sp+6 y
@@ -688,7 +733,8 @@ _r_linefill ENDP
 
 TRISH equ 15
 
-;; void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
+;; void r_triplanefill(int x0, int dx0, int x1, int dx1,
+;;                     int y, int dy, int p, byte c)
 ;; sp+4 x0
 ;; sp+6 dx0
 ;; sp+8 x1

@@ -16,6 +16,8 @@ extern void r_putpixel(int x, int y, byte c);
 
 extern void r_fill(byte c);
 
+extern void r_vfill(int y0, int h, byte c);
+
 extern void r_planefill(int x, int y, int p, byte c);
 
 extern void r_hlinefill1(int x0, int x1, int y, byte c);
@@ -28,7 +30,8 @@ extern void r_vplanefill(int x, int y0, int y1, int p, byte c);
 
 extern void r_linefill(int x0, int y0, int x1, int y1, byte c);
 
-extern void r_triplanefill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c);
+extern void r_triplanefill(int x0, int dx0, int x1, int dx1,
+				   int y, int dy, int p, byte c);
 
 void r_clear() {
 	r_fill(clearcol);

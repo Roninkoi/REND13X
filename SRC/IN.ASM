@@ -67,8 +67,8 @@ _get_mouseclick PROC FAR
 _get_mouseclick ENDP
 
 ;; void set_mousepos(int x, int y)
-;; bp+4 x
-;; bp+6 y
+;; sp+4 x
+;; sp+6 y
 public _set_mousepos
 _set_mousepos PROC FAR
 	push bp
@@ -87,8 +87,8 @@ _set_mousepos PROC FAR
 _set_mousepos ENDP
 
 ;; void set_mouse(void (interrupt *handler) ())
-;; bp+4 handler near
-;; bp+6 handler far
+;; sp+4 handler near
+;; sp+6 handler far
 public _set_mouse
 _set_mouse PROC FAR
 	push bp
