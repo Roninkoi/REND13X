@@ -11,7 +11,7 @@ extern void groundDemo(vec3 cam);
 extern void groundLines(vec3 cam);
 extern void cubeDemo(float t);
 extern void lineTest(float t);
-//extern void drawFloor(vec3 camPos, float rotY, byte c1, byte c2);
+extern void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co);
 
 int main()
 {
@@ -102,14 +102,14 @@ int main()
 		horizon = clamp((float) (tan(camRot.x)*H/2 + H/2), T, B);
 		
 		if (horizon < B)
-			r_vfill(horizon, H - horizon, 2);
+			r_vfill(horizon, B - horizon + 1, 2);
 
 		groundLines(camPos);
 
 		if (horizon > T)
-			r_vfill(0, horizon + 1, clearcol);
+			r_vfill(T, horizon + 1 - T, clearcol);
 		
-		//drawFloor(camPos, camRot.y, 2, 48);
+		//drawFloor(camPos, camRot.y, 2, 48, 5);
 
 		//lineTest(t);
 
@@ -128,8 +128,7 @@ int main()
 		rit += itime - rits; // render time difference
 
 		if (itime - lt >= SECOND) { // runs every second
-			rt = (float) rit / (float) frames * TOSECOND *
-				1000.0f /* 0.25f + rt*0.75f*/;
+			rt = (float) rit / (float) frames * TOSECOND * 1000.0f;
 			rit = 0;
 			dt = min((float) (itime - lt), 2.0f * SECOND) *
 				TOSECOND / (float) frames;

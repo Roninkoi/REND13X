@@ -120,7 +120,6 @@ _r_exit ENDP
 public _r_waitretrace
 _r_waitretrace PROC FAR
 	cli
-
 twaits: ;; trace start
 	mov dx, 3dah
 	in al, dx
@@ -134,7 +133,7 @@ twaite: ;; trace end
 	and al, 8
 	cmp al, 0
 	jle twaite
-
+	
 	sti
 	ret
 _r_waitretrace ENDP
@@ -202,6 +201,7 @@ _r_flip ENDP
 ;; sp+8 c
 public _r_putpixel
 _r_putpixel PROC FAR
+	cli
 	push bp
 	mov bp, sp
 	;; bp+6 x
@@ -234,6 +234,7 @@ _r_putpixel PROC FAR
 
 	pop di
 	pop bp
+	sti
 	ret
 _r_putpixel ENDP
 
@@ -267,7 +268,7 @@ _r_fill PROC FAR
 	sti
 	ret
 _r_fill ENDP
-	
+
 ;; void r_vfill(int y0, int h, byte c)
 ;; sp+4 y0
 ;; sp+6 h
@@ -320,6 +321,7 @@ _r_vfill ENDP
 ;; sp+10 c
 public _r_planefill
 _r_planefill PROC FAR
+	cli
 	push bp
 	mov bp, sp
 	;; bp+6 x
@@ -355,6 +357,7 @@ _r_planefill PROC FAR
 
 	pop di
 	pop bp
+	sti
 	ret
 _r_planefill ENDP
 

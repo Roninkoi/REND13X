@@ -12,7 +12,7 @@ int clearcol = 0;
 int doublebuffer = 0;
 int filled = 1;
 
-void fillLine(int x0, int y0, int x1, int y1, byte c)
+void lineFill(int x0, int y0, int x1, int y1, byte c)
 {
 	int i, maxd;
 	int x = 0, y = 0;
@@ -70,7 +70,7 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 #ifdef FASTFILL
 	r_linefill(x0, y0, x1, y1, c);
 #else
-	fillLine(x0, y0, x1, y1, c);
+	lineFill(x0, y0, x1, y1, c);
 #endif
 }
 
@@ -161,7 +161,7 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 		r_drawLine(p0.x, p0.y, p1.x, p1.y, c);
 }
 
-void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
+void triFill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
 	int i, diff0, diff1, d0, d1;
 	int s0 = 1, s1 = 1;
@@ -212,30 +212,36 @@ void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 	}
 }
 
+void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+{
+#ifdef FASTFILL
+	r_trifill(x0, dx0, x1, dx1, y, dy, c);
+#else
 #ifdef MODE13
-
-void fillTriSlow(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
-{
-	fillTri(x0, dx0, x1, dx1, y, dy, 0, c);
-}
-
+	triFill(x0, dx0, x1, dx1, y, dy, 0, c);
 #endif
-
 #ifdef MODEX
-
-void fillTriSlow(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
-{
-	fillTri(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
-	fillTri(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
-	fillTri(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
-	fillTri(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
+	triFill(x0+3, dx0, x1+3-3, dx1, y, dy, pixpx(0), c);
+	triFill(x0+2, dx0, x1+2-3, dx1, y, dy, pixpx(1), c);
+	triFill(x0+1, dx0, x1+1-3, dx1, y, dy, pixpx(2), c);
+	triFill(x0+0, dx0, x1+0-3, dx1, y, dy, pixpx(3), c);
+#endif
+#endif
 }
 
-#endif
+#define sorty(x0, y0, x1, y1, tmp)			\
+	if (y0 > y1) {					\
+		tmp = y0;					\
+		y0 = y1;					\
+		y1 = tmp;					\
+		tmp = x0;					\
+		x0 = x1;					\
+		x1 = tmp;					\
+	}
 
 void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 {
-	int to;
+	int tmp;
 
 	int dx0, dx01 = 0;
 	int dx1;
@@ -246,30 +252,9 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	int dy2;
 
 	// sort vertices by y
-	if (y0 > y2) {
-		to = y0;
-		y0 = y2;
-		y2 = to;
-		to = x0;
-		x0 = x2;
-		x2 = to;
-	}
-	if (y1 > y2) {
-		to = y1;
-		y1 = y2;
-		y2 = to;
-		to = x1;
-		x1 = x2;
-		x2 = to;
-	}
-	if (y0 > y1) {
-		to = y0;
-		y0 = y1;
-		y1 = to;
-		to = x0;
-		x0 = x1;
-		x1 = to;
-	}
+	sorty(x0, y0, x2, y2, tmp);
+	sorty(x1, y1, x2, y2, tmp);
+	sorty(x0, y0, x1, y1, tmp);
 
 	// first -> last
 	dx0 = x2 - x0;
@@ -293,38 +278,28 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	y2 -= dy2;
 
 	if (dx0 > dx1) { // sort x
-		to = dx0;
+		tmp = dx0;
 		dx0 = dx1;
-		dx1 = to;
+		dx1 = tmp;
 	}
 
 	// top
-	if (dy1 > 0) {
-#ifdef FASTFILL
-		r_trifill(x0, dx0, x0, dx1, y0, dy1, c);
-#else
-		fillTriSlow(x0, dx0, x0, dx1, y0, dy1, c);
-#endif
-	}
+	if (dy1 > 0)
+		fillTri(x0, dx0, x0, dx1, y0, dy1, c);
 
 	if (x1 > x2) { // sort x
-		to = x1;
+		tmp = x1;
 		x1 = x2;
-		x2 = to;
+		x2 = tmp;
 
-		to = dx01;
+		tmp = dx01;
 		dx01 = dx2;
-		dx2 = to;
+		dx2 = tmp;
 	}
 
 	// bottom
-	if (dy2 > 0) {
-#ifdef FASTFILL
-			r_trifill(x1, dx2, x2, dx01, y2, dy2, c);
-#else
-			fillTriSlow(x1, dx2, x2, dx01, y2, dy2, c);
-#endif
-	}
+	if (dy2 > 0)
+		fillTri(x1, dx2, x2, dx01, y2, dy2, c);
 
 	++drawCount;
 }
@@ -332,9 +307,9 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 #define zCross(ux, uy, vx, vy) ((ux) * (vy) - (uy) * (vx))
 
 int pointInTri(long px, long py,
-	long t0x, long t0y,
-	long t1x, long t1y,
-	long t2x, long t2y)
+		   long t0x, long t0y,
+		   long t1x, long t1y,
+		   long t2x, long t2y)
 {
 	long a, b;
 	long det1, det2, det01, det02, det12;
@@ -472,9 +447,9 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	if (pn == 3) {
 		r_drawTri(
-			p[ps[0]].x, p[ps[0]].y,
-			p[ps[1]].x, p[ps[1]].y,
-			p[ps[2]].x, p[ps[2]].y, c);
+			    p[ps[0]].x, p[ps[0]].y,
+			    p[ps[1]].x, p[ps[1]].y,
+			    p[ps[2]].x, p[ps[2]].y, c);
 		return;
 	}
 
@@ -499,20 +474,20 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	if (pn == 4) {
 		r_drawTri(
-			p[ps[0]].x, p[ps[0]].y,
-			p[ps[1]].x, p[ps[1]].y,
-			p[ps[2]].x, p[ps[2]].y, c);
+			    p[ps[0]].x, p[ps[0]].y,
+			    p[ps[1]].x, p[ps[1]].y,
+			    p[ps[2]].x, p[ps[2]].y, c);
 		r_drawTri(
-			p[ps[0]].x, p[ps[0]].y,
-			p[ps[2]].x, p[ps[2]].y,
-			p[ps[3]].x, p[ps[3]].y, c);
+			    p[ps[0]].x, p[ps[0]].y,
+			    p[ps[2]].x, p[ps[2]].y,
+			    p[ps[3]].x, p[ps[3]].y, c);
 		return;
 	}
 
 	for (i = 0; i < pn; ++i) {
 		r_drawTri(xc, yc,
-			p[ps[(i)%pn]].x, p[ps[(i)%pn]].y,
-			p[ps[(i+1)%pn]].x, p[ps[(i+1)%pn]].y, c);
+			    p[ps[(i)%pn]].x, p[ps[(i)%pn]].y,
+			    p[ps[(i+1)%pn]].x, p[ps[(i+1)%pn]].y, c);
 	}
 }
 

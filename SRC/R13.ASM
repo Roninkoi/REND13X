@@ -48,7 +48,6 @@ _r_exit ENDP
 public _r_waitretrace
 _r_waitretrace PROC FAR
 	cli
-	
 twaits: ;; trace start
 	mov dx, 3dah
 	in al, dx
@@ -73,6 +72,7 @@ _r_waitretrace ENDP
 ;; sp+8 c
 public _r_putpixel
 _r_putpixel PROC FAR
+	cli
 	push bp
 	mov bp, sp
 	;; bp+6 x
@@ -97,6 +97,7 @@ _r_putpixel PROC FAR
 	
 	pop di
 	pop bp
+	sti
 	ret
 _r_putpixel ENDP
 
@@ -104,6 +105,7 @@ _r_putpixel ENDP
 ;; sp+4 c
 public _r_scr
 _r_scr PROC FAR
+	cli
 	push bp
 	mov bp, sp
 	;; bp+6 c
@@ -117,6 +119,7 @@ _r_scr PROC FAR
 	int 10h
 
 	pop bp
+	sti
 	ret
 _r_scr ENDP
 
@@ -514,7 +517,6 @@ lfy:
 	sti
 	ret
 _r_linefill ENDP
-
 
 TRISH equ 15
 

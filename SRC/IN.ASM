@@ -32,8 +32,6 @@ _get_keycode ENDP
 ;; unsigned get_mousepos()
 public _get_mousepos
 _get_mousepos PROC FAR
-	cli
-
 	mov ax, 03h
 	int 33h
 
@@ -45,15 +43,12 @@ _get_mousepos PROC FAR
 	shr cx, 1
 	add ax, cx
 
-	sti
 	ret
 _get_mousepos ENDP
 
 ;; int get_mouseclick()
 public _get_mouseclick
 _get_mouseclick PROC FAR
-	cli
-
 	mov ax, 03h
 	int 33h
 
@@ -62,7 +57,6 @@ _get_mouseclick PROC FAR
 	;; 10 = right down
 	mov ax, bx
 
-	sti
 	ret
 _get_mouseclick ENDP
 
