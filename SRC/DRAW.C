@@ -505,3 +505,56 @@ void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co)
 	}
 }
 
+void drawWall(float x, float y, float z, float w, float h, int d, int n, int c1, int c2)
+{
+	int i;
+	int c = c1;
+	vec3 wall0 = Vec3(x, y, z);
+	vec3 wall1 = Vec3(x, y, z);
+	vec3 wall2 = Vec3(x, y+h, z);
+	vec3 wall3 = Vec3(x, y+h, z);
+	vec3 step = Vec3(w, 0.0f, 0.0f);
+
+	switch (d) {
+	case 0:
+	case 1: // x direction wall
+		wall0.x -= w/2;
+		wall1.x += w/2;
+		wall2.x += w/2;
+		wall3.x -= w/2;
+		step = Vec3(w, 0.0f, 0.0f);
+		break;
+	case -1: // flip face
+		wall0.x += w/2;
+		wall1.x -= w/2;
+		wall2.x -= w/2;
+		wall3.x += w/2;
+		step = Vec3(-w, 0.0f, 0.0f);
+		break;
+	case 2: // z direction wall
+		wall0.z -= w/2;
+		wall1.z += w/2;
+		wall2.z += w/2;
+		wall3.z -= w/2;
+		step = Vec3(0.0f, 0.0f, w);
+		break;
+	case -2:
+		wall0.z += w/2;
+		wall1.z -= w/2;
+		wall2.z -= w/2;
+		wall3.z += w/2;
+		step = Vec3(0.0f, 0.0f, -w);
+		break;
+	}
+
+	for (i = 0; i < n; ++i) {
+		r_add(&wall0, &wall1, &wall2, c);
+		r_add(&wall0, &wall2, &wall3, c);
+		wall0 = vec3Add(wall0, step);
+		wall1 = vec3Add(wall1, step);
+		wall2 = vec3Add(wall2, step);
+		wall3 = vec3Add(wall3, step);
+		c = (c == c1 ? c2 : c1);
+	}
+}
+

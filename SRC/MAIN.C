@@ -12,6 +12,7 @@ extern void groundLines(vec3 cam);
 extern void cubeDemo(float t);
 extern void lineTest(float t);
 extern void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co);
+extern void drawWall(float x, float y, float z, float w, float h, int d, int n, int c1, int c2);
 
 int main()
 {
@@ -56,7 +57,7 @@ int main()
 	rt = 1.0f;
 	rit = 0;
 
-	camPos = Vec3(0.0f, 0.0f, 2.0f);
+	camPos = Vec3(0.0f, 0.0f, 3.0f);
 	camRot = Vec3(0.0f, 0.0f, 0.0f);
 
 	walkSpd = 5.6f;
@@ -97,7 +98,7 @@ int main()
 		objMatrix = rotateX(&objMatrix, t);
 		
 		//drawCube(Vec3(0.0f, 0.0f, 2.0f), &objMatrix, 1.0f, 48, 3);
-		drawIco(Vec3(0.0f, 0.0f, 0.3f), &objMatrix, 1.0f, 64, 1);
+		drawIco(Vec3(0.0f, 0.0f, 0.0f), &objMatrix, 1.0f, 64, 1);
 
 		horizon = clamp((float) (tan(camRot.x)*H/2 + H/2), T, B);
 		
@@ -110,6 +111,10 @@ int main()
 			r_vfill(T, horizon + 1 - T, clearcol);
 		
 		//drawFloor(camPos, camRot.y, 2, 48, 5);
+		drawWall(-8.0f, -3.0f, 9.0f, 2.0f, 6.0f, 1, 9, 4, 5);
+		drawWall(8.0f, -3.0f, -9.0f, 2.0f, 6.0f, -1, 9, 4, 5);
+		drawWall(-9.0f, -3.0f, -8.0f, 2.0f, 6.0f, 2, 9, 4, 5);
+		drawWall(9.0f, -3.0f, 8.0f, 2.0f, 6.0f, -2, 9, 4, 5);
 
 		//lineTest(t);
 
