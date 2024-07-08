@@ -138,6 +138,41 @@ twaite: ;; trace end
 	ret
 _r_waitretrace ENDP
 
+;; int r_page(int pg)
+;; sp+4 pg
+public _r_page
+_r_page PROC FAR
+	cli
+	push bp
+	mov bp, sp
+	;; bp+6 pg
+
+	mov ax, W*H/4
+	mov cx, [bp+6]
+	mul cx
+	mov _pgoffs, ax ;; pgoffs = W*H/4 * pg
+
+	mov dx, CRTI
+
+	mov cx, _pgoffs
+	and cx, 0ff00h
+	or cx, CRTHI
+	mov ax, cx ;; hi = CRTHI | (pgo & 0xff00);
+
+	out dx, ax
+
+	mov cx, _pgoffs
+	shl cx, 8
+	or cx, CRTLO
+	mov ax, cx ;; lo = CRTLO | (pgo << 8);
+
+	out dx, ax
+	
+	pop bp
+	sti
+	ret
+_r_page ENDP
+
 ;; int r_flip(int pg)
 ;; sp+4 pg
 public _r_flip
@@ -194,7 +229,7 @@ pge:
 	sti
 	ret
 _r_flip ENDP
-	
+
 ;; void r_putpixel(int x, int y, byte c)
 ;; sp+4 x
 ;; sp+6 y

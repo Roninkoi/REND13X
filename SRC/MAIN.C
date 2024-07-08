@@ -12,9 +12,10 @@ extern void groundLines(vec3 cam);
 extern void cubeDemo(float t);
 extern void lineTest(float t);
 extern void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co);
-extern void drawWall(float x, float y, float z, float w, float h, int d, int n, int c1, int c2);
+extern void drawWall(float x, float y, float z, float w, float h, int d,
+			   int n, int c1, int c2);
 
-int main()
+int main(void)
 {
 	unsigned i, n;
 
@@ -34,6 +35,9 @@ int main()
 	vec3 camPos;
 	// camera rotation
 	vec3 camRot;
+
+	TextureAtlas textureAtlas;
+	Texture textures[4];
 
 	// projection matrix
 	mat4 projMatrix = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
@@ -63,7 +67,7 @@ int main()
 	walkSpd = 5.6f;
 	rotSpd = 1.4f;
 	rotSpdMouse = 0.3f;
-
+	
 	// initialize renderer
 	oldvmode = r_init();
 	// hook up keyboard, mouse, timer
@@ -75,6 +79,14 @@ int main()
 	clearscr = 0;
 	clearcol = 52;
 
+	createAtlas(&textureAtlas);
+	for (i = 0; i < 4; ++i) {
+		createTexture(&textures[i], 32, 32, 5+i, 2+i, i % 3);
+		addTexture(&textureAtlas, &textures[i]);
+	}
+	loadPPM(&textures[0], "GFX/TEST.PPM");
+	writeTextures(&textureAtlas);
+	
 	while (running) {
 		++frames;
 		t += dt;
@@ -96,12 +108,12 @@ int main()
 
 		objMatrix = rotMatY(t);
 		objMatrix = rotateX(&objMatrix, t);
-		
+
 		//drawCube(Vec3(0.0f, 0.0f, 2.0f), &objMatrix, 1.0f, 48, 3);
 		drawIco(Vec3(0.0f, 0.0f, 0.0f), &objMatrix, 1.0f, 64, 1);
 
 		horizon = clamp((float) (tan(camRot.x)*H/2 + H/2), T, B);
-		
+
 		if (horizon < B)
 			r_vfill(horizon, B - horizon + 1, 2);
 
@@ -109,12 +121,12 @@ int main()
 
 		if (horizon > T)
 			r_vfill(T, horizon + 1 - T, clearcol);
-		
+
 		//drawFloor(camPos, camRot.y, 2, 48, 5);
-		drawWall(-8.0f, -3.0f, 9.0f, 2.0f, 6.0f, 1, 9, 4, 5);
-		drawWall(8.0f, -3.0f, -9.0f, 2.0f, 6.0f, -1, 9, 4, 5);
-		drawWall(-9.0f, -3.0f, -8.0f, 2.0f, 6.0f, 2, 9, 4, 5);
-		drawWall(9.0f, -3.0f, 8.0f, 2.0f, 6.0f, -2, 9, 4, 5);
+		drawWall(-8.0f, -3.0f, 9.0f, 2.0f, 6.0f, 1, 9, 18, 20);
+		drawWall(8.0f, -3.0f, -9.0f, 2.0f, 6.0f, -1, 9, 18, 20);
+		drawWall(-9.0f, -3.0f, -8.0f, 2.0f, 6.0f, 2, 9, 18, 20);
+		drawWall(9.0f, -3.0f, 8.0f, 2.0f, 6.0f, -2, 9, 18, 20);
 
 		//lineTest(t);
 
@@ -127,10 +139,14 @@ int main()
 
 		r_draw();
 
+		//r_drawSprite(10, 10, 32, 32, &textures[0]);
+
 		//triDemo();
 		//lineDemo();
 
 		rit += itime - rits; // render time difference
+
+		r_sync();
 
 		if (itime - lt >= SECOND) { // runs every second
 			rt = (float) rit / (float) frames * TOSECOND * 1000.0f;
@@ -148,8 +164,6 @@ int main()
 #endif
 		fprintf(outfile, "fps: %u, k: %i %i%i, r: %.2g, d: %u   \r",
 				 fps, keycode, mouseLeft, mouseRight, rt, drawCount);
-
-		r_sync();
 
 		getInput();
 

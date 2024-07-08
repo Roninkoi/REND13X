@@ -8,7 +8,7 @@ int wireframe = 0;
 int faceculling = 1;
 int zsort = 1;
 int clearscr = 1;
-int clearcol = 0;
+byte clearcol = 0;
 int doublebuffer = 0;
 int filled = 1;
 
@@ -119,7 +119,6 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	int x0, y0, x1, y1;
 	int dx, dy;
 	int clip0, clip1;
-	int tmp0, tmp1;
 	pix p0, p1, pc;
 
 	// transform from gl to pix
@@ -163,7 +162,7 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 
 void triFill(int x0, int dx0, int x1, int dx1, int y, int dy, int p, byte c)
 {
-	int i, diff0, diff1, d0, d1;
+	int diff0, diff1, d0, d1;
 	int s0 = 1, s1 = 1;
 	int y0 = y + dy;
 
@@ -341,7 +340,7 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 	int pn;
 	int i, j;
 	int dx01, dy01, dx02, dy02, dx12, dy12;
-	int clip0, clip1, clip2, clipn;
+	int clip0, clip1, clip2;
 
 	int xc, yc;
 
@@ -517,7 +516,7 @@ void r_drawPoint3D(vec3 *v0, byte c)
 
 void r_drawLine3D(vec3 *v0, vec3 *v1, byte c)
 {
-	vec2 p0, p1, p2;
+	vec2 p0, p1;
 
 	float z0 = v0->z;
 	float z1 = v1->z;
@@ -570,5 +569,40 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	p2.y /= z2;
 
 	r_drawTriClip(&p0, &p1, &p2, c);
+}
+
+void r_drawSprite(int x, int y, int w, int h, Texture *tex)
+{
+	unsigned xx, yy;
+	byte c;
+
+	for (yy = 0; yy < h; ++yy) {
+		for (xx = 0; xx < w; ++xx) {
+			c = getTexture(tex, xx, yy, w, h);
+			r_putpixel(x+xx, y+yy, c);
+		}
+	}
+}
+
+void writeTextures(TextureAtlas *atlas)
+{
+	unsigned i, id;
+	unsigned x, y, xa, ya;
+	
+#ifdef MODEX
+	r_page(atlas->page);
+	r_fill(atlas->alpha);
+
+	for (i = 0; i < atlas->num; ++i) {
+		id = atlas->textures[i]->id;
+		xa = id % ATLAS_W;
+		ya = id / ATLAS_W;
+		x = xa * ATLAS_TW;
+		y = ya * ATLAS_TH;
+		r_drawSprite(x, y, ATLAS_TW, ATLAS_TH, atlas->textures[i]);
+	}
+
+	r_page(page);
+#endif
 }
 

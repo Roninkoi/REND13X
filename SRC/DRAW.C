@@ -1,6 +1,6 @@
 #include "SRC\RENDER.H"
 
-struct tri r_buffer[RBUFFERLEN];
+Tri r_buffer[RBUFFERLEN];
 unsigned r_sorted[RBUFFERLEN];
 unsigned r_num = 0;
 
@@ -10,9 +10,8 @@ unsigned drawCount = 0;
 
 void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
-	struct tri t;
+	Tri t;
 	vec3 fc;
-	vec4 m;
 
 	if (r_num >= RBUFFERLEN) return;
 
@@ -394,8 +393,6 @@ void groundLines(vec3 cam)
 void cubeDemo(float t)
 {
 	int i;
-	float ln;
-	float lf;
 	int cn;
 
 	vec3 cube00 = Vec3(-0.5f, -0.5f, -0.5f);
@@ -456,9 +453,9 @@ void lineTest(float t) {
 
 void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co)
 {
-	int x, y, y0, c, s, a, b;
+	int x, y, c, s, a, b;
 	int xx, xx0, yy, zz, zz0;
-	int cx, cy, cz;
+	int cx, cz;
 	float cosy, siny;
 
 	s = H / 2;

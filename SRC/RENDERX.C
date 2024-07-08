@@ -10,7 +10,9 @@ extern void r_exit(int vmode);
 
 extern void r_waitretrace();
 
-extern int r_flip(int pgo);
+extern int r_page(int pg);
+
+extern int r_flip(int pg);
 
 extern void r_putpixel(int x, int y, byte c);
 

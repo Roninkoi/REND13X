@@ -5,6 +5,7 @@
 #ifndef VEC_H
 #define VEC_H
 
+#include <stdio.h>
 #include <math.h>
 
 typedef struct {

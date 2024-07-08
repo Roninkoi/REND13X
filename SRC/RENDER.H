@@ -9,12 +9,12 @@
 #define RENDER_H
 
 #include <stdio.h>
-//#include <bios.h>
 #include <math.h>
 #include <time.h>
 #include <dos.h>
 
 #include "SRC\VEC.H"
+#include "SRC\TEX.H"
 
 typedef unsigned char byte;
 
@@ -51,6 +51,9 @@ typedef unsigned char byte;
 #define ZNEAR 0.2
 #define ZFAR 16.0
 
+#undef min
+#undef max
+#undef abs
 #define min(x, y) ((x) > (y) ? (y) : (x))
 #define max(x, y) ((x) < (y) ? (y) : (x))
 #define clamp(x, min, max) ((x) > (max) ? \
@@ -120,12 +123,12 @@ extern int filled; // fill triangles?
 extern int faceculling; // cull back faces?
 extern int zsort;  // sort triangles by z?
 extern int clearscr; // screen clearing enabled
-extern int clearcol; // screen clear color
+extern byte clearcol; // screen clear color
 extern int doublebuffer; // enable double buffering in MODEX
 
 extern byte page; // page number
 
-struct tri {
+typedef struct {
 	vec3 v0; // vertices
 	vec3 v1;
 	vec3 v2;
@@ -133,12 +136,12 @@ struct tri {
 	float fc; // face center distance
 
 	byte c; // color
-};
+} Tri;
 
-#define RBUFFERLEN 512
+#define RBUFFERLEN 256
 
 // render buffer of triangles
-extern struct tri r_buffer[RBUFFERLEN];
+extern Tri r_buffer[RBUFFERLEN];
 
 // indices of sorted triangles in r_buffer
 extern unsigned r_sorted[RBUFFERLEN];
@@ -158,8 +161,10 @@ int r_init();
 void r_exit(int vmode);
 // initialize (clear) screen with color c by int 10h, slightly faster than fill
 void r_scr(byte c);
-// flip page
-int r_flip();
+// change page
+int r_page(int pg);
+// flip double buffer pages
+int r_flip(int pg);
 // clear screen
 void r_clear();
 // synchronize screen (wait/flip)
@@ -176,6 +181,8 @@ void r_vfill(int y0, int h, byte c);
 void r_hlinefill(int x0, int x1, int y, byte c);
 // vertical line fill with color c
 void r_vlinefill(int x, int y0, int y1, byte c);
+// fill plane p from x0 to x1
+void r_hplanefill(int x0, int x1, int y, int p, byte c);
 // line fill from (x0, y0) to (x1, y1) with color c
 void r_linefill(int x0, int y0, int x1, int y1, byte c);
 
@@ -212,6 +219,9 @@ void r_drawPoint3D(vec3 *v0, byte c);
 void r_drawLine3D(vec3 *v0, vec3 *v1, byte c);
 // draw 3D perspective projected triangle of color c with vertices {v0, v1, v2}
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
+
+// draw 2D textured sprite at (x, y)
+void r_drawSprite(int x, int y, int w, int h, Texture *tex);
 
 // INPUT
 

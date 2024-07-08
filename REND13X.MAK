@@ -54,7 +54,8 @@ SBRS = DRAW.SBR \
 		RENDER.SBR \
 		RENDER13.SBR \
 		RENDERX.SBR \
-		VEC.SBR
+		VEC.SBR \
+		TEX.SBR
 
 
 IN_DEP = 
@@ -62,30 +63,39 @@ IN_DEP =
 RX_DEP = 
 
 DRAW_DEP = d:\rend13x\src\render.h \
-	d:\rend13x\src\vec.h
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
 
 
 INPUT_DEP = d:\rend13x\src\render.h \
-	d:\rend13x\src\vec.h
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
 
 
 MAIN_DEP = d:\rend13x\src\render.h \
-	d:\rend13x\src\vec.h
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
 
 
 RENDER_DEP = d:\rend13x\src\render.h \
-	d:\rend13x\src\vec.h
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
 
 
 RENDER13_DEP = d:\rend13x\src\render.h \
-	d:\rend13x\src\vec.h
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
 
 
 RENDERX_DEP = d:\rend13x\src\render.h \
-	d:\rend13x\src\vec.h
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
 
 
 VEC_DEP = d:\rend13x\src\vec.h
+
+
+TEX_DEP = d:\rend13x\src\tex.h
 
 
 all:	$(PROJ).EXE $(PROJ).BSC
@@ -111,7 +121,11 @@ RENDERX.OBJ:	SRC\RENDERX.C $(RENDERX_DEP)
 VEC.OBJ:	SRC\VEC.C $(VEC_DEP)
 	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\VEC.C
 
-$(PROJ).EXE::	DRAW.OBJ INPUT.OBJ MAIN.OBJ RENDER.OBJ RENDER13.OBJ RENDERX.OBJ VEC.OBJ $(OBJS_EXT) $(DEFFILE)
+TEX.OBJ:	SRC\TEX.C $(TEX_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\TEX.C
+
+$(PROJ).EXE::	DRAW.OBJ INPUT.OBJ MAIN.OBJ RENDER.OBJ RENDER13.OBJ RENDERX.OBJ VEC.OBJ \
+	TEX.OBJ $(OBJS_EXT) $(DEFFILE)
 	echo >NUL @<<$(PROJ).CRF
 DRAW.OBJ +
 INPUT.OBJ +
@@ -120,6 +134,7 @@ RENDER.OBJ +
 RENDER13.OBJ +
 RENDERX.OBJ +
 VEC.OBJ +
+TEX.OBJ +
 $(OBJS_EXT)
 $(PROJ).EXE
 $(MAPFILE)
