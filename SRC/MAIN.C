@@ -79,13 +79,14 @@ int main(void)
 	clearscr = 0;
 	clearcol = 52;
 
-	createAtlas(&textureAtlas);
+	/*createAtlas(&textureAtlas);
 	for (i = 0; i < 4; ++i) {
-		createTexture(&textures[i], 32, 32, 5+i, 2+i, i % 3);
-		addTexture(&textureAtlas, &textures[i]);
+		createTexture(&textures[i], 16, 16, 5+i, 2+i, i % 3);
+		addAtlasTexture(&textureAtlas, &textures[i]);
 	}
+	destroyTexture(&textures[0]);
 	loadPPM(&textures[0], "GFX/TEST.PPM");
-	writeTextures(&textureAtlas);
+	writeAtlasTextures(&textureAtlas);*/
 	
 	while (running) {
 		++frames;
@@ -139,6 +140,7 @@ int main(void)
 
 		r_draw();
 
+		//r_drawAtlasSprite((H/2-16)*cos(t)+W/2-16, (H/2-16)*sin(t)+H/2-16, &textureAtlas, 0);
 		//r_drawSprite(10, 10, 32, 32, &textures[0]);
 
 		//triDemo();

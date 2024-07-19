@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define TEX_MAX 64*64*3
-
 typedef struct {
 	unsigned id;
 	unsigned char *data;
@@ -45,8 +43,11 @@ typedef struct {
 
 // create texture atlas containing multiple textures in VGA memory
 void createAtlas(TextureAtlas *atlas);
-void addTexture(TextureAtlas *atlas, Texture *tex);
+void addAtlasTexture(TextureAtlas *atlas, Texture *tex);
 // write textures to a page of VGA memory (mode X)
-void writeTextures(TextureAtlas *atlas);
+void writeAtlasTextures(TextureAtlas *atlas);
+// get start of texture memory of texture i
+unsigned getAtlasTextureStart(TextureAtlas *atlas, int i);
 
 #endif
+

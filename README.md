@@ -25,6 +25,8 @@ Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 - Page flipping in mode X (double buffering).
 
+- Sprite drawing with texturing (via video memory in mode X).
+
 - Keyboard interrupt handler for smooth multi-key input.
 
 - Mouse support via interrupt 33h.
@@ -82,6 +84,6 @@ Assemble Mode X: `MASMX.BAT`
 	- Text rendering
 	- Bespoke floor/ceiling/sky draw routines
 	- Sound
-	- Texturing
+	- Texture mapping
 	- Z-buffer
 

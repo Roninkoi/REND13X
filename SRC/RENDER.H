@@ -191,6 +191,9 @@ void r_rectfill(int x, int y, int w, int h, byte c);
 // fast asm triangle fill using integers, no clipping, color c
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
 
+// fill sprite at (x, y) with texture id
+void r_spritefill(int x, int y, int w, int h, unsigned tstart);
+
 // DRAW
 
 // add triangle to render buffer
@@ -222,6 +225,8 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
 
 // draw 2D textured sprite at (x, y)
 void r_drawSprite(int x, int y, int w, int h, Texture *tex);
+// draw 2D textured sprite id at (x, y) from atlas
+void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id);
 
 // INPUT
 

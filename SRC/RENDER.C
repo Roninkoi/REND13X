@@ -584,7 +584,35 @@ void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 	}
 }
 
-void writeTextures(TextureAtlas *atlas)
+unsigned getAtlasTextureStart(TextureAtlas *atlas, int i)
+{
+	unsigned id, xa, ya, x, y, tstart;
+	id = atlas->textures[i]->id;
+	xa = id % ATLAS_W;
+	ya = id / ATLAS_W;
+	x = xa * ATLAS_TW;
+	y = ya * ATLAS_TH;
+	tstart = W / 4;
+	tstart *= atlas->page * H + y;
+	tstart += x / 4;
+	return tstart;
+}
+
+void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id)
+{
+	int tstart;
+#ifdef MODE13
+	r_drawSprite(x, y, atlas->textures[id]->w, atlas->textures[id]->h,
+			 atlas->textures[id]);
+#endif
+#ifdef MODEX
+	tstart = getAtlasTextureStart(atlas, id);
+	r_spritefill(x, y, atlas->textures[id]->w, atlas->textures[id]->h,
+			 tstart);
+#endif
+}
+
+void writeAtlasTextures(TextureAtlas *atlas)
 {
 	unsigned i, id;
 	unsigned x, y, xa, ya;
@@ -599,7 +627,8 @@ void writeTextures(TextureAtlas *atlas)
 		ya = id / ATLAS_W;
 		x = xa * ATLAS_TW;
 		y = ya * ATLAS_TH;
-		r_drawSprite(x, y, ATLAS_TW, ATLAS_TH, atlas->textures[i]);
+		r_drawSprite(x, y, atlas->textures[i]->w, atlas->textures[i]->h,
+				 atlas->textures[i]);
 	}
 
 	r_page(page);

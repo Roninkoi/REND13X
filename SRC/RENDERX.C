@@ -35,6 +35,9 @@ extern void r_linefill(int x0, int y0, int x1, int y1, byte c);
 extern void r_triplanefill(int x0, int dx0, int x1, int dx1,
 				   int y, int dy, int p, byte c);
 
+extern void r_spriteplanefill(int x, int y, int w, int h,
+					int p, int tp, int tstart);
+
 void r_clear() {
 	r_fill(clearcol);
 }
@@ -89,6 +92,15 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	r_triplanefill(x0+2, dx0, x1+2, dx1, y, dy, pixpx(1), c);
 	r_triplanefill(x0+1, dx0, x1+1, dx1, y, dy, pixpx(2), c);
 	r_triplanefill(x0+0, dx0, x1+0, dx1, y, dy, pixpx(3), c);
+}
+
+void r_spritefill(int x, int y, int w, int h, unsigned tstart)
+{
+	//r_spriteplanefill(x, y, w, h, 0x0f, 0, tstart);
+	r_spriteplanefill(x+0, y, w, h, pixpx(x+0), 0, tstart);
+	r_spriteplanefill(x+1, y, w, h, pixpx(x+1), 1, tstart);
+	r_spriteplanefill(x+2, y, w, h, pixpx(x+2), 2, tstart);
+	r_spriteplanefill(x+3, y, w, h, pixpx(x+3), 3, tstart);
 }
 
 #endif

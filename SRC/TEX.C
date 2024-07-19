@@ -40,13 +40,13 @@ unsigned char RGBToVGA(float r, float g, float b)
 
 void loadPPM(Texture *tex, char *path)
 {
-	int i, j, k;
-	unsigned char *rawdata = NULL;
+	unsigned i, j, k;
+	unsigned char c;
 	unsigned char *data = NULL;
 	float *rgbdata = NULL;
 	FILE *fp;
 
-	unsigned char *word;
+	unsigned char *line;
 
 	int w = 0, h = 0;
 	int dp = 0;
@@ -59,7 +59,7 @@ void loadPPM(Texture *tex, char *path)
 
 	char ws[6];
 	char hs[6];
-				
+	
 	fp = fopen(path, "r");
 
 	if (!fp) {
@@ -68,46 +68,42 @@ void loadPPM(Texture *tex, char *path)
 		return;
 	}
 
-	rawdata = calloc(TEX_MAX, sizeof(unsigned char *));
+	line = (unsigned char *) malloc(sizeof(unsigned char) * 16);
 
-	if (!rawdata) {
-		printf("Can't allocate memory for texture!\n");
-		fclose(fp);
-		return;
-	}
-	
-	fread(rawdata, 1, TEX_MAX, fp);
-
-	fclose(fp);
-
-	word = (unsigned char *) malloc(sizeof(unsigned char) * 64);
-
-	if (!word)
+	if (!line)
 		return;
 
-	for (i = 0; rawdata[i] && i < TEX_MAX; ++i) {
-		ds = (dp ? rawdata[i] != ' ' : 1);
+	for (i = 0; !feof(fp); ++i) {
+		c = (unsigned char) fgetc(fp);
+		
+		ds = (dp ? c != ' ' : 1);
 
-		for (j = 0; rawdata[i] != '\n' && rawdata[i] != '\r' && rawdata[i] && ds; ++j) {
-			word[j] = rawdata[i];
+		if (c != '\n' && c != '\r' && c && ds) {
+			line[j] = c;
 			++i;
+			++j;
+			continue;
+		}
+		else {
+			line[j] = 0;
+			j = 0;
 		}
 
-		word[j] = 0;
-
-		if (word[0] != '#' && word[0] != 'P') {
+		if (line[0] != '#' && line[0] != 'P') {
 			if (w == 0 && h == 0) { // parse dimensions
 				k = 0;
-				for (j = 0; word[j] != ' ' && word[j]; ++j) { // texture width
-					ws[k] = word[j];
+				// texture width
+				for (j = 0; line[j] != ' ' && line[j]; ++j) {
+					ws[k] = line[j];
 					++k;
 				}
 
 				ws[k] = 0;
 
 				k = 0;
-				for (j = 0; word[j] != ' ' && word[j]; ++j) { // texture height
-					hs[k] = word[j];
+				// texture height
+				for (++j; line[j] != ' ' && line[j]; ++j) {
+					hs[k] = line[j];
 					++k;
 				}
 
@@ -119,21 +115,23 @@ void loadPPM(Texture *tex, char *path)
 				rgbdata = (float *) malloc(sizeof(float) * w * h * 3);
 
 				if (!rgbdata) {
-					free(rawdata);
-					free(word);
+					printf("Can't allocate memory for texture!\n");
+					free(line);
 					return;
 				}
+
+				j = 0;
 
 				dp = 1;
 			}
 			else { // parse texture data
 				if (maxval == 0.0f) {
-					maxval = (float) atoi(word);
+					maxval = (float) atoi(line);
 
 					continue; // proper data starts after
 				}
 
-				val = (float) atoi(word) / maxval;
+				val = (float) atoi(line) / maxval;
 
 				if (ri < w * h * 3)
 					rgbdata[ri] = val;
@@ -143,8 +141,9 @@ void loadPPM(Texture *tex, char *path)
 		}
 	}
 	
-	free(rawdata);
-	free(word);
+	fclose(fp);
+	
+	free(line);
 
 	data = (unsigned char *) malloc(sizeof(unsigned char) * w * h);
 
@@ -192,8 +191,10 @@ void createTexture(Texture *tex, unsigned w, unsigned h,
 	tex->data = NULL;
 	data = (unsigned char *) malloc(sizeof(unsigned char) * w * h);
 
-	if (!data)
+	if (!data) {
+		printf("Can't allocate memory for texture!\n");
 		return;
+	}
 	
 	tex->w = w;
 	tex->h = h;
@@ -247,7 +248,7 @@ void createAtlas(TextureAtlas *atlas)
 	}
 }
 
-void addTexture(TextureAtlas *atlas, Texture *tex)
+void addAtlasTexture(TextureAtlas *atlas, Texture *tex)
 {
 	unsigned id = atlas->num;
 

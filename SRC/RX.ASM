@@ -27,10 +27,12 @@ H equ 240
 
 SCI equ 003c4h
 SCD equ 003c5h
+GCI equ 003ceh
 CRTI equ 003d4h
 MISCOUT equ 003c2h
 
 MAP_MASK equ 00002h
+READ_MAP equ 00004h
 ALL_PLANES equ 00f00h
 PIX_PLANE equ 00100h
 
@@ -250,8 +252,7 @@ _r_putpixel PROC FAR
 	mov di, [bp+6] ;; x
 	shr di, 2
 	add di, ax ;; calculate address x>>2 + y * W/4
-	mov ax, _pgoffs ;; page offset
-	add di, ax
+	add di, _pgoffs ;; page offset
 	
 	mov ax, VSTART ;; video memory start
 	mov es, ax
@@ -348,7 +349,7 @@ _r_vfill PROC FAR
 	sti
 	ret
 _r_vfill ENDP
-	
+
 ;; void r_planefill(int x, int y, int p, byte c)
 ;; sp+4 x
 ;; sp+6 y
@@ -932,6 +933,96 @@ tfend:
 	sti
 	ret
 _r_triplanefill ENDP
+
+;; void r_spriteplanefill(int x, int y, int w, int h,
+;;                        int p, int tp, int tstart)
+;; sp+4 x
+;; sp+6 y
+;; sp+8 w
+;; sp+10 h
+;; sp+12 p
+;; sp+14 tp
+;; sp+16 tstart
+public _r_spriteplanefill
+_r_spriteplanefill PROC FAR
+	cli
+	push bp
+	mov bp, sp
+	;; bp+6 x
+	;; bp+8 y
+	;; bp+10 w
+	;; bp+12 h
+	;; bp+14 p
+	;; bp+16 tp
+	;; bp+18 tstart
+	push di
+	push si
+	push ds
+	
+	mov dx, GCI
+	mov ax, READ_MAP
+	out dx, ax
+	inc dx
+	mov ax, [bp+16] ;; select read plane
+	out dx, ax
+	;; mov dx, GCI ;; write all 4 planes at once
+	;; mov ax, 08h
+	;; out dx, ax
+	mov dx, PIX_PLANE
+	mov ax, [bp+14] ;; select planes to draw 0-16
+	mul dx
+	add ax, MAP_MASK
+	mov dx, SCI
+	out dx, ax
+
+	mov ax, VSTART ;; video memory start
+	mov es, ax
+
+	mov si, W/4
+	mov ax, [bp+8] ;; y1
+	add ax, [bp+12] ;; h
+	mul si
+	mov bx, ax ;; end point
+	add bx, _pgoffs ;; add page offset for cmp
+
+	mov ax, [bp+8] ;; y0
+	mul si
+	mov cx, ax ;; start point
+
+	mov di, [bp+6] ;; x
+	shr di, 2
+	add di, cx ;; calculate address x>>2 + y0 * W/4
+	add di, _pgoffs ;; page offset
+
+	mov ax, VSTART
+	mov ds, ax
+	mov si, [bp+18] ;; texture memory start
+	
+	mov ax, [bp+10] ;; w
+	shr ax, 2
+	mov dx, W/4
+	sub dx, ax
+sfill:
+	mov cx, ax
+	rep movsb
+	add di, dx ;; y += 1
+	add si, dx
+
+	cmp di, bx ;; end?
+	jb sfill
+
+	mov dx, GCI
+	inc dx
+	mov ax, 0ffh
+	out dx, ax
+	
+	pop ds
+	pop si
+	pop di
+	pop bp
+	sti
+	ret
+_r_spriteplanefill ENDP
 
 code ENDS
 END
