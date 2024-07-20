@@ -43,7 +43,6 @@ void loadPPM(Texture *tex, char *path)
 	unsigned i, j, k;
 	unsigned char c;
 	unsigned char *data = NULL;
-	float *rgbdata = NULL;
 	FILE *fp;
 
 	unsigned char *line;
@@ -53,9 +52,9 @@ void loadPPM(Texture *tex, char *path)
 	int ds = 0;
 
 	float val = 0.0f, maxval = 0.0f;
-	float r, g, b;
+	float rgb[3];
 
-	int ri = 0;
+	int ri = 0, di = 0;
 
 	char ws[6];
 	char hs[6];
@@ -112,9 +111,9 @@ void loadPPM(Texture *tex, char *path)
 				w = atoi(ws);
 				h = atoi(hs);
 
-				rgbdata = (float *) malloc(sizeof(float) * w * h * 3);
+				data = (unsigned char *) malloc(sizeof(unsigned char) * w * h);
 
-				if (!rgbdata) {
+				if (!data) {
 					printf("Can't allocate memory for texture!\n");
 					free(line);
 					return;
@@ -134,9 +133,12 @@ void loadPPM(Texture *tex, char *path)
 				val = (float) atoi(line) / maxval;
 
 				if (ri < w * h * 3)
-					rgbdata[ri] = val;
+					rgb[ri % 3] = val;
 
 				++ri;
+
+				if (ri % 3 == 0 && di < w * h)
+					data[di++] = RGBToVGA(rgb[0], rgb[1], rgb[2]);
 			}
 		}
 	}
@@ -144,23 +146,6 @@ void loadPPM(Texture *tex, char *path)
 	fclose(fp);
 	
 	free(line);
-
-	data = (unsigned char *) malloc(sizeof(unsigned char) * w * h);
-
-	if (!data) {
-		free(rgbdata);
-		return;
-	}
-
-	for (i = 0; i < w * h; ++i) {
-		r = rgbdata[i * 3];
-		g = rgbdata[i * 3 + 1];
-		b = rgbdata[i * 3 + 2];
-
-		data[i] = RGBToVGA(r, g, b);
-	}
-
-	free(rgbdata);
 
 	tex->w = w;
 	tex->h = h;
