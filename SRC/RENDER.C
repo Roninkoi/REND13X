@@ -114,6 +114,14 @@ int pointCloser(long x0, long y0, long x1, long y1, long x2, long y2)
 	return d01 < d02 && d12 < d02;
 }
 
+#define coordToPix(vx, vy, x, y)			\
+	x = round((vx+1.0f)*W*0.5f);			\
+	y = round((-vy+1.0f)*H*0.5f);
+
+#define dimToPix(vw, vh, w, h)			\
+	w = round(vw*W*0.5f);				\
+	h = round(vh*H*0.5f);
+
 void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 {
 	int x0, y0, x1, y1;
@@ -122,11 +130,8 @@ void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 	pix p0, p1, pc;
 
 	// transform from gl to pix
-	x0 = round((v0->x+1.0f)*W*0.5f);
-	y0 = round((-v0->y+1.0f)*H*0.5f);
-
-	x1 = round((v1->x+1.0f)*W*0.5f);
-	y1 = round((-v1->y+1.0f)*H*0.5f);
+	coordToPix(v0->x, v0->y, x0, y0);
+	coordToPix(v1->x, v1->y, x1, y1);
 
 	p0 = Pix(x0, y0);
 	p1 = Pix(x1, y1);
@@ -344,15 +349,12 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	int xc, yc;
 
+	float x0, y0, x1, y1, x2, y2;
+
 	// transform from gl to pix
-	int x0 = round((v0->x+1.0f)*W*0.5f);
-	int y0 = round((-v0->y+1.0f)*H*0.5f);
-
-	int x1 = round((v1->x+1.0f)*W*0.5f);
-	int y1 = round((-v1->y+1.0f)*H*0.5f);
-
-	int x2 = round((v2->x+1.0f)*W*0.5f);
-	int y2 = round((-v2->y+1.0f)*H*0.5f);
+	coordToPix(v0->x, v0->y, x0, y0);
+	coordToPix(v1->x, v1->y, x1, y1);
+	coordToPix(v2->x, v2->y, x2, y2);
 
 	if (triNotVis(x0, y0, x1, y1, x2, y2))
 		return;
@@ -505,8 +507,8 @@ void r_drawPoint3D(vec3 *v0, byte c)
 	v.x /= z;
 	v.y /= z;
 
-	p.x = (v.x+1.0f)*W*0.5f;
-	p.y = (-v.y+1.0f)*H*0.5f;
+	// transform from gl to pix
+	coordToPix(v.x, v.y, p.x, p.y);
 
 	if (!pointVis(p.x, p.y))
 		return;
@@ -573,15 +575,53 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 
 void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 {
-	unsigned xx, yy;
+	unsigned xx, yy, xx0, yy0, ww, hh;
 	byte c;
+	
+	if (!pointVis(x, y) && !pointVis(x+w, y) &&
+	    !pointVis(x, y+h) && !pointVis(x+w, y+h))
+		return;
 
-	for (yy = 0; yy < h; ++yy) {
-		for (xx = 0; xx < w; ++xx) {
+	xx0 = clamp(x, L, R) - x;
+	yy0 = clamp(y, T, B) - y;
+	ww = clamp(x+w, L, R) - x;
+	hh = clamp(y+h, T, B) - y;
+
+	for (yy = yy0; yy < hh; ++yy) {
+		for (xx = xx0; xx < ww; ++xx) {
 			c = getTexture(tex, xx, yy, w, h);
 			r_putpixel(x+xx, y+yy, c);
 		}
 	}
+}
+
+void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
+{
+	vec2 p;
+	float z = v->z;
+	float pw = w;
+	float ph = h;
+	
+	p = Vec2From3(v);
+	
+	if (z < ZNEAR || z > ZFAR)
+		return;
+
+	// center
+	p.x -= pw / 2.0f;
+	p.y += ph / 2.0f;
+	
+	// projection
+	p.x /= z;
+	p.y /= z;
+	pw /= z;
+	ph /= z;
+
+	// transform from gl to pix
+	coordToPix(p.x, p.y, p.x, p.y);
+	dimToPix(pw, ph, pw, ph);
+
+	r_drawSprite(p.x, p.y, pw, ph, tex);
 }
 
 unsigned getAtlasTextureStart(TextureAtlas *atlas, int i)

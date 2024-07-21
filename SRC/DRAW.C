@@ -32,6 +32,7 @@ void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	t.fc = vec3Len(&fc);
 
 	t.c = c;
+	t.tex = NULL; // untextured
 
 	r_buffer[r_num] = t; // render buffer
 
@@ -47,6 +48,26 @@ void r_addf(float v0x, float v0y, float v0z,
 	vec3 v2 = Vec3(v2x, v2y, v2z);
 
 	r_add(&v0, &v1, &v2, c);
+}
+
+void r_addSprite(vec3 *v, float w, float h, Texture *tex)
+{
+	Tri t;
+
+	if (r_num >= RBUFFERLEN) return;
+
+	t.v0 = mat4vec3(&r_matrix, v); // transform vertex
+	t.v1 = Vec3(w, h * ((float) W / (float) H), // preserve aspect ratio
+			0.0f);
+
+	t.fc = vec3Len(&t.v0);
+
+	t.c = 0;
+	t.tex = tex; // set texture for sprite draw
+
+	r_buffer[r_num] = t; // render buffer
+
+	++r_num; // index
 }
 
 void r_sort()
@@ -88,6 +109,13 @@ void r_draw()
 
 	// draw triangles back to front
 	for (i = 0; i < r_num; ++i) {
+		if (r_buffer[r_sorted[i]].tex) { // sprite
+			r_drawSprite3D(&r_buffer[r_sorted[i]].v0,
+					 r_buffer[r_sorted[i]].v1.x,
+					 r_buffer[r_sorted[i]].v1.y,
+					 r_buffer[r_sorted[i]].tex);
+			continue;
+		}
 		if (filled)
 			r_drawTri3D(&r_buffer[r_sorted[i]].v0,
 					&r_buffer[r_sorted[i]].v1,

@@ -40,13 +40,15 @@ int main(void)
 	Texture textures[4];
 
 	// projection matrix
-	mat4 projMatrix = projMat(PI*0.5f, W/H, 100.0f, 0.1f);
+	mat4 projMatrix = projMat(PI*0.5f, (float) W / (float) H, 100.0f, 0.1f);
 	// camera matrix
 	mat4 camMatrix = Mat4(1.0f);
 	// object matrix
 	mat4 objMatrix = Mat4(1.0f);
 
 	int horizon = 0;
+
+	vec3 spritePos = Vec3(0.0f, 0.0f, 5.0f);
 
 	// open log file
 	outfile = fopen("out.log", "w");
@@ -79,14 +81,14 @@ int main(void)
 	clearscr = 0;
 	clearcol = 52;
 
-	/*createAtlas(&textureAtlas);
+	createAtlas(&textureAtlas);
 	for (i = 0; i < 4; ++i) {
 		createTexture(&textures[i], 16, 16, 5+i, 2+i, i % 3);
 		addAtlasTexture(&textureAtlas, &textures[i]);
 	}
 	destroyTexture(&textures[0]);
 	loadPPM(&textures[0], "GFX/TEST.PPM");
-	writeAtlasTextures(&textureAtlas);*/
+	writeAtlasTextures(&textureAtlas);
 	
 	while (running) {
 		++frames;
@@ -129,6 +131,8 @@ int main(void)
 		drawWall(-9.0f, -3.0f, -8.0f, 2.0f, 6.0f, 2, 9, 18, 20);
 		drawWall(9.0f, -3.0f, 8.0f, 2.0f, 6.0f, -2, 9, 18, 20);
 
+		//r_addSprite(&spritePos, 1.0f, 1.0f, &textures[0]);
+
 		//lineTest(t);
 
 		wireframe = 0;
@@ -142,6 +146,8 @@ int main(void)
 
 		//r_drawAtlasSprite((H/2-16)*cos(t)+W/2-16, (H/2-16)*sin(t)+H/2-16, &textureAtlas, 0);
 		//r_drawSprite(10, 10, 32, 32, &textures[0]);
+		//r_drawSprite3D(&spritePos, 1.0f, 1.0f*1.3f, &textures[0]);
+		//r_drawPoint3D(&spritePos, 5);
 
 		//triDemo();
 		//lineDemo();
@@ -217,7 +223,7 @@ int main(void)
 		if (abs(camRot.x) > PI/2)
 			camRot.x = PI/2 * sign(camRot.x);
 	}
-
+	
 	// return previous video mode
 	r_exit(oldvmode);
 

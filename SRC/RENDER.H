@@ -136,6 +136,7 @@ typedef struct {
 	float fc; // face center distance
 
 	byte c; // color
+	Texture *tex; // texture (sprite)
 } Tri;
 
 #define RBUFFERLEN 256
@@ -201,6 +202,8 @@ void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
 void r_addf(float v0x, float v0y, float v0z,
 			float v1x, float v1y, float v1z,
 			float v2x, float v2y, float v2z, byte c);
+// add sprite to render buffer
+void r_addSprite(vec3 *v, float w, float h, Texture *tex);
 
 void r_sort(); // sort triangles by centroid z coordinate
 void r_draw(); // draw all triangles in render buffer
@@ -222,6 +225,8 @@ void r_drawPoint3D(vec3 *v0, byte c);
 void r_drawLine3D(vec3 *v0, vec3 *v1, byte c);
 // draw 3D perspective projected triangle of color c with vertices {v0, v1, v2}
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c);
+// draw 3D perspective projected textured sprite at v with dimensions (w, h)
+void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex);
 
 // draw 2D textured sprite at (x, y)
 void r_drawSprite(int x, int y, int w, int h, Texture *tex);

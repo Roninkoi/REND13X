@@ -132,9 +132,7 @@ void loadPPM(Texture *tex, char *path)
 
 				val = (float) atoi(line) / maxval;
 
-				if (ri < w * h * 3)
-					rgb[ri % 3] = val;
-
+				rgb[ri % 3] = val;
 				++ri;
 
 				if (ri % 3 == 0 && di < w * h)
