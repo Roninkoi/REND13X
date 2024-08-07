@@ -80,7 +80,6 @@ Assemble Mode X: `MASMX.BAT`
 - Set custom color palette.
 
 - Wish list:
-    - Sprite rendering
 	- Text rendering
 	- Bespoke floor/ceiling/sky draw routines
 	- Sound
