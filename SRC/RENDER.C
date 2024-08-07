@@ -12,6 +12,8 @@ byte clearcol = 0;
 int doublebuffer = 0;
 int filled = 1;
 
+TextureAtlas textureAtlas;
+
 void lineFill(int x0, int y0, int x1, int y1, byte c)
 {
 	int i, maxd;
@@ -584,8 +586,8 @@ void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 
 	xx0 = clamp(x, L, R) - x;
 	yy0 = clamp(y, T, B) - y;
-	ww = clamp(x+w, L, R) - x;
-	hh = clamp(y+h, T, B) - y;
+	ww = clamp(x + w - 1, L, R) - xx0 + 1;
+	hh = clamp(y + h - 1, T, B) - yy0 + 1;
 
 	for (yy = yy0; yy < hh; ++yy) {
 		for (xx = xx0; xx < ww; ++xx) {
@@ -598,6 +600,8 @@ void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 {
 	vec2 p;
+	int x0, y0, x, y;
+	int ww0, hh0, ww, hh, tw, th;
 	float z = v->z;
 	float pw = w;
 	float ph = h;
@@ -608,8 +612,8 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 		return;
 
 	// center
-	p.x -= pw / 2.0f;
-	p.y += ph / 2.0f;
+	p.x -= w / 2.0f;
+	p.y += h / 2.0f;
 	
 	// projection
 	p.x /= z;
@@ -618,10 +622,38 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 	ph /= z;
 
 	// transform from gl to pix
-	coordToPix(p.x, p.y, p.x, p.y);
-	dimToPix(pw, ph, pw, ph);
+	coordToPix(p.x, p.y, x, y);
+	dimToPix(pw, ph, ww, hh);
 
-	r_drawSprite(p.x, p.y, pw, ph, tex);
+	if (!pointVis(x, y) && !pointVis(x+ww, y) &&
+	    !pointVis(x, y+hh) && !pointVis(x+ww, y+hh))
+		return;
+
+	x0 = x;
+	y0 = y;
+	ww0 = ww;
+	hh0 = hh;
+	
+	x = clamp(x0, L, R);
+	y = clamp(y0, T, B);
+	ww = clamp(x0 + ww0 - 1, L, R) - x + 1;
+	hh = clamp(y0 + hh0 - 1, T, B) - y + 1;
+
+	if (ww < 4 || hh < 4)
+		return;
+#ifdef MODE13
+	r_drawSprite(x0, y0, ww0, hh0, tex);
+#endif
+#ifdef MODEX
+	tw = (float) tex->w * ((float) ww / (float) ww0);
+	th = (float) tex->h * ((float) hh / (float) hh0);
+	
+	r_spritefill(x, y, ww, hh,
+			 x > x0 ? tex->w - tw : 0,
+			 y > y0 ? tex->h - th : 0,
+			 tw, th,
+			 getAtlasTextureStart(&textureAtlas, tex->id));
+#endif
 }
 
 unsigned getAtlasTextureStart(TextureAtlas *atlas, int i)
@@ -647,7 +679,7 @@ void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id)
 #endif
 #ifdef MODEX
 	tstart = getAtlasTextureStart(atlas, id);
-	r_spritefill(x, y, atlas->textures[id]->w, atlas->textures[id]->h,
+	r_spritefill2(x, y, atlas->textures[id]->w, atlas->textures[id]->h,
 			 tstart);
 #endif
 }

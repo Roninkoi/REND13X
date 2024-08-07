@@ -700,11 +700,6 @@ lfmaxd:
 	;; bp+6 sx
 	;; bp+8 dy
 	;; bp+10 dx
-	;; bp+12 x0
-	;; bp+14 y0
-	;; bp+16 x1
-	;; bp+18 y1
-	;; bp+20 c
 
 	xor sp, sp ;; $sp = i
 	
@@ -770,7 +765,7 @@ lfy:
 	ret
 _r_linefill ENDP
 
-TRISH equ 15
+SH equ 15
 
 ;; void r_triplanefill(int x0, int dx0, int x1, int dx1,
 ;;                     int y, int dy, int p, byte c)
@@ -827,9 +822,9 @@ _r_triplanefill PROC FAR
 	neg eax ;; $ax = |dx1|
 	
 tfs1:
-	shl eax, TRISH
+	shl eax, SH
 	xor edx, edx
-	div ecx ;; |k1| = (2^TRISH * |dx1|) / dy
+	div ecx ;; |k1| = (2^SH * |dx1|) / dy
 
 	cmp ebx, 0 ;; dx1 > 0?
 	jg tfss1
@@ -847,9 +842,9 @@ tfss1:
 	neg eax ;; $ax = |dx0|
 	
 tfs0:
-	shl eax, TRISH
+	shl eax, SH
 	xor edx, edx
-	div ecx ;; |k0| = (2^TRISH * |dx0|) / dy
+	div ecx ;; |k0| = (2^SH * |dx0|) / dy
 
 	cmp ebx, 0 ;; dx0 > 0?
 	jg tfss0
@@ -867,17 +862,17 @@ tfss0:
 	mov ax, [bp+6] ;; left point x0
 	inc ax
 	movsx ebx, ax
-	shl ebx, TRISH
+	shl ebx, SH
 	mov eax, 1
-	shl eax, TRISH-1
+	shl eax, SH-1
 	sub ebx, eax ;; left bias
 
 	mov ax, [bp+10] ;; right point x1
 	inc ax
 	movsx edx, ax
-	shl edx, TRISH
+	shl edx, SH
 	mov eax, 1
-	shl eax, TRISH-1
+	shl eax, SH-1
 	add edx, eax ;; right bias
 
 	xor ax, ax
@@ -887,22 +882,14 @@ tfss0:
 	;; bp k0
 	;; bp+4 k1
 	;; bp+8 yend
-	;; bp+10 x0
-	;; bp+12 dx0
-	;; bp+14 x1
-	;; bp+16 dx1
-	;; bp+18 y
-	;; bp+20 dy
-	;; bp+22 p
-	;; bp+24 c
 	
 tfill:
 	mov ecx, ebx ;; x0
-	shr ecx, TRISH+2 ;; divide to calculate coordinates
+	shr ecx, SH+2 ;; divide to calculate coordinates
 	mov di, cx
 
 	mov ecx, edx ;; x1
-	shr ecx, TRISH+2
+	shr ecx, SH+2
 
 	sub cx, di
 	;; cmp cx, 0 ;; check if x backwards
@@ -934,17 +921,14 @@ tfend:
 	ret
 _r_triplanefill ENDP
 
-;; void r_spriteplanefill(int x, int y, int w, int h,
-;;                        int p, int tp, int tstart)
+;; void r_spritefill2(int x, int y, int w, int h, int tstart)
 ;; sp+4 x
 ;; sp+6 y
 ;; sp+8 w
 ;; sp+10 h
-;; sp+12 p
-;; sp+14 tp
-;; sp+16 tstart
-public _r_spriteplanefill
-_r_spriteplanefill PROC FAR
+;; sp+12 tstart
+public _r_spritefill2
+_r_spritefill2 PROC FAR
 	cli
 	push bp
 	mov bp, sp
@@ -952,29 +936,20 @@ _r_spriteplanefill PROC FAR
 	;; bp+8 y
 	;; bp+10 w
 	;; bp+12 h
-	;; bp+14 p
-	;; bp+16 tp
-	;; bp+18 tstart
+	;; bp+14 tstart
 	push di
 	push si
 	push ds
 	
-	mov dx, GCI
-	mov ax, READ_MAP
+	mov dx, GCI ;; read and write all 4 planes at once
+	mov ax, 08h
 	out dx, ax
-	inc dx
-	mov ax, [bp+16] ;; select read plane
-	out dx, ax
-	;; mov dx, GCI ;; write all 4 planes at once
-	;; mov ax, 08h
-	;; out dx, ax
 	mov dx, PIX_PLANE
-	mov ax, [bp+14] ;; select planes to draw 0-16
+	mov ax, 0fh
 	mul dx
 	add ax, MAP_MASK
 	mov dx, SCI
 	out dx, ax
-
 	mov ax, VSTART ;; video memory start
 	mov es, ax
 
@@ -996,26 +971,250 @@ _r_spriteplanefill PROC FAR
 
 	mov ax, VSTART
 	mov ds, ax
-	mov si, [bp+18] ;; texture memory start
+	mov si, [bp+14] ;; texture memory start
 	
 	mov ax, [bp+10] ;; w
 	shr ax, 2
 	mov dx, W/4
 	sub dx, ax
-sfill:
+sfill2:
 	mov cx, ax
-	rep movsb
+	rep movsb ;; fill textured line
 	add di, dx ;; y += 1
 	add si, dx
 
 	cmp di, bx ;; end?
-	jb sfill
+	jb sfill2
 
 	mov dx, GCI
 	inc dx
 	mov ax, 0ffh
 	out dx, ax
 	
+	pop ds
+	pop si
+	pop di
+	pop bp
+	sti
+	ret
+_r_spritefill2 ENDP
+
+;; void r_spriteplanefill(int x, int y, int w, int h, int p,
+;;                        int tw, int th, int tp, int tstart)
+;; sp+4 x
+;; sp+6 y
+;; sp+8 w
+;; sp+10 h
+;; sp+12 p
+;; bp+14 tw
+;; bp+16 th
+;; sp+18 tp
+;; sp+20 tstart
+public _r_spriteplanefill
+_r_spriteplanefill PROC FAR
+	cli
+	push bp
+	mov bp, sp
+	;; bp+6 x
+	;; bp+8 y
+	;; bp+10 w
+	;; bp+12 h
+	;; bp+14 p
+	;; bp+16 tw
+	;; bp+18 th
+	;; bp+20 tp
+	;; bp+22 tstart
+	push di
+	push si
+	push ds
+	
+	mov dx, PIX_PLANE
+	mov ax, [bp+14] ;; select planes to draw 0-16
+	mul dx
+	add ax, MAP_MASK
+	mov dx, SCI
+	out dx, ax
+
+	mov ax, VSTART ;; video memory start
+	mov es, ax
+
+	mov si, W/4
+	mov ax, [bp+8] ;; y
+	mul si
+	mov bx, ax
+	mov cx, [bp+10] ;; w
+	add cx, 3
+	mov ax, [bp+20] ;; tp
+	and ax, 3
+	sub cx, ax
+	shr cx, 2 ;; (w + 3 - tp) >> 2
+	mov ax, [bp+20] ;; tp
+	and ax, 3
+	add ax, [bp+6] ;; x
+	shr ax, 2
+	add ax, cx
+	add ax, bx
+	add ax, _pgoffs ;; add page offset for cmp
+	push ax ;; xend to stack
+
+	mov ax, [bp+8] ;; y
+	mul si
+	mov cx, ax ;; start point
+
+	mov di, [bp+20] ;; tp
+	and di, 3
+	add di, [bp+6] ;; x
+	shr di, 2
+	add di, cx ;; calculate address x>>2 + y0 * W/4
+	add di, _pgoffs ;; page offset
+
+	mov ax, VSTART
+	mov ds, ax
+	mov si, [bp+22] ;; texture memory start
+
+	xor eax, eax
+	mov ax, [bp+18] ;; th
+	shl eax, SH+1
+	xor ecx, ecx
+	mov cx, [bp+12] ;; h
+	xor edx, edx
+	div ecx ;; th/h
+	inc eax
+	shr eax, 1
+	push eax ;; th/h to stack
+	
+	mov ax, [bp+12] ;; h
+	mov cx, W/4
+	mul cx
+	mov cx, ax
+	dec cx
+	push cx ;; dx to stack
+
+	xor eax, eax
+	mov ax, [bp+18] ;; th
+	mov cx, W/4
+	mul cx
+	shl eax, SH
+	mov ebx, eax
+	
+	xor eax, eax
+	mov ax, [bp+16] ;; tw
+	shl eax, SH+1
+	xor ecx, ecx
+	mov cx, [bp+10] ;; w
+	xor edx, edx
+	div ecx ;; tw/w
+	inc eax
+	shr eax, 1
+	sub ebx, eax
+	push ebx ;; dtx to stack
+	mov ebx, eax
+	
+	mov cx, W/4
+	dec cx
+	push cx ;; dy to stack
+
+	xor eax, eax
+	mov ax, W/4
+	shl eax, SH
+	push eax ;; dty to stack
+
+	xor eax, eax
+	mov ax, [bp+20] ;; tp
+	xor ecx, ecx
+	mov cx, ax
+	and ax, 3
+	shr ecx, 2
+	shl ecx, SH-2
+	mul ebx ;; * tw/w
+	shr eax, 2
+	mov edx, eax
+	add edx, ecx
+
+	mov bp, sp
+	;; bp dty
+	;; bp+4 dy
+	;; bp+6 dtx
+	;; bp+10 dx
+	;; bp+12 th/h
+	;; bp+16 xend
+	;; bp+36 h
+
+	push edx
+	mov ecx, [bp+12] ;; th/h
+	mov edx, 1
+	shl edx, SH
+	cmp ecx, edx
+	jbe sfillyf
+
+	shr ecx, SH
+	inc ecx
+	mov eax, [bp] ;; dty
+	mul ecx
+	mov [bp], eax
+	mov eax, [bp+12] ;; th/h
+	xor edx, edx
+	div ecx
+	mov [bp+12], eax
+sfillyf:
+ 	pop edx
+
+	xor ebx, ebx
+	add ebx, [bp+12] ;; th/h
+	shr ebx, 1
+sfillx:
+	mov ecx, edx
+	shr ecx, SH-2
+	push edx
+	mov dx, GCI
+	mov ax, READ_MAP
+	out dx, ax
+	inc dx
+	mov ax, cx ;; select read plane
+	and ax, 3
+	out dx, ax
+	pop edx
+	
+	mov cx, [bp+36] ;; h
+sfilly:
+	mov eax, edx
+	shr eax, SH
+	add si, ax
+
+	movsb ;; write textured pixel
+
+	dec si
+	sub si, ax
+	add di, [bp+4] ;; dy
+	add ebx, [bp+12] ;; th/h
+	mov eax, ebx
+	shr eax, SH
+	
+	cmp ax, 0
+	jbe sfilly0
+	
+	shl eax, SH
+	sub ebx, eax
+	add edx, [bp] ;; dty
+sfilly0:
+	dec cx
+	cmp cx, 0
+	ja sfilly
+
+	sub di, [bp+10] ;; dx
+	sub edx, [bp+6] ;; dtx
+
+	mov cx, [bp+16] ;; xend
+	cmp di, cx ;; end?
+	jb sfillx
+
+	pop eax
+	pop ax
+	pop eax
+	pop ax
+	pop eax
+	pop ax
+
 	pop ds
 	pop si
 	pop di

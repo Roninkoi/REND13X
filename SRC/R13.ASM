@@ -518,7 +518,7 @@ lfy:
 	ret
 _r_linefill ENDP
 
-TRISH equ 15
+SH equ 15
 
 ;; void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 ;; sp+4 x0
@@ -565,9 +565,9 @@ _r_trifill PROC FAR
 	neg eax ;; $ax = |dx1|
 	
 tfs1:
-	shl eax, TRISH
+	shl eax, SH
 	xor edx, edx
-	div ecx ;; |k1| = (2^TRISH * |dx1|) / dy
+	div ecx ;; |k1| = (2^SH * |dx1|) / dy
 	
 	cmp ebx, 0 ;; dx1 > 0?
 	jg tfss1
@@ -585,9 +585,9 @@ tfss1:
 	neg eax ;; $ax = |dx0|
 	
 tfs0:
-	shl eax, TRISH
+	shl eax, SH
 	xor edx, edx
-	div ecx ;; |k0| = (2^TRISH * |dx0|) / dy
+	div ecx ;; |k0| = (2^SH * |dx0|) / dy
 	
 	cmp ebx, 0 ;; dx0 > 0?
 	jg tfss0
@@ -604,17 +604,17 @@ tfss0:
 	mov ax, [bp+6] ;; left point x0
 	inc ax
 	movsx ebx, ax
-	shl ebx, TRISH
+	shl ebx, SH
 	mov eax, 1
-	shl eax, TRISH-1
+	shl eax, SH-1
 	sub ebx, eax ;; left bias
 
 	mov ax, [bp+10] ;; right point x1
 	inc ax
 	movsx edx, ax
-	shl edx, TRISH
+	shl edx, SH
 	mov eax, 1
-	shl eax, TRISH-1
+	shl eax, SH-1
 	add edx, eax ;; right bias
 
 	xor ax, ax
@@ -634,11 +634,11 @@ tfss0:
 	
 tfill:
 	mov ecx, ebx ;; x0
-	shr ecx, TRISH ;; divide to calculate coordinate
+	shr ecx, SH ;; divide to calculate coordinate
 	mov di, cx
 
 	mov ecx, edx ;; x1
-	shr ecx, TRISH ;; divide to calculate coordinate
+	shr ecx, SH ;; divide to calculate coordinate
 
 	sub cx, di
 	;; cmp cx, 0 ;; check if x backwards

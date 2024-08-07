@@ -41,11 +41,11 @@ unsigned char RGBToVGA(float r, float g, float b)
 void loadPPM(Texture *tex, char *path)
 {
 	unsigned i, j, k;
-	unsigned char c;
+	char c;
 	unsigned char *data = NULL;
 	FILE *fp;
 
-	unsigned char *line;
+	char line[16];
 
 	int w = 0, h = 0;
 	int dp = 0;
@@ -58,6 +58,11 @@ void loadPPM(Texture *tex, char *path)
 
 	char ws[6];
 	char hs[6];
+
+	tex->id = -1;
+	tex->w = 0;
+	tex->h = 0;
+	tex->data = NULL;
 	
 	fp = fopen(path, "r");
 
@@ -67,20 +72,17 @@ void loadPPM(Texture *tex, char *path)
 		return;
 	}
 
-	line = (unsigned char *) malloc(sizeof(unsigned char) * 16);
-
-	if (!line)
-		return;
-
 	for (i = 0; !feof(fp); ++i) {
-		c = (unsigned char) fgetc(fp);
+		c = (char) fgetc(fp);
 		
 		ds = (dp ? c != ' ' : 1);
 
 		if (c != '\n' && c != '\r' && c && ds) {
-			line[j] = c;
+			if (j < 15) {
+				line[j] = c;
+				++j;
+			}
 			++i;
-			++j;
 			continue;
 		}
 		else {
@@ -115,7 +117,6 @@ void loadPPM(Texture *tex, char *path)
 
 				if (!data) {
 					printf("Can't allocate memory for texture!\n");
-					free(line);
 					return;
 				}
 
@@ -143,8 +144,6 @@ void loadPPM(Texture *tex, char *path)
 	
 	fclose(fp);
 	
-	free(line);
-
 	tex->w = w;
 	tex->h = h;
 	tex->data = data;
@@ -169,9 +168,11 @@ void createTexture(Texture *tex, unsigned w, unsigned h,
 	unsigned char *data;
 	unsigned char c = c1;
 
+	tex->id = -1;
 	tex->w = 0;
 	tex->h = 0;
 	tex->data = NULL;
+	
 	data = (unsigned char *) malloc(sizeof(unsigned char) * w * h);
 
 	if (!data) {

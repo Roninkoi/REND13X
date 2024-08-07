@@ -154,6 +154,8 @@ extern unsigned drawCount;
 // render matrix for triangles used in r_add
 extern mat4 r_matrix;
 
+extern TextureAtlas textureAtlas;
+
 // primitive VGA routines
 
 // initialize renderer, enter video mode
@@ -192,8 +194,9 @@ void r_rectfill(int x, int y, int w, int h, byte c);
 // fast asm triangle fill using integers, no clipping, color c
 void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
 
-// fill sprite at (x, y) with texture id
-void r_spritefill(int x, int y, int w, int h, unsigned tstart);
+// fill (w, h) sprite at (x, y) with (tw, th) texture at tstart + (tx, ty)
+void r_spritefill(int x, int y, int w, int h,
+			int tx, int ty, int tw, int th, unsigned tstart);
 
 // DRAW
 

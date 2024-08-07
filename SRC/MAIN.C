@@ -36,7 +36,6 @@ int main(void)
 	// camera rotation
 	vec3 camRot;
 
-	TextureAtlas textureAtlas;
 	Texture textures[4];
 
 	// projection matrix
@@ -78,7 +77,7 @@ int main(void)
 	hookTime();
 
 	doublebuffer = 1;
-	clearscr = 0;
+	clearscr = 1;
 	clearcol = 52;
 
 	createAtlas(&textureAtlas);
@@ -88,6 +87,7 @@ int main(void)
 	}
 	destroyTexture(&textures[0]);
 	loadPPM(&textures[0], "GFX/TEST.PPM");
+	addAtlasTexture(&textureAtlas, &textures[0]);
 	writeAtlasTextures(&textureAtlas);
 	
 	while (running) {
@@ -124,15 +124,17 @@ int main(void)
 
 		if (horizon > T)
 			r_vfill(T, horizon + 1 - T, clearcol);
-
+		
 		//drawFloor(camPos, camRot.y, 2, 48, 5);
 		drawWall(-8.0f, -3.0f, 9.0f, 2.0f, 6.0f, 1, 9, 18, 20);
 		drawWall(8.0f, -3.0f, -9.0f, 2.0f, 6.0f, -1, 9, 18, 20);
 		drawWall(-9.0f, -3.0f, -8.0f, 2.0f, 6.0f, 2, 9, 18, 20);
 		drawWall(9.0f, -3.0f, 8.0f, 2.0f, 6.0f, -2, 9, 18, 20);
 
-		//r_addSprite(&spritePos, 1.0f, 1.0f, &textures[0]);
-
+		spritePos = Vec3(5.0f*cos(t), 5.0f*sin(t), 4.0f);
+		r_addSprite(&spritePos, 1.5f+0.5f*cos(10.0f*t),
+				1.5f+0.5f*sin(10.0f*t), &textures[0]);
+		
 		//lineTest(t);
 
 		wireframe = 0;
@@ -146,8 +148,6 @@ int main(void)
 
 		//r_drawAtlasSprite((H/2-16)*cos(t)+W/2-16, (H/2-16)*sin(t)+H/2-16, &textureAtlas, 0);
 		//r_drawSprite(10, 10, 32, 32, &textures[0]);
-		//r_drawSprite3D(&spritePos, 1.0f, 1.0f*1.3f, &textures[0]);
-		//r_drawPoint3D(&spritePos, 5);
 
 		//triDemo();
 		//lineDemo();
@@ -223,7 +223,7 @@ int main(void)
 		if (abs(camRot.x) > PI/2)
 			camRot.x = PI/2 * sign(camRot.x);
 	}
-	
+
 	// return previous video mode
 	r_exit(oldvmode);
 
