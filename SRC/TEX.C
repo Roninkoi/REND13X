@@ -59,6 +59,10 @@ void loadPPM(Texture *tex, char *path)
 	char ws[6];
 	char hs[6];
 
+	line[0] = 0;
+	ws[0] = 0;
+	hs[0] = 0;
+
 	tex->id = -1;
 	tex->w = 0;
 	tex->h = 0;
@@ -90,7 +94,7 @@ void loadPPM(Texture *tex, char *path)
 			j = 0;
 		}
 
-		if (line[0] != '#' && line[0] != 'P') {
+		if (line[0] != '#' && line[0] != 'P' && line[0]) {
 			if (w == 0 && h == 0) { // parse dimensions
 				k = 0;
 				// texture width
