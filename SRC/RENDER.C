@@ -584,10 +584,12 @@ void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 	    !pointVis(x, y+h) && !pointVis(x+w, y+h))
 		return;
 
-	xx0 = clamp(x, L, R) - x;
-	yy0 = clamp(y, T, B) - y;
+	xx0 = clamp(x, L, R);
+	yy0 = clamp(y, T, B);
 	ww = clamp(x + w - 1, L, R) - xx0 + 1;
 	hh = clamp(y + h - 1, T, B) - yy0 + 1;
+	xx0 -= x;
+	yy0 -= y;
 
 	for (yy = yy0; yy < hh; ++yy) {
 		for (xx = xx0; xx < ww; ++xx) {

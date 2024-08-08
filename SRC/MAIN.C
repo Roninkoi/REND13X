@@ -82,13 +82,14 @@ int main(void)
 	clearcol = 52;
 
 	createAtlas(&textureAtlas);
-	for (i = 0; i < 4; ++i) {
-		createTexture(&textures[i], 16, 16, 5+i, 2+i, i % 3);
-		addAtlasTexture(&textureAtlas, &textures[i]);
-	}
-	destroyTexture(&textures[0]);
+	
 	loadPPM(&textures[0], "GFX/TEST.PPM");
 	addAtlasTexture(&textureAtlas, &textures[0]);
+	for (i = 1; i < 4; ++i) {
+		createTexture(&textures[i], 32, 32, 5+i, 2+i, i % 3);
+		addAtlasTexture(&textureAtlas, &textures[i]);
+	}
+	
 	writeAtlasTextures(&textureAtlas);
 	
 	while (running) {
