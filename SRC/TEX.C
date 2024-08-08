@@ -248,3 +248,12 @@ void addAtlasTexture(TextureAtlas *atlas, Texture *tex)
 	++atlas->num;
 }
 
+void destroyAtlas(TextureAtlas *atlas)
+{
+	unsigned i;
+	
+	for (i = 0; i < atlas->num; ++i) {
+		destroyTexture(atlas->textures[i]);
+	}
+}
+

@@ -46,6 +46,7 @@ int main(void)
 	mat4 objMatrix = Mat4(1.0f);
 
 	int horizon = 0;
+	int groundcol = 2;
 
 	vec3 spritePos = Vec3(0.0f, 0.0f, 5.0f);
 
@@ -77,7 +78,7 @@ int main(void)
 	hookTime();
 
 	doublebuffer = 1;
-	clearscr = 1;
+	clearscr = 0;
 	clearcol = 52;
 
 	createAtlas(&textureAtlas);
@@ -118,18 +119,22 @@ int main(void)
 		horizon = clamp((float) (tan(camRot.x)*H/2 + H/2), T, B);
 
 		if (horizon < B)
-			r_vfill(horizon, B - horizon + 1, 2);
+			r_vfill(horizon, B - horizon + 1, groundcol);
 
-		groundLines(camPos);
+		//groundLines(camPos);
 
 		if (horizon > T)
 			r_vfill(T, horizon + 1 - T, clearcol);
 		
 		//drawFloor(camPos, camRot.y, 2, 48, 5);
-		drawWall(-8.0f, -3.0f, 9.0f, 2.0f, 6.0f, 1, 9, 18, 20);
-		drawWall(8.0f, -3.0f, -9.0f, 2.0f, 6.0f, -1, 9, 18, 20);
-		drawWall(-9.0f, -3.0f, -8.0f, 2.0f, 6.0f, 2, 9, 18, 20);
-		drawWall(9.0f, -3.0f, 8.0f, 2.0f, 6.0f, -2, 9, 18, 20);
+		drawWall(-8.8f+3.52f/2.0f, -3.0f, 8.8f, 3.52f, 4.0f,
+			   1, 5, 20, 18);
+		drawWall(8.8f-3.52f/2.0f, -3.0f, -8.8f, 3.52f, 4.0f,
+			   -1, 5, 20, 18);
+		drawWall(-8.8f, -3.0f, -8.8f+3.52f/2.0f, 3.52f, 4.0f,
+			   2, 5, 18, 20);
+		drawWall(8.8f, -3.0f, 8.8f-3.52f/2.0f, 3.52f, 4.0f,
+			   -2, 5, 18, 20);
 
 		spritePos = Vec3(5.0f*cos(t), 5.0f*sin(t), 4.0f);
 		r_addSprite(&spritePos, 1.5f+0.5f*cos(10.0f*t),
@@ -223,6 +228,8 @@ int main(void)
 		if (abs(camRot.x) > PI/2)
 			camRot.x = PI/2 * sign(camRot.x);
 	}
+
+	destroyAtlas(&textureAtlas);
 
 	// return previous video mode
 	r_exit(oldvmode);

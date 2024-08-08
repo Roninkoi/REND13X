@@ -659,7 +659,7 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 unsigned getAtlasTextureStart(TextureAtlas *atlas, int i)
 {
 	unsigned id, xa, ya, x, y, tstart;
-	id = atlas->textures[i]->id;
+	id = atlas->textures[i] ? atlas->textures[i]->id : i;
 	xa = id % ATLAS_W;
 	ya = id / ATLAS_W;
 	x = xa * ATLAS_TW;

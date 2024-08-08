@@ -48,6 +48,8 @@ void addAtlasTexture(TextureAtlas *atlas, Texture *tex);
 void writeAtlasTextures(TextureAtlas *atlas);
 // get start of texture memory of texture i
 unsigned getAtlasTextureStart(TextureAtlas *atlas, int i);
+// destroy all textures in atlas
+void destroyAtlas(TextureAtlas *atlas);
 
 #endif
 
