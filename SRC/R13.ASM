@@ -7,6 +7,8 @@ VSTART equ 0a000h
 W equ 320
 H equ 200
 
+SH equ 15
+
 ;; int r_init()
 public _r_init
 _r_init PROC FAR
@@ -517,8 +519,6 @@ lfy:
 	sti
 	ret
 _r_linefill ENDP
-
-SH equ 15
 
 ;; void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 ;; sp+4 x0

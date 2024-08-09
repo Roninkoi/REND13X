@@ -25,6 +25,8 @@ VSTART equ 0a000h
 W equ 320
 H equ 240
 
+ALPHA equ 5
+
 SCI equ 003c4h
 SCD equ 003c5h
 GCI equ 003ceh
@@ -38,6 +40,11 @@ PIX_PLANE equ 00100h
 
 CRTHI equ 0000ch
 CRTLO equ 0000dh
+
+SH equ 15
+MASK_LO equ 7fffh
+MASK_HI equ 0ffff8000h
+MASK_ALL equ 0ffffffffh
 
 ;; int r_init13()
 public _r_init13
@@ -765,8 +772,6 @@ lfy:
 	ret
 _r_linefill ENDP
 
-SH equ 15
-
 ;; void r_triplanefill(int x0, int dx0, int x1, int dx1,
 ;;                     int y, int dy, int p, byte c)
 ;; sp+4 x0
@@ -1070,6 +1075,7 @@ _r_spriteplanefill PROC FAR
 
 	mov ax, VSTART
 	mov ds, ax
+	xor esi, esi
 	mov si, [bp+22] ;; texture memory start
 
 	xor eax, eax
@@ -1130,6 +1136,8 @@ _r_spriteplanefill PROC FAR
 	shr eax, 2
 	mov edx, eax
 	add edx, ecx
+	shl esi, SH
+	add edx, esi ;; tstart
 
 	mov bp, sp
 	;; bp dty
@@ -1177,26 +1185,29 @@ sfillx:
 	
 	mov cx, [bp+36] ;; h
 sfilly:
-	mov eax, edx
-	shr eax, SH
-	add si, ax
+	mov esi, edx
+	shr esi, SH
 
-	movsb ;; write textured pixel
-
-	dec si
-	sub si, ax
+	mov al, ds:[si]
+	cmp al, ALPHA ;; alpha test
+	je sfilla
+	mov es:[di], al ;; write textured pixel
+	;; movsb ;; (if alpha not needed)
+	
+sfilla:
+	inc di
+	
 	add di, [bp+4] ;; dy
 	add ebx, [bp+12] ;; th/h
 	mov eax, ebx
-	shr eax, SH
 	
-	cmp ax, 0
-	jbe sfilly0
-	
-	shl eax, SH
+	and eax, MASK_HI
 	sub ebx, eax
-	add edx, [bp] ;; dty
-sfilly0:
+	
+	neg eax ;; if 1, add dty
+	and eax, [bp] ;; dty
+	add edx, eax
+	
 	dec cx
 	cmp cx, 0
 	ja sfilly

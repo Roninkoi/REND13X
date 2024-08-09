@@ -1,9 +1,15 @@
 #include "SRC\TEX.H"
 
+unsigned char textureAlpha = TEX_ALPHA;
+
 unsigned char RGBToVGA(float r, float g, float b)
 {
 	float hue, sat, lit;
 	float cmin, cmax, delta;
+
+	// RGB alpha value (255, 0, 255)
+	if (r == 1.0f && g == 0.0f && b == 1.0f)
+		return textureAlpha;
 	
 	cmin = min(r, min(g, b));
 	cmax = max(r, max(g, b));
@@ -47,14 +53,14 @@ void loadPPM(Texture *tex, char *path)
 
 	char line[16];
 
-	int w = 0, h = 0;
+	unsigned w = 0, h = 0;
 	int dp = 0;
 	int ds = 0;
 
 	float val = 0.0f, maxval = 0.0f;
 	float rgb[3];
 
-	int ri = 0, di = 0;
+	unsigned ri = 0, di = 0;
 
 	char ws[6];
 	char hs[6];
@@ -72,7 +78,6 @@ void loadPPM(Texture *tex, char *path)
 
 	if (!fp) {
 		printf("Not found: %s\n", path);
-		fclose(fp);
 		return;
 	}
 
@@ -121,6 +126,7 @@ void loadPPM(Texture *tex, char *path)
 
 				if (!data) {
 					printf("Can't allocate memory for texture!\n");
+					fclose(fp);
 					return;
 				}
 
@@ -212,7 +218,9 @@ void printTexture(Texture *tex)
 	unsigned i, j;
 	for (i = 0; i < tex->h; ++i) {
 		for (j = 0; j < tex->w; ++j)
-			printf("%c (%i) ", tex->data[i * tex->w + j], tex->data[i * tex->w + j]);
+			printf("%c (%i) ",
+				 tex->data[i * tex->w + j],
+				 tex->data[i * tex->w + j]);
 		printf("\n");
 	}
 	printf("(%u x %u)", tex->w, tex->h);
@@ -229,7 +237,7 @@ void createAtlas(TextureAtlas *atlas)
 	
 	atlas->num = 0;
 	atlas->page = 2;
-	atlas->alpha = 5;
+	atlas->alpha = TEX_ALPHA;
 
 	for (i = 0; i < ATLAS_W * ATLAS_H; ++i) {
 		atlas->textures[i] = NULL;
@@ -255,5 +263,33 @@ void destroyAtlas(TextureAtlas *atlas)
 	for (i = 0; i < atlas->num; ++i) {
 		destroyTexture(atlas->textures[i]);
 	}
+}
+
+#define W 320
+#define H 240
+
+unsigned getAtlasTextureStart(TextureAtlas *atlas, int i)
+{
+	unsigned id, xa, ya, x, y, tstart;
+	id = atlas->textures[i] ? atlas->textures[i]->id : i;
+	xa = id % ATLAS_W;
+	ya = id / ATLAS_W;
+	x = xa * ATLAS_TW;
+	y = ya * ATLAS_TH;
+	tstart = W / 4;
+	tstart *= atlas->page * H + y + ATLAS_OFFS;
+	tstart += x / 4;
+	return tstart;
+}
+
+void loadAtlasFont(TextureAtlas *atlas, char *path)
+{
+	Texture *tex = atlas->textures[atlas->num];
+	loadPPM(tex, path);
+	//createTexture(tex, 128, 72, 0, 5, 2);
+	addAtlasTexture(atlas, tex);
+	tex->id = (W - tex->w) / ATLAS_TW;
+	tex->id += (H - tex->h) / ATLAS_TH * ATLAS_W;
+	atlas->font = tex;
 }
 

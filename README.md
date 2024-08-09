@@ -25,7 +25,7 @@ Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 - Page flipping in mode X (double buffering).
 
-- Sprite drawing with texturing (via video memory in mode X).
+- Sprite drawing with texturing (via video memory in mode X) and alpha test, text rendering with custom fonts.
 
 - Keyboard interrupt handler for smooth multi-key input.
 
@@ -80,9 +80,9 @@ Assemble Mode X: `MASMX.BAT`
 - Set custom color palette.
 
 - Wish list:
-	- Text rendering
-	- Bespoke floor/ceiling/sky draw routines
+	- Geometry loading
+	- Bespoke wall/floor/ceiling/sky draw routines
 	- Sound
-	- Texture mapping
+	- Triangle texture mapping
 	- Z-buffer
 

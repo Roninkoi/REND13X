@@ -15,6 +15,13 @@ extern void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co);
 extern void drawWall(float x, float y, float z, float w, float h, int d,
 			   int n, int c1, int c2);
 
+void loadTextures()
+{
+	unsigned i;
+	
+
+}
+
 int main(void)
 {
 	unsigned i, n;
@@ -27,6 +34,8 @@ int main(void)
 	float rt; // render time
 	unsigned rit, rits; // render itime
 
+	char header[64];
+
 	// walk and look speed
 	float walkSpd, rotSpd, rotSpdMouse;
 	int mouseDiffX, mouseDiffY;
@@ -35,8 +44,6 @@ int main(void)
 	vec3 camPos;
 	// camera rotation
 	vec3 camRot;
-
-	Texture textures[4];
 
 	// projection matrix
 	mat4 projMatrix = projMat(PI*0.5f, (float) W / (float) H, 100.0f, 0.1f);
@@ -48,6 +55,8 @@ int main(void)
 	int horizon = 0;
 	int groundcol = 2;
 
+	Texture textures[4];
+	
 	vec3 spritePos = Vec3(0.0f, 0.0f, 5.0f);
 
 	// open log file
@@ -72,26 +81,37 @@ int main(void)
 	
 	// initialize renderer
 	oldvmode = r_init();
-	// hook up keyboard, mouse, timer
-	hookKeys();
-	hookMouse();
-	hookTime();
 
-	doublebuffer = 1;
-	clearscr = 0;
-	clearcol = 52;
-
+	// create texture atlas and load textures
 	createAtlas(&textureAtlas);
-	
 	loadPPM(&textures[0], "GFX/TEST.PPM");
 	addAtlasTexture(&textureAtlas, &textures[0]);
 	for (i = 1; i < 4; ++i) {
 		createTexture(&textures[i], 32, 32, 5+i, 2+i, i % 3);
 		addAtlasTexture(&textureAtlas, &textures[i]);
 	}
-	
+#ifdef MODEX
+	textureAlpha = 0; // set font background to black
+	loadAtlasFont(&textureAtlas, "GFX/FONT.PPM");
 	writeAtlasTextures(&textureAtlas);
+	textureAlpha = TEX_ALPHA;
+#endif
 	
+	// hook up keyboard, mouse, timer
+	hookKeys();
+	hookMouse();
+	hookTime();
+	
+	doublebuffer = 1;
+
+	clearcol = 0;
+	r_clear();
+	r_sync();
+	r_clear();
+	
+	clearscr = 0;
+	clearcol = 52;
+
 	while (running) {
 		++frames;
 		t += dt;
@@ -139,7 +159,7 @@ int main(void)
 
 		spritePos = Vec3(5.0f*cos(t), 5.0f*sin(t), 4.0f);
 		r_addSprite(&spritePos, 1.5f+0.5f*cos(10.0f*t),
-				1.5f+0.5f*sin(10.0f*t), &textures[0]);
+				1.5f+0.5f*sin(10.0f*t), textureAtlas.textures[0]);
 		
 		//lineTest(t);
 
@@ -151,9 +171,10 @@ int main(void)
 		r_sort();
 
 		r_draw();
-
-		//r_drawAtlasSprite((H/2-16)*cos(t)+W/2-16, (H/2-16)*sin(t)+H/2-16, &textureAtlas, 0);
-		//r_drawSprite(10, 10, 32, 32, &textures[0]);
+		
+#ifdef MODEX
+		r_drawString(0, 0, header);
+#endif
 
 		//triDemo();
 		//lineDemo();
@@ -163,7 +184,7 @@ int main(void)
 		r_sync();
 
 		if (itime - lt >= SECOND) { // runs every second
-			rt = (float) rit / (float) frames * TOSECOND * 1000.0f;
+			rt = (float) rit / (float) frames * TOSECOND * 1000.0f * 0.1f + rt * 0.9f;
 			rit = 0;
 			dt = min((float) (itime - lt), 2.0f * SECOND) *
 				TOSECOND / (float) frames;
@@ -172,12 +193,12 @@ int main(void)
 			frames = 0;
 		}
 
+		sprintf(header, "FPS: %u, key: %i %i%i, rt: %.2g, dc: %u  ",
+				 fps, keycode, mouseLeft, mouseRight, rt, drawCount);
 #ifdef MODE13
-		printf("fps: %u, k: %i %i%i, r: %.2g, d: %u   \r",
-				 fps, keycode, mouseLeft, mouseRight, rt, drawCount);
+		printf("%s\r", header);
 #endif
-		fprintf(outfile, "fps: %u, k: %i %i%i, r: %.2g, d: %u   \r",
-				 fps, keycode, mouseLeft, mouseRight, rt, drawCount);
+		fprintf(outfile, "%s\n", header);
 
 		getInput();
 

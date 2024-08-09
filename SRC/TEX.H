@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define TEX_ALPHA 5
+// texture alpha (VGA) color when loaded (default pink: 5)
+extern unsigned char textureAlpha;
+
 typedef struct {
 	unsigned id;
 	unsigned char *data;
@@ -33,9 +37,12 @@ unsigned char RGBToVGA(float r, float g, float b);
 #define ATLAS_H 7
 #define ATLAS_TW 32
 #define ATLAS_TH 32
+#define ATLAS_OFFS 2
 
 typedef struct {
 	Texture *textures[ATLAS_W * ATLAS_H];
+	Texture *font;
+	
 	unsigned num;
 	unsigned char page;
 	unsigned char alpha;
@@ -50,6 +57,9 @@ void writeAtlasTextures(TextureAtlas *atlas);
 unsigned getAtlasTextureStart(TextureAtlas *atlas, int i);
 // destroy all textures in atlas
 void destroyAtlas(TextureAtlas *atlas);
+
+// load a font to texture atlas
+void loadAtlasFont(TextureAtlas *atlas, char *path);
 
 #endif
 

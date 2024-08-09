@@ -30,7 +30,8 @@ Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 
 - Page flipping in mode X (double buffering).
 
-- Sprite drawing with texturing (via video memory in mode X).
+- Sprite drawing with texturing (via video memory in mode X) and alpha test,
+  text rendering with custom fonts.
 
 - Keyboard interrupt handler for smooth multi-key input.
 

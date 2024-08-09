@@ -575,6 +575,8 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	r_drawTriClip(&p0, &p1, &p2, c);
 }
 
+unsigned clipSprite = 1;
+
 void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 {
 	unsigned xx, yy, xx0, yy0, ww, hh;
@@ -584,12 +586,20 @@ void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 	    !pointVis(x, y+h) && !pointVis(x+w, y+h))
 		return;
 
-	xx0 = clamp(x, L, R);
-	yy0 = clamp(y, T, B);
-	ww = clamp(x + w - 1, L, R) - xx0 + 1;
-	hh = clamp(y + h - 1, T, B) - yy0 + 1;
-	xx0 -= x;
-	yy0 -= y;
+	if (clipSprite) {
+		xx0 = clamp(x, L, R);
+		yy0 = clamp(y, T, B);
+		ww = clamp(x + w - 1, L, R) - xx0 + 1;
+		hh = clamp(y + h - 1, T, B) - yy0 + 1;
+		xx0 -= x;
+		yy0 -= y;
+	}
+	else {
+		xx0 = 0;
+		yy0 = 0;
+		ww = w;
+		hh = h;
+	}
 
 	for (yy = yy0; yy < hh; ++yy) {
 		for (xx = xx0; xx < ww; ++xx) {
@@ -658,20 +668,6 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 #endif
 }
 
-unsigned getAtlasTextureStart(TextureAtlas *atlas, int i)
-{
-	unsigned id, xa, ya, x, y, tstart;
-	id = atlas->textures[i] ? atlas->textures[i]->id : i;
-	xa = id % ATLAS_W;
-	ya = id / ATLAS_W;
-	x = xa * ATLAS_TW;
-	y = ya * ATLAS_TH;
-	tstart = W / 4;
-	tstart *= atlas->page * H + y;
-	tstart += x / 4;
-	return tstart;
-}
-
 void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id)
 {
 	int tstart;
@@ -686,24 +682,50 @@ void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id)
 #endif
 }
 
+void r_drawAtlasFont(int x, int y, char c)
+{
+#ifdef MODEX
+	unsigned xo, yo, fw, fh;
+	unsigned tstart = getAtlasTextureStart(&textureAtlas,
+							   textureAtlas.font->id);
+
+	fw = 8;
+	fh = 12;
+	xo = ((int) c - 32) % 16;
+	yo = ((int) c - 32) / 16;
+	xo *= fw;
+	yo *= fh;
+	
+	//r_spritefill(x, y, fw, fh, xo, yo, fw, fh, tstart);
+
+	xo /= 4;
+	yo *= W/4;
+	r_spritefill2(x, y, fw+2, fh, tstart + xo + yo);
+#endif
+}
+
 void writeAtlasTextures(TextureAtlas *atlas)
 {
+#ifdef MODEX
 	unsigned i, id;
 	unsigned x, y, xa, ya;
-	
-#ifdef MODEX
+
 	r_page(atlas->page);
 	r_fill(atlas->alpha);
+
+	clipSprite = 0;
 
 	for (i = 0; i < atlas->num; ++i) {
 		id = atlas->textures[i]->id;
 		xa = id % ATLAS_W;
 		ya = id / ATLAS_W;
 		x = xa * ATLAS_TW;
-		y = ya * ATLAS_TH;
+		y = ya * ATLAS_TH + ATLAS_OFFS;
 		r_drawSprite(x, y, atlas->textures[i]->w, atlas->textures[i]->h,
 				 atlas->textures[i]);
 	}
+
+	clipSprite = 1;
 
 	r_page(page);
 #endif

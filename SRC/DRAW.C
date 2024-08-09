@@ -137,6 +137,16 @@ void r_draw()
 	r_num = 0;
 }
 
+void r_drawString(int x, int y, char *str)
+{
+	int i;
+	int fw = 8;
+	
+	for (i = 0; str[i] && i < 80; ++i) {
+		r_drawAtlasFont(x + fw * i, y, str[i]);
+	}
+}
+
 // CUSTOM DRAW FUNCTIONS
 
 int triCount = 0;

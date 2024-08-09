@@ -37,7 +37,7 @@ typedef unsigned char byte;
 #endif
 
 #ifdef MODEX
-#define T 0
+#define T 12
 #define B 239
 #define H 240
 #endif
@@ -235,6 +235,10 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex);
 void r_drawSprite(int x, int y, int w, int h, Texture *tex);
 // draw 2D textured sprite id at (x, y) from atlas
 void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id);
+// draw character from texture atlas font
+void r_drawAtlasFont(int x, int y, char c);
+// draw string using font
+void r_drawString(int x, int y, char *str);
 
 // INPUT
 
