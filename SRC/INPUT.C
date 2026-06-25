@@ -1,30 +1,5 @@
 #include "SRC\RENDER.H"
 
-unsigned itime = 0;
-
-void (interrupt *oldTime) ();
-
-void interrupt getITime()
-{
-	itime += 1;
-}
-
-void hookTime()
-{
-	oldTime = _dos_getvect(0x1c);
-	_dos_setvect(0x1c, getITime);
-}
-
-void unhookTime()
-{
-	_dos_setvect(0x1c, oldTime);
-}
-
-unsigned now()
-{
-	return (unsigned) time(NULL);
-}
-
 byte keycode = 0;
 byte keycodeBuffer[256];
 byte keycodei = 0;
@@ -33,7 +8,7 @@ int keyDown[256];
 
 void (interrupt *oldKeys) ();
 
-extern unsigned get_keycode();
+extern unsigned far get_keycode();
 
 void interrupt getKeys()
 {
@@ -63,12 +38,12 @@ unsigned mouseLeft = 0;
 unsigned mouseRight = 0;
 unsigned hasMouse = 0;
 
-extern void set_mouse(void (interrupt *handler) ());
-extern int reset_mouse();
+extern void far set_mouse(void (interrupt *handler) ());
+extern int far reset_mouse();
 
-extern unsigned get_mousepos();
-extern void set_mousepos(int x, int y);
-extern unsigned get_mouseclick();
+extern unsigned far get_mousepos();
+extern void far set_mousepos(int x, int y);
+extern unsigned far get_mouseclick();
 
 void /*interrupt*/ getMouse()
 {

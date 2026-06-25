@@ -38,7 +38,7 @@ typedef unsigned char byte;
 
 #ifdef MODEX
 #define T 12
-#define B 239
+#define B 227
 #define H 240
 #endif
 
@@ -48,8 +48,8 @@ typedef unsigned char byte;
 #define EPSILON 0.0031f
 
 // near and far planes
-#define ZNEAR 0.2
-#define ZFAR 16.0
+#define ZNEAR 0.3
+#define ZFAR 22.0
 
 #undef min
 #undef max
@@ -148,8 +148,10 @@ extern Tri r_buffer[RBUFFERLEN];
 extern unsigned r_sorted[RBUFFERLEN];
 extern unsigned r_num; // number of triangles in buffer
 
-// total triangle draw count
+// total triangle/sprite draw count
 extern unsigned drawCount;
+// triangle/sprite draw time
+extern float drawTime;
 
 // render matrix for triangles used in r_add
 extern mat4 r_matrix;
@@ -242,18 +244,23 @@ void r_drawString(int x, int y, char *str);
 
 // INPUT
 
-#define SECOND 18.206
-// convert itime 1/(18.206 s) to second
-#define TOSECOND 0.054927f
+// second in clock ticks
+#define SECOND 5013
+// convert itime to second
+#define TOSECOND 0.000199466
+//#define SECOND 18.206
+//#define TOSECOND 0.054927f
 
 extern FILE *outfile;
 
 extern int running; // program running?
 
-extern unsigned itime;  // time since start of program via int 0x1c (18.206/s)
+extern unsigned volatile itime;  // time since start of program via int 0x1c (18.206/s)
 void hookTime();
 void unhookTime();
 unsigned now(); // get system time
+void timerStart(); // accurate timer
+float timerStop();
 
 extern byte keycode; // keycode of currently pressed/released key
 extern int keyDown[256]; // key pressed down?

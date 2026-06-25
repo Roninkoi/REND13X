@@ -228,7 +228,12 @@ void printTexture(Texture *tex)
 
 void destroyTexture(Texture *tex)
 {
+	if (tex->id < 0 || !tex->data)
+		return;
+	
 	free(tex->data);
+	tex->id = -1;
+	tex->data = NULL;
 }
 
 void createAtlas(TextureAtlas *atlas)
@@ -286,7 +291,6 @@ void loadAtlasFont(TextureAtlas *atlas, char *path)
 {
 	Texture *tex = atlas->textures[atlas->num];
 	loadPPM(tex, path);
-	//createTexture(tex, 128, 72, 0, 5, 2);
 	addAtlasTexture(atlas, tex);
 	tex->id = (W - tex->w) / ATLAS_TW;
 	tex->id += (H - tex->h) / ATLAS_TH * ATLAS_W;

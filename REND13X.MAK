@@ -1,7 +1,7 @@
 # Microsoft Visual C++ generated build script - Do not modify
 
 PROJ = REND13X
-DEBUG = 0
+DEBUG = 1
 PROGTYPE = 6
 CALLER = 
 ARGS = 
@@ -31,7 +31,7 @@ LIBS_R_DEXE = oldnames mlibce
 RCFLAGS = /nologo
 RESFLAGS = /nologo
 RUNFLAGS = 
-OBJS_EXT = IN.OBJ RX.OBJ 
+OBJS_EXT = IN.OBJ RX.OBJ T.OBJ 
 LIBS_EXT = 
 !if "$(DEBUG)" == "1"
 CFLAGS = $(CFLAGS_D_DEXE)
@@ -55,7 +55,8 @@ SBRS = DRAW.SBR \
 		RENDER13.SBR \
 		RENDERX.SBR \
 		VEC.SBR \
-		TEX.SBR
+		TEX.SBR \
+		TIME.SBR
 
 
 IN_DEP = 
@@ -98,6 +99,13 @@ VEC_DEP = d:\rend13x\src\vec.h
 TEX_DEP = d:\rend13x\src\tex.h
 
 
+TIME_DEP = d:\rend13x\src\render.h \
+	d:\rend13x\src\vec.h \
+	d:\rend13x\src\tex.h
+
+
+T_DEP = 
+
 all:	$(PROJ).EXE $(PROJ).BSC
 
 DRAW.OBJ:	SRC\DRAW.C $(DRAW_DEP)
@@ -124,8 +132,11 @@ VEC.OBJ:	SRC\VEC.C $(VEC_DEP)
 TEX.OBJ:	SRC\TEX.C $(TEX_DEP)
 	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\TEX.C
 
+TIME.OBJ:	SRC\TIME.C $(TIME_DEP)
+	$(CC) $(CFLAGS) $(CUSEPCHFLAG) /c SRC\TIME.C
+
 $(PROJ).EXE::	DRAW.OBJ INPUT.OBJ MAIN.OBJ RENDER.OBJ RENDER13.OBJ RENDERX.OBJ VEC.OBJ \
-	TEX.OBJ $(OBJS_EXT) $(DEFFILE)
+	TEX.OBJ TIME.OBJ $(OBJS_EXT) $(DEFFILE)
 	echo >NUL @<<$(PROJ).CRF
 DRAW.OBJ +
 INPUT.OBJ +
@@ -135,6 +146,7 @@ RENDER13.OBJ +
 RENDERX.OBJ +
 VEC.OBJ +
 TEX.OBJ +
+TIME.OBJ +
 $(OBJS_EXT)
 $(PROJ).EXE
 $(MAPFILE)

@@ -7,6 +7,7 @@ unsigned r_num = 0;
 mat4 r_matrix;
 
 unsigned drawCount = 0;
+float drawTime = 0.0f;
 
 void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
@@ -22,6 +23,7 @@ void r_add(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	//face culling
 	if ((t.v1.x/t.v1.z-t.v0.x/t.v0.z)*(t.v2.y/t.v2.z-t.v0.y/t.v0.z) -
 	    (t.v1.y/t.v1.z-t.v0.y/t.v0.z)*(t.v2.x/t.v2.z-t.v0.x/t.v0.z) < 0.0f
+	    && t.v0.z > 0.0f && t.v1.z > 0.0f && t.v2.z > 0.0f
 	    && faceculling)
 		return;
 
@@ -54,7 +56,8 @@ void r_addSprite(vec3 *v, float w, float h, Texture *tex)
 {
 	Tri t;
 
-	if (r_num >= RBUFFERLEN) return;
+	if (r_num >= RBUFFERLEN ||
+	    !tex || tex->w == 0 || tex->h == 0 || !tex->data) return;
 
 	t.v0 = mat4vec3(&r_matrix, v); // transform vertex
 	t.v1 = Vec3(w, h * ((float) W / (float) H), // preserve aspect ratio
@@ -104,24 +107,28 @@ void r_sort()
 void r_draw()
 {
 	int i;
+	unsigned start;
 
 	drawCount = 0;
+	drawTime = 0.0f;
 
 	// draw triangles back to front
 	for (i = 0; i < r_num; ++i) {
+		start = itime;
+		
 		if (r_buffer[r_sorted[i]].tex) { // sprite
 			r_drawSprite3D(&r_buffer[r_sorted[i]].v0,
 					 r_buffer[r_sorted[i]].v1.x,
 					 r_buffer[r_sorted[i]].v1.y,
 					 r_buffer[r_sorted[i]].tex);
-			continue;
 		}
-		if (filled)
+		else if (filled) {
 			r_drawTri3D(&r_buffer[r_sorted[i]].v0,
 					&r_buffer[r_sorted[i]].v1,
 					&r_buffer[r_sorted[i]].v2,
 					r_buffer[r_sorted[i]].c);
-		if (wireframe) {
+		}
+		else if (wireframe) {
 			r_drawLine3D(&r_buffer[r_sorted[i]].v0,
 					 &r_buffer[r_sorted[i]].v1,
 					 r_buffer[r_sorted[i]].c);
@@ -132,6 +139,10 @@ void r_draw()
 					 &r_buffer[r_sorted[i]].v2,
 					 r_buffer[r_sorted[i]].c);
 		}
+		else {
+		}
+		
+		drawTime += (itime - start) * TOSECOND;
 	}
 
 	r_num = 0;

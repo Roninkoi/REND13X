@@ -2,43 +2,43 @@
 
 #ifdef MODEX
 
-extern int r_init13();
+extern int far r_init13();
 
-extern int r_init();
+extern int far r_init();
 
-extern void r_exit(int vmode);
+extern void far r_exit(int vmode);
 
-extern void r_waitretrace();
+extern void far r_waitretrace();
 
-extern int r_page(int pg);
+extern int far r_page(int pg);
 
-extern int r_flip(int pg);
+extern int far r_flip(int pg);
 
-extern void r_putpixel(int x, int y, byte c);
+extern void far r_putpixel(int x, int y, byte c);
 
-extern void r_fill(byte c);
+extern void far r_fill(byte c);
 
-extern void r_vfill(int y0, int h, byte c);
+extern void far r_vfill(int y0, int h, byte c);
 
-extern void r_planefill(int x, int y, int p, byte c);
+extern void far r_planefill(int x, int y, int p, byte c);
 
-extern void r_hlinefill1(int x0, int x1, int y, byte c);
+extern void far r_hlinefill1(int x0, int x1, int y, byte c);
 
-extern void r_hlinefill2(int x0, int x1, int y, byte c);
+extern void far r_hlinefill2(int x0, int x1, int y, byte c);
 
-extern void r_hplanefill(int x0, int x1, int y, int p, byte c);
+extern void far r_hplanefill(int x0, int x1, int y, int p, byte c);
 
-extern void r_vplanefill(int x, int y0, int y1, int p, byte c);
+extern void far r_vplanefill(int x, int y0, int y1, int p, byte c);
 
-extern void r_linefill(int x0, int y0, int x1, int y1, byte c);
+extern void far r_linefill(int x0, int y0, int x1, int y1, byte c);
 
-extern void r_triplanefill(int x0, int dx0, int x1, int dx1,
-				   int y, int dy, int p, byte c);
+extern void far r_triplanefill(int x0, int dx0, int x1, int dx1,
+					 int y, int dy, int p, byte c);
 
-extern void r_spritefill2(int x, int y, int w, int h, int tstart);
+extern void far r_spritefill2(int x, int y, int w, int h, int tstart);
 
-extern void r_spriteplanefill(int x, int y, int w, int h, int p,
-					int tw, int th, int tp, int tstart);
+extern void far r_spriteplanefill(int x, int y, int w, int h, int p,
+					    int tw, int th, int tp, int tstart);
 
 void r_clear() {
 	r_fill(clearcol);

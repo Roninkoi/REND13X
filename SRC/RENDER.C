@@ -5,12 +5,12 @@ byte page = 0;
 int oldvmode = 0;
 
 int wireframe = 0;
+int filled = 1;
 int faceculling = 1;
 int zsort = 1;
 int clearscr = 1;
 byte clearcol = 0;
 int doublebuffer = 0;
-int filled = 1;
 
 TextureAtlas textureAtlas;
 
@@ -76,22 +76,26 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 #endif
 }
 
+#define clip(px, py, dx, dy, y0, ymin, ymax)		         \
+	if (dy != 0) {                                           \
+		y0 = py;                                           \
+		py = min(ymax, py);                                \
+		py = max(ymin, py);                                \
+		px += (float) dx / (float) dy * (float) (py - y0); \
+	}
+
 pix clipLine(int x, int y, int dx, int dy)
 {
 	int x0, y0;
 	pix p = Pix(x, y);
 
-	if (dx != 0) {
-		x0 = p.x;
-		p.x = min(R, p.x);
-		p.x = max(L, p.x);
-		p.y += ((float) dy / (float) dx * (float) (p.x - x0));
+	if (abs(dx) < abs(dy)) {
+		clip(p.x, p.y, dx, dy, y0, T, B);
+		clip(p.y, p.x, dy, dx, x0, L, R);
 	}
-	if (dy != 0) {
-		y0 = p.y;
-		p.y = min(B, p.y);
-		p.y = max(T, p.y);
-		p.x += ((float) dx / (float) dy * (float) (p.y - y0));
+	else {
+		clip(p.y, p.x, dy, dx, x0, L, R);
+		clip(p.x, p.y, dx, dy, y0, T, B);
 	}
 
 	return p;
@@ -337,13 +341,28 @@ int pointInTri(long px, long py,
 	return a > 0 && b > 0 && a + b < abs(det12);
 }
 
+int angleSmaller(int ax, int ay, int bx, int by, int xc, int yc) {
+	float dx1 = ax - xc;
+	float dy1 = ay - yc;
+	float dx2 = bx - xc;
+	float dy2 = by - yc;
+
+	int a_top = (dy1 > 0) || (dy1 == 0 && dx1 >= 0);
+	int b_top = (dy2 > 0) || (dy2 == 0 && dx2 >= 0);
+
+	if (a_top != b_top) {
+		return a_top ? 1 : 0;
+	}
+
+	return ((dx1 * dy2) - (dy1 * dx2)) > 0;
+}
+
 void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 {
 	pix p[10];
 	pix pc;
 	int ps[10];
 	int smallest_i, tmp;
-	float smallest, ftmp;
 	int pn;
 	int i, j;
 	int dx01, dy01, dx02, dy02, dx12, dy12;
@@ -359,7 +378,7 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 	coordToPix(v2->x, v2->y, x2, y2);
 
 	if (triNotVis(x0, y0, x1, y1, x2, y2))
-		return;
+	  return;
 
 #ifndef FASTFILL
 	r_drawTri(x0, y0, x1, y1, x2, y2, c);
@@ -445,9 +464,6 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	if (pn < 3) return;
 
-	xc = round((float) xc / (float) pn);
-	yc = round((float) yc / (float) pn);
-
 	if (pn == 3) {
 		r_drawTri(
 			    p[ps[0]].x, p[ps[0]].y,
@@ -456,25 +472,37 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 		return;
 	}
 
+	xc = xc / pn;
+	yc = yc / pn;
+
 	for (i = 0; i < pn; ++i) {
-		smallest = 10.0f;
 		smallest_i = i;
-		for (j = i; j < pn; ++j) {
-			if (p[ps[j]].y-yc == 0 && p[ps[j]].x-xc == 0)
+		
+		while (smallest_i < pn &&
+				p[ps[smallest_i]].y - yc == 0 &&
+				p[ps[smallest_i]].x - xc == 0)
+			++smallest_i;
+
+		if (smallest_i >= pn)
+			break;
+		
+		for (j = smallest_i + 1; j < pn; ++j) {
+			if (p[ps[j]].y - yc == 0 && p[ps[j]].x - xc == 0)
 				continue;
-			ftmp = atan2(p[ps[j]].y-yc, p[ps[j]].x-xc);
-			if (ftmp < smallest) {
-				smallest = ftmp;
+			
+			if (angleSmaller(p[ps[j]].x, p[ps[j]].y,
+					p[ps[smallest_i]].x,
+					p[ps[smallest_i]].y,
+					xc, yc)) {
 				smallest_i = j;
 			}
 		}
-		if (smallest != 10.0f) {
+		if (smallest_i != i) {
 			tmp = ps[i];
 			ps[i] = ps[smallest_i];
 			ps[smallest_i] = tmp;
 		}
 	}
-
 	if (pn == 4) {
 		r_drawTri(
 			    p[ps[0]].x, p[ps[0]].y,
@@ -489,8 +517,9 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	for (i = 0; i < pn; ++i) {
 		r_drawTri(xc, yc,
-			    p[ps[(i)%pn]].x, p[ps[(i)%pn]].y,
-			    p[ps[(i+1)%pn]].x, p[ps[(i+1)%pn]].y, c);
+			    p[ps[i % pn]].x, p[ps[i % pn]].y,
+			    p[ps[(i + 1) % pn]].x,
+			    p[ps[(i + 1) % pn]].y, c);
 	}
 }
 
@@ -544,9 +573,22 @@ void r_drawLine3D(vec3 *v0, vec3 *v1, byte c)
 	r_drawLineClip(&p0, &p1, c);
 }
 
+void clipNear(vec2 *p, vec3 *v0, vec3 *v1)
+{
+	float ratio = (v1->z - ZNEAR) / (v1->z - v0->z);
+	p->x = v1->x + (v0->x - v1->x) * ratio;
+	p->y = v1->y + (v0->y - v1->y) * ratio;
+	p->x /= ZNEAR;
+	p->y /= ZNEAR;
+}
+
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
-	vec2 p0, p1, p2;
+	vec2 p0, p1, p2, p3;
+
+	int clip0, clip1, clip2, clipn;
+
+	vec3 *noclip;
 
 	float z0 = v0->z;
 	float z1 = v1->z;
@@ -556,22 +598,76 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	p1 = Vec2From3(v1);
 	p2 = Vec2From3(v2);
 
-	if (z0 < ZNEAR || z1 < ZNEAR || z2 < ZNEAR)
+	clip0 = z0 < ZNEAR;
+	clip1 = z1 < ZNEAR;
+	clip2 = z2 < ZNEAR;
+	clipn = clip0 + clip1 + clip2;
+
+	if (clip0 && clip1 && clip2)
 		return;
 
 	if (z0 > ZFAR && z1 > ZFAR && z2 > ZFAR)
 		return;
 
+	if (!clip0)
+		noclip = v0;
+	else if (!clip1)
+		noclip = v1;
+	else
+		noclip = v2;
+
 	// projection
-	p0.x /= z0;
-	p0.y /= z0;
+	if (!clip0) {
+		p0.x /= z0;
+		p0.y /= z0;
+	}
+	else {
+		if (clipn < 2) {
+			clipNear(&p0, v0, v1);
+			clipNear(&p3, v0, v2);
+		}
+		else {
+			clipNear(&p0, v0, noclip);
+		}
+	}
 
-	p1.x /= z1;
-	p1.y /= z1;
+	if (!clip1) {
+		p1.x /= z1;
+		p1.y /= z1;
+	}
+	else {
+		if (clipn < 2) {
+			clipNear(&p1, v1, v0);
+			clipNear(&p3, v1, v2);
+		}
+		else {
+			clipNear(&p1, v1, noclip);
+		}
+	}
 
-	p2.x /= z2;
-	p2.y /= z2;
+	if (!clip2) {
+		p2.x /= z2;
+		p2.y /= z2;
+	}
+	else {
+		if (clipn < 2) {
+			clipNear(&p2, v2, v0);
+			clipNear(&p3, v2, v1);
+		}
+		else {
+			clipNear(&p2, v2, noclip);
+		}
+	}
 
+	if (clipn == 1) {
+		if (clip0)
+			r_drawTriClip(&p0, &p3, &p2, c);
+		else if (clip1)
+			r_drawTriClip(&p1, &p3, &p2, c);
+		else
+			r_drawTriClip(&p2, &p3, &p1, c);
+	}
+	
 	r_drawTriClip(&p0, &p1, &p2, c);
 }
 
@@ -604,7 +700,8 @@ void r_drawSprite(int x, int y, int w, int h, Texture *tex)
 	for (yy = yy0; yy < hh; ++yy) {
 		for (xx = xx0; xx < ww; ++xx) {
 			c = getTexture(tex, xx, yy, w, h);
-			r_putpixel(x+xx, y+yy, c);
+			if (c != TEX_ALPHA)
+				r_putpixel(x+xx, y+yy, c);
 		}
 	}
 }
@@ -677,8 +774,10 @@ void r_drawAtlasSprite(int x, int y, TextureAtlas *atlas, int id)
 #endif
 #ifdef MODEX
 	tstart = getAtlasTextureStart(atlas, id);
-	r_spritefill2(x, y, atlas->textures[id]->w, atlas->textures[id]->h,
-			 tstart);
+	r_spritefill2(x, y,
+			  atlas->textures[id]->w,
+			  atlas->textures[id]->h,
+			  tstart);
 #endif
 }
 
@@ -686,9 +785,16 @@ void r_drawAtlasFont(int x, int y, char c)
 {
 #ifdef MODEX
 	unsigned xo, yo, fw, fh;
-	unsigned tstart = getAtlasTextureStart(&textureAtlas,
-							   textureAtlas.font->id);
+	unsigned tstart;
 
+	c = (c == 10 || c == 13 ? ' ' : c);
+
+	//if (c == ' ')
+	//	return;
+
+	tstart = getAtlasTextureStart(&textureAtlas,
+						textureAtlas.font->id);
+	
 	fw = 8;
 	fh = 12;
 	xo = ((int) c - 32) % 16;
@@ -696,7 +802,7 @@ void r_drawAtlasFont(int x, int y, char c)
 	xo *= fw;
 	yo *= fh;
 	
-	//r_spritefill(x, y, fw, fh, xo, yo, fw, fh, tstart);
+	//r_spritefill(x, y, fw, fh, xo, yo, fw, fh, tstart); // alpha support
 
 	xo /= 4;
 	yo *= W/4;
@@ -721,7 +827,9 @@ void writeAtlasTextures(TextureAtlas *atlas)
 		ya = id / ATLAS_W;
 		x = xa * ATLAS_TW;
 		y = ya * ATLAS_TH + ATLAS_OFFS;
-		r_drawSprite(x, y, atlas->textures[i]->w, atlas->textures[i]->h,
+		r_drawSprite(x, y,
+				 atlas->textures[i]->w,
+				 atlas->textures[i]->h,
 				 atlas->textures[i]);
 	}
 
