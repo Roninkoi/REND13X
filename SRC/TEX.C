@@ -1,4 +1,5 @@
 #include "SRC\TEX.H"
+#include "SRC\DEFS.H"
 
 unsigned char textureAlpha = TEX_ALPHA;
 
@@ -34,13 +35,13 @@ unsigned char RGBToVGA(float r, float g, float b)
 
 	if (sat < 0.25f || lit < 0.1f) {
 		lit = floor(lit * 15.0f);
-		return 16 + lit;
+		return 16 + (unsigned char) lit;
 	}
 	else {
 		hue = floor(fmod(hue * 24.0f + 8.0f, 24.0f));
 		sat = floor((1.0f - sat) * 3.0f) * 24.0f;
 		lit = floor((1.0f - lit) * 3.0f) * 24.0f * 3.0f;
-		return 32 + hue + sat + lit;
+		return 32 + (unsigned char) (hue + sat + lit);
 	}
 }
 
@@ -69,7 +70,7 @@ void loadPPM(Texture *tex, char *path)
 	ws[0] = 0;
 	hs[0] = 0;
 
-	tex->id = -1;
+	tex->id = 0;
 	tex->w = 0;
 	tex->h = 0;
 	tex->data = NULL;
@@ -178,7 +179,7 @@ void createTexture(Texture *tex, unsigned w, unsigned h,
 	unsigned char *data;
 	unsigned char c = c1;
 
-	tex->id = -1;
+	tex->id = 0;
 	tex->w = 0;
 	tex->h = 0;
 	tex->data = NULL;
@@ -228,11 +229,11 @@ void printTexture(Texture *tex)
 
 void destroyTexture(Texture *tex)
 {
-	if (tex->id < 0 || !tex->data)
+	if (!tex->data)
 		return;
 	
 	free(tex->data);
-	tex->id = -1;
+	tex->id = 0;
 	tex->data = NULL;
 }
 

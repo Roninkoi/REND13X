@@ -75,6 +75,7 @@ vec3 vec3Sub(vec3 v0, vec3 v1);
 vec3 vec3Scale(vec3 v, float s);
 // vector length
 float vec3Len(vec3 *v);
+float vec3Len2(vec3 *v);
 // make unit vector
 vec3 vec3Normalize(vec3 *v);
 // dot product
@@ -90,6 +91,7 @@ vec4 vec4Sub(vec4 v0, vec4 v1);
 vec4 vec4Scale(vec4 v, float s);
 // vector length
 float vec4Len(vec4 *v);
+float vec4Len2(vec4 *v);
 // make unit vector
 vec4 vec4Normalize(vec4 *v);
 // dot product

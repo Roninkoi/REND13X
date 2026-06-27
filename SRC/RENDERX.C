@@ -53,7 +53,7 @@ void r_sync() {
 	}
 }
 
-void r_hlinefill(int x0, int x1, int y, byte c)
+void far r_hlinefill(int x0, int x1, int y, byte c)
 {
 	int px;
 	// fill edges x0 and x1, selecting correct planes
@@ -71,12 +71,12 @@ void r_hlinefill(int x0, int x1, int y, byte c)
 	r_hlinefill1(x0, x1, y, c);
 }
 
-void r_vlinefill(int x, int y0, int y1, byte c)
+void far r_vlinefill(int x, int y0, int y1, byte c)
 {
 	r_vplanefill(x, y0, y1, pixpx(x), c);
 }
 
-void r_rectfill(int x, int y, int w, int h, byte c)
+void far r_rectfill(int x, int y, int w, int h, byte c)
 {
 	int i;
 
@@ -87,7 +87,7 @@ void r_rectfill(int x, int y, int w, int h, byte c)
 		r_vplanefill(x+4*i+3, y, y+h, 0x0f, c);
 }
 
-void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
+void far r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 {
 	// fill plane at a time
 	r_triplanefill(x0+3, dx0, x1+3, dx1, y, dy, pixpx(0), c);
@@ -96,21 +96,23 @@ void r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 	r_triplanefill(x0+0, dx0, x1+0, dx1, y, dy, pixpx(3), c);
 }
 
-void r_spritefill(int x, int y, int w, int h,
+void far r_spritefill(int x, int y, int w, int h,
 			int tx, int ty, int tw, int th, unsigned tstart)
 {
+	int p0 = ((tx&3) << 2);
 	unsigned toffs = W / 4;
 	toffs *= ty;
 	toffs += tx / 4;
-	
+	toffs += tstart;
+
 	r_spriteplanefill(x, y, w, h, pixpx(x+0),
-				tw, th, 0 | ((tx&3) << 2), tstart + toffs);
+				tw, th, 0 | p0, toffs);
 	r_spriteplanefill(x, y, w, h, pixpx(x+1),
-				tw, th, 1 | ((tx&3) << 2), tstart + toffs);
+				tw, th, 1 | p0, toffs);
 	r_spriteplanefill(x, y, w, h, pixpx(x+2),
-				tw, th, 2 | ((tx&3) << 2), tstart + toffs);
+				tw, th, 2 | p0, toffs);
 	r_spriteplanefill(x, y, w, h, pixpx(x+3),
-				tw, th, 3 | ((tx&3) << 2), tstart + toffs);
+				tw, th, 3 | p0, toffs);
 }
 
 #endif

@@ -1,4 +1,5 @@
 #include "SRC\VEC.H"
+#include "SRC\DEFS.H"
 
 pix Pix(int x, int y)
 {
@@ -147,20 +148,20 @@ mat4 projMat(float fov, float ar, float fr, float nr)
 {
 	mat4 m;
 
-	m.m[0][0] = 1.0f/(ar*tan(0.5f*fov));
+	m.m[0][0] = 1.0f / (ar * tanf(0.5f * fov));
 	m.m[0][1] = 0.0f;
 	m.m[0][2] = 0.0f;
 	m.m[0][3] = 0.0f;
 
 	m.m[1][0] = 0.0f;
-	m.m[1][1] = 1.0f/(tan(0.5f*fov));
+	m.m[1][1] = 1.0f / (tanf(0.5f * fov));
 	m.m[1][2] = 0.0f;
 	m.m[1][3] = 0.0f;
 
 	m.m[2][0] = 0.0f;
 	m.m[2][1] = 0.0f;
-	m.m[2][2] = (-nr - fr)/(-nr - fr);
-	m.m[2][3] = (2.0f*fr*nr)/(-nr - fr);
+	m.m[2][2] = (-nr - fr) / (-nr - fr);
+	m.m[2][3] = (2.0f * fr * nr) / (-nr - fr);
 
 	m.m[3][0] = 0.0f;
 	m.m[3][1] = 0.0f;
@@ -180,13 +181,13 @@ mat4 rotMatX(float a)
 	m.m[0][3] = 0.0f;
 
 	m.m[1][0] = 0.0f;
-	m.m[1][1] = cos(a);
-	m.m[1][2] = -sin(a);
+	m.m[1][1] = cosf(a);
+	m.m[1][2] = -sinf(a);
 	m.m[1][3] = 0.0f;
 
 	m.m[2][0] = 0.0f;
-	m.m[2][1] = sin(a);
-	m.m[2][2] = cos(a);
+	m.m[2][1] = sinf(a);
+	m.m[2][2] = cosf(a);
 	m.m[2][3] = 0.0f;
 
 	m.m[3][0] = 0.0f;
@@ -201,9 +202,9 @@ mat4 rotMatY(float a)
 {
 	mat4 m;
 
-	m.m[0][0] = cos(a);
+	m.m[0][0] = cosf(a);
 	m.m[0][1] = 0.0f;
-	m.m[0][2] = sin(a);
+	m.m[0][2] = sinf(a);
 	m.m[0][3] = 0.0f;
 
 	m.m[1][0] = 0.0f;
@@ -211,9 +212,9 @@ mat4 rotMatY(float a)
 	m.m[1][2] = 0.0f;
 	m.m[1][3] = 0.0f;
 
-	m.m[2][0] = -sin(a);
+	m.m[2][0] = -sinf(a);
 	m.m[2][1] = 0.0f;
-	m.m[2][2] = cos(a);
+	m.m[2][2] = cosf(a);
 	m.m[2][3] = 0.0f;
 
 	m.m[3][0] = 0.0f;
@@ -228,13 +229,13 @@ mat4 rotMatZ(float a)
 {
 	mat4 m;
 
-	m.m[0][0] = cos(a);
-	m.m[0][1] = -sin(a);
+	m.m[0][0] = cosf(a);
+	m.m[0][1] = -sinf(a);
 	m.m[0][2] = 0.0f;
 	m.m[0][3] = 0.0f;
 
-	m.m[1][0] = sin(a);
-	m.m[1][1] = cos(a);
+	m.m[1][0] = sinf(a);
+	m.m[1][1] = cosf(a);
 	m.m[1][2] = 0.0f;
 	m.m[1][3] = 0.0f;
 
@@ -280,7 +281,12 @@ vec3 vec3Scale(vec3 v, float s)
 
 float vec3Len(vec3 *v)
 {
-	return sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
+	return sqrtf(v->x*v->x + v->y*v->y + v->z*v->z);
+}
+
+float vec3Len2(vec3 *v)
+{
+	return v->x*v->x + v->y*v->y + v->z*v->z;
 }
 
 float vec3Dot(vec3 *v0, vec3 *v1)
@@ -301,7 +307,7 @@ vec3 vec3Cross(vec3 *v0, vec3 *v1)
 
 vec3 vec3Normalize(vec3 *v)
 {
-	return vec3Scale(*v, 1.0f/vec3Len(v));
+	return vec3Scale(*v, 1.0f / vec3Len(v));
 }
 
 vec4 vec4Add(vec4 v0, vec4 v1)
@@ -336,7 +342,12 @@ vec4 vec4Scale(vec4 v, float s)
 
 float vec4Len(vec4 *v)
 {
-	return sqrt(v->x*v->x + v->y*v->y + v->z*v->z + v->w*v->w);
+	return sqrtf(v->x*v->x + v->y*v->y + v->z*v->z + v->w*v->w);
+}
+
+float vec4Len2(vec4 *v)
+{
+	return v->x*v->x + v->y*v->y + v->z*v->z + v->w*v->w;
 }
 
 float vec4Dot(vec4 *v0, vec4 *v1)
@@ -357,7 +368,7 @@ vec4 vec4Cross(vec4 *v0, vec4 *v1)
 
 vec4 vec4Normalize(vec4 *v)
 {
-	return vec4Scale(*v, 1.0f/vec4Len(v));
+	return vec4Scale(*v, 1.0f / vec4Len(v));
 }
 
 mat4 translate(mat4 *m, vec3 v)
@@ -592,9 +603,9 @@ mat4 lookAt(vec3 v0, vec3 v1)
 	float ya = 0.0f, xa = 0.0f;
 
 	if (d.x != 0.0f)
-		ya = atan2(d.z, d.x)-1.5708f;
+		ya = atan2f(d.z, d.x)-PI2;
 
-	xa = acos(-vec3Dot(&up, &d)/vec3Len(&d))-1.5708f;
+	xa = acosf(-vec3Dot(&up, &d)/vec3Len(&d))-PI2;
 
 	r = rotMatX(xa);
 	r = rotateY(&r, ya);

@@ -3,20 +3,18 @@
 int running = 1;
 FILE *outfile;
 
-#define FPS_TARGET 30.0f
-#define DT_TARGET 1.0f/FPS_TARGET
+#define FPS_TARGET 30
 
 extern void triDemo();
 extern void lineDemo();
-extern void drawIco(vec3 pos, mat4 *rot, float a, byte c, byte ci);
-extern void drawCube(vec3 pos, mat4 *rot, float a, byte c, byte ci);
-extern void groundDemo(vec3 cam);
-extern void groundLines(vec3 cam);
 extern void cubeDemo(float t);
 extern void lineTest(float t);
-extern void drawFloor(vec3 camPos, float rotY, byte c1, byte c2, byte co);
+
+extern void drawIco(vec3 pos, mat4 *rot, float a, byte c, byte ci);
+extern void drawCube(vec3 pos, mat4 *rot, float a, byte c, byte ci);
+
 extern void drawWall(float x, float y, float z, float w, float h, int d,
-			   int n, int c1, int c2);
+			   int n, byte c1, byte c2);
 
 // projection matrix
 mat4 projMatrix;
@@ -75,13 +73,13 @@ void draw()
 
 	//drawFloor(camPos, camRot.y, 2, 48, 5);
 	drawWall(-8.8f+3.52f/2.0f, -3.0f, 8.8f, 3.52f, 4.0f,
-		   1, 5, 20, 18);
+		   1, 5, 24, 22);
 	drawWall(8.8f-3.52f/2.0f, -3.0f, -8.8f, 3.52f, 4.0f,
-		   -1, 5, 20, 18);
+		   -1, 5, 24, 22);
 	drawWall(-8.8f, -3.0f, -8.8f+3.52f/2.0f, 3.52f, 4.0f,
-		   2, 5, 18, 20);
+		   2, 5, 22, 24);
 	drawWall(8.8f, -3.0f, 8.8f-3.52f/2.0f, 3.52f, 4.0f,
-		   -2, 5, 18, 20);
+		   -2, 5, 22, 24);
 
 	spritePos = Vec3(3.0f, -2.0f, 4.0f);
 	r_addSprite(&spritePos, 1.5f, 1.5f, textureAtlas.textures[0]);
@@ -108,20 +106,20 @@ void input(float dt)
 
 	// game input
 	if (keyDown[wDownCode]) {
-		camPos.z -= cos(camRot.y)*walkSpd*dt;
-		camPos.x += sin(camRot.y)*walkSpd*dt;
+		camPos.z -= cosf(camRot.y)*walkSpd*dt;
+		camPos.x += sinf(camRot.y)*walkSpd*dt;
 	}
 	if (keyDown[aDownCode]) {
-		camPos.x += cos(camRot.y)*walkSpd*dt;
-		camPos.z += sin(camRot.y)*walkSpd*dt;
+		camPos.x += cosf(camRot.y)*walkSpd*dt;
+		camPos.z += sinf(camRot.y)*walkSpd*dt;
 	}
 	if (keyDown[sDownCode]) {
-		camPos.z += cos(camRot.y)*walkSpd*dt;
-		camPos.x -= sin(camRot.y)*walkSpd*dt;
+		camPos.z += cosf(camRot.y)*walkSpd*dt;
+		camPos.x -= sinf(camRot.y)*walkSpd*dt;
 	}
 	if (keyDown[dDownCode]) {
-		camPos.x -= cos(camRot.y)*walkSpd*dt;
-		camPos.z -= sin(camRot.y)*walkSpd*dt;
+		camPos.x -= cosf(camRot.y)*walkSpd*dt;
+		camPos.z -= sinf(camRot.y)*walkSpd*dt;
 	}
 	
 	if (keyDown[rDownCode])
@@ -155,17 +153,18 @@ void input(float dt)
 
 int main(void)
 {
-	unsigned i, j, n;
-
 	unsigned fps; // frames per second
 	unsigned lt; // last frame time
-	float dt; // time between frames
+	float dt, ft; // time between frames
 	float rt, rts; // render time
 
 	char header[64];
+	char footer[64];
 
 	int horizon = 0;
-	int groundcol = 2;
+	byte groundcol = 2;
+	        
+	const float dt_target = 1.0f / (float) FPS_TARGET;
 
 	// projection matrix
 	projMatrix = projMat(PI*0.5f, (float) W / (float) H, 100.0f, 0.1f);
@@ -183,7 +182,8 @@ int main(void)
 	fps = FPS_TARGET;
 	t = 0.0f;
 	lt = 0;
-	dt = DT_TARGET;
+	dt = dt_target;
+	ft = 0.0f;
 	rt = 0.0f;
 	rts = 0.0f;
 
@@ -223,7 +223,7 @@ int main(void)
 		if (clearscr)
 			r_clear();
 
-		horizon = clamp((float) (tan(camRot.x)*H/2 + H/2), T, B);
+		horizon = clamp((int) (tanf(camRot.x)*((float) H/2.0f)) + H/2, T, B);
 
 		if (horizon < B)
 			r_vfill(horizon, B - horizon + 1, groundcol);
@@ -253,21 +253,25 @@ int main(void)
 		
 		sprintf(header, "FPS: %-2u, key: %-3i %-1i%-1i, rt: %4.1f, dc: %-3u\r",
 			  fps, keycode, mouseLeft, mouseRight, rt*1000.0f, drawCount);
+		sprintf(footer, "ft: %4.1f     \r", ft*1000.0f);
 		
 #ifdef MODEX
 		r_drawString(0, 0, header);
+		//r_drawString(0, B+1, footer);
 #endif
 #ifdef MODE13
 		printf("%s\r", header);
 #endif
 		
 		input(dt);
+
+		ft = (float) (itime - lt) * TOSECOND;
 		
 		r_sync();
 		
 		do {
 			dt = (float) (itime - lt) * TOSECOND;
-		} while (dt < DT_TARGET);
+		} while (dt < dt_target);
 	    
 		if (itime >= SECOND) { // runs every second
 			rt = rts / (float) frame;
@@ -277,6 +281,7 @@ int main(void)
 			itime = 0;
 			
 			fprintf(outfile, "%s\n", header);
+			fprintf(outfile, "%s\n", footer);
 		}
 		
 		lt = itime;

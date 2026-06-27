@@ -21,7 +21,7 @@ void lineFill(int x0, int y0, int x1, int y1, byte c)
 	int dx, dy;
 	int sx = 1, sy = 1;
 	int diff, d;
-	int s0, s1;
+	//int s0, s1;
 
 	if (!lineVis(x0, y0, x1, y1))
 		return;
@@ -76,12 +76,12 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 #endif
 }
 
-#define clip(px, py, dx, dy, y0, ymin, ymax)		         \
-	if (dy != 0) {                                           \
-		y0 = py;                                           \
-		py = min(ymax, py);                                \
-		py = max(ymin, py);                                \
-		px += (float) dx / (float) dy * (float) (py - y0); \
+#define clip(px, py, dx, dy, y0, ymin, ymax)						\
+	if (dy != 0) {													\
+		y0 = py;													\
+		py = min(ymax, py);											\
+		py = max(ymin, py);											\
+		px += (int) ((float) dx / (float) dy * (float) (py - y0));	\
 	}
 
 pix clipLine(int x, int y, int dx, int dy)
@@ -89,7 +89,7 @@ pix clipLine(int x, int y, int dx, int dy)
 	int x0, y0;
 	pix p = Pix(x, y);
 
-	if (abs(dx) < abs(dy)) {
+	if (abs16(dx) < abs16(dy)) {
 		clip(p.x, p.y, dx, dy, y0, T, B);
 		clip(p.y, p.x, dy, dx, x0, L, R);
 	}
@@ -120,13 +120,13 @@ int pointCloser(long x0, long y0, long x1, long y1, long x2, long y2)
 	return d01 < d02 && d12 < d02;
 }
 
-#define coordToPix(vx, vy, x, y)			\
-	x = round((vx+1.0f)*W*0.5f);			\
-	y = round((-vy+1.0f)*H*0.5f);
+#define coordToPix(vx, vy, x, y)		\
+	x = (int) round((vx+1.0f)*W*0.5f);	\
+	y = (int) round((-vy+1.0f)*H*0.5f);
 
-#define dimToPix(vw, vh, w, h)			\
-	w = round(vw*W*0.5f);				\
-	h = round(vh*H*0.5f);
+#define dimToPix(vw, vh, w, h)		\
+	w = (int) round(vw*W*0.5f);		\
+	h = (int) round(vh*H*0.5f);
 
 void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
 {
@@ -281,8 +281,8 @@ void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
 	if (dy0 == 0)
 		return;
 
-	dx01 = dx0 * (float) dy2 / (float) dy0;
-	dx0 = dx0 * (float) dy1 / (float) dy0;
+	dx01 = (int) ((float) dx0 * (float) dy2 / (float) dy0);
+	dx0 = (int) ((float) dx0 * (float) dy1 / (float) dy0);
 
 	x2 = x0 + dx0;
 	y2 -= dy2;
@@ -370,7 +370,7 @@ void r_drawTriClip(vec2 *v0, vec2 *v1, vec2 *v2, byte c)
 
 	int xc, yc;
 
-	float x0, y0, x1, y1, x2, y2;
+	int x0, y0, x1, y1, x2, y2;
 
 	// transform from gl to pix
 	coordToPix(v0->x, v0->y, x0, y0);
@@ -754,8 +754,8 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 	r_drawSprite(x0, y0, ww0, hh0, tex);
 #endif
 #ifdef MODEX
-	tw = (float) tex->w * ((float) ww / (float) ww0);
-	th = (float) tex->h * ((float) hh / (float) hh0);
+	tw = (int) ((float) tex->w * ((float) ww / (float) ww0));
+	th = (int) ((float) tex->h * ((float) hh / (float) hh0));
 	
 	r_spritefill(x, y, ww, hh,
 			 x > x0 ? tex->w - tw : 0,

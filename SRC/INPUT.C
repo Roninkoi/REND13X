@@ -1,8 +1,8 @@
 #include "SRC\RENDER.H"
 
-byte keycode = 0;
-byte keycodeBuffer[256];
-byte keycodei = 0;
+byte volatile keycode = 0;
+byte volatile keycodeBuffer[256];
+byte volatile keycodei = 0;
 
 int keyDown[256];
 

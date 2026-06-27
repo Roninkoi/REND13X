@@ -42,7 +42,7 @@ float timerStop()
 {
 	float timerTime;
 	unsigned ticks = (unsigned) timerTicks - (unsigned) timer_stop();
-	
+
 	timerTime = (float) ticks * TOSECOND;
 	
 	return timerTime;
