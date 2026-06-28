@@ -96,7 +96,8 @@ void far r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
 
 // fill (w, h) sprite at (x, y) with (tw, th) texture at tstart + (tx, ty)
 void far r_spritefill(int x, int y, int w, int h,
-			int tx, int ty, int tw, int th, unsigned tstart);
+			    int tx, int ty, int tw, int th, int tw0, int th0,
+			    unsigned char *tstart);
 void far r_spritefill2(int x, int y, int w, int h, int tstart);
 
 // DRAW

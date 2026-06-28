@@ -58,6 +58,7 @@ void loadAfter()
 
 void draw()
 {
+	int i;
 	vec3 spritePos = Vec3(0.0f, 0.0f, 5.0f);
 
 	//cubeDemo(3.0f*t);
@@ -155,7 +156,7 @@ int main(void)
 {
 	unsigned fps; // frames per second
 	unsigned lt; // last frame time
-	float dt, ft; // time between frames
+	float dt; // time between frames
 	float rt, rts; // render time
 
 	char header[64];
@@ -181,9 +182,7 @@ int main(void)
 	frame = 0;
 	fps = FPS_TARGET;
 	t = 0.0f;
-	lt = 0;
 	dt = dt_target;
-	ft = 0.0f;
 	rt = 0.0f;
 	rts = 0.0f;
 
@@ -205,6 +204,8 @@ int main(void)
 	hookKeys();
 	hookMouse();
 	hookTime();
+	
+	lt = itime;
 	
 	doublebuffer = 1;
 	clearcol = 0;
@@ -237,7 +238,7 @@ int main(void)
 		camMatrix = translate(&camMatrix, camPos);
 
 		r_matrix = mat4mat4(&projMatrix, &camMatrix);
-
+		
 		draw();
 
 		wireframe = 0;
@@ -249,11 +250,8 @@ int main(void)
 
 		r_draw();
 
-		rts += drawTime; // render time difference
-		
-		sprintf(header, "FPS: %-2u, key: %-3i %-1i%-1i, rt: %4.1f, dc: %-3u\r",
+		sprintf(header, "FPS: %-2u, key: %-3i %-1i%-1i, rt: %2.1f, dc: %-3u\r",
 			  fps, keycode, mouseLeft, mouseRight, rt*1000.0f, drawCount);
-		sprintf(footer, "ft: %4.1f     \r", ft*1000.0f);
 		
 #ifdef MODEX
 		r_drawString(0, 0, header);
@@ -263,9 +261,9 @@ int main(void)
 		printf("%s\r", header);
 #endif
 		
+		rts += (float) (itime - lt) * TOSECOND; // render time difference
+		
 		input(dt);
-
-		ft = (float) (itime - lt) * TOSECOND;
 		
 		r_sync();
 		
@@ -281,7 +279,7 @@ int main(void)
 			itime = 0;
 			
 			fprintf(outfile, "%s\n", header);
-			fprintf(outfile, "%s\n", footer);
+			//fprintf(outfile, "%s\n", footer);
 		}
 		
 		lt = itime;

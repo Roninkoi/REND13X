@@ -76,12 +76,12 @@ void r_drawLine(int x0, int y0, int x1, int y1, byte c)
 #endif
 }
 
-#define clip(px, py, dx, dy, y0, ymin, ymax)						\
-	if (dy != 0) {													\
-		y0 = py;													\
-		py = min(ymax, py);											\
-		py = max(ymin, py);											\
-		px += (int) ((float) dx / (float) dy * (float) (py - y0));	\
+#define clip(px, py, dx, dy, y0, ymin, ymax) \
+	if (dy != 0) { \
+		y0 = py; \
+		py = min(ymax, py); \
+		py = max(ymin, py); \
+		px += (int) ((float) dx / (float) dy * (float) (py - y0)); \
 	}
 
 pix clipLine(int x, int y, int dx, int dy)
@@ -120,12 +120,12 @@ int pointCloser(long x0, long y0, long x1, long y1, long x2, long y2)
 	return d01 < d02 && d12 < d02;
 }
 
-#define coordToPix(vx, vy, x, y)		\
-	x = (int) round((vx+1.0f)*W*0.5f);	\
+#define coordToPix(vx, vy, x, y) \
+	x = (int) round((vx+1.0f)*W*0.5f); \
 	y = (int) round((-vy+1.0f)*H*0.5f);
 
-#define dimToPix(vw, vh, w, h)		\
-	w = (int) round(vw*W*0.5f);		\
+#define dimToPix(vw, vh, w, h) \
+	w = (int) round(vw*W*0.5f); \
 	h = (int) round(vh*H*0.5f);
 
 void r_drawLineClip(vec2 *v0, vec2 *v1, byte c)
@@ -239,14 +239,14 @@ void fillTri(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 #endif
 }
 
-#define sorty(x0, y0, x1, y1, tmp)			\
-	if (y0 > y1) {					\
-		tmp = y0;					\
-		y0 = y1;					\
-		y1 = tmp;					\
-		tmp = x0;					\
-		x0 = x1;					\
-		x1 = tmp;					\
+#define sorty(x0, y0, x1, y1, tmp) \
+	if (y0 > y1) { \
+		tmp = y0; \
+		y0 = y1; \
+		y1 = tmp; \
+		tmp = x0; \
+		x0 = x1; \
+		x1 = tmp; \
 	}
 
 void r_drawTri(int x0, int y0, int x1, int y1, int x2, int y2, byte c)
@@ -573,14 +573,12 @@ void r_drawLine3D(vec3 *v0, vec3 *v1, byte c)
 	r_drawLineClip(&p0, &p1, c);
 }
 
-void clipNear(vec2 *p, vec3 *v0, vec3 *v1)
-{
-	float ratio = (v1->z - ZNEAR) / (v1->z - v0->z);
-	p->x = v1->x + (v0->x - v1->x) * ratio;
-	p->y = v1->y + (v0->y - v1->y) * ratio;
-	p->x /= ZNEAR;
-	p->y /= ZNEAR;
-}
+#define clipNear(p, v0, v1) \
+	ratio = (v1->z - ZNEAR) / (v1->z - v0->z); \
+	p.x = v1->x + (v0->x - v1->x) * ratio; \
+	p.y = v1->y + (v0->y - v1->y) * ratio; \
+	p.x /= ZNEAR; \
+	p.y /= ZNEAR; \
 
 void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 {
@@ -590,13 +588,11 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 
 	vec3 *noclip;
 
+	float ratio;
+
 	float z0 = v0->z;
 	float z1 = v1->z;
 	float z2 = v2->z;
-
-	p0 = Vec2From3(v0);
-	p1 = Vec2From3(v1);
-	p2 = Vec2From3(v2);
 
 	clip0 = z0 < ZNEAR;
 	clip1 = z1 < ZNEAR;
@@ -608,6 +604,10 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 
 	if (z0 > ZFAR && z1 > ZFAR && z2 > ZFAR)
 		return;
+
+	p0 = Vec2From3(v0);
+	p1 = Vec2From3(v1);
+	p2 = Vec2From3(v2);
 
 	if (!clip0)
 		noclip = v0;
@@ -623,11 +623,11 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	}
 	else {
 		if (clipn < 2) {
-			clipNear(&p0, v0, v1);
-			clipNear(&p3, v0, v2);
+			clipNear(p0, v0, v1);
+			clipNear(p3, v0, v2);
 		}
 		else {
-			clipNear(&p0, v0, noclip);
+			clipNear(p0, v0, noclip);
 		}
 	}
 
@@ -637,11 +637,11 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	}
 	else {
 		if (clipn < 2) {
-			clipNear(&p1, v1, v0);
-			clipNear(&p3, v1, v2);
+			clipNear(p1, v1, v0);
+			clipNear(p3, v1, v2);
 		}
 		else {
-			clipNear(&p1, v1, noclip);
+			clipNear(p1, v1, noclip);
 		}
 	}
 
@@ -651,11 +651,11 @@ void r_drawTri3D(vec3 *v0, vec3 *v1, vec3 *v2, byte c)
 	}
 	else {
 		if (clipn < 2) {
-			clipNear(&p2, v2, v0);
-			clipNear(&p3, v2, v1);
+			clipNear(p2, v2, v0);
+			clipNear(p3, v2, v1);
 		}
 		else {
-			clipNear(&p2, v2, noclip);
+			clipNear(p2, v2, noclip);
 		}
 	}
 
@@ -757,11 +757,16 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 	tw = (int) ((float) tex->w * ((float) ww / (float) ww0));
 	th = (int) ((float) tex->h * ((float) hh / (float) hh0));
 	
-	r_spritefill(x, y, ww, hh,
+	/*r_spritefill(x, y, ww, hh,
 			 x > x0 ? tex->w - tw : 0,
 			 y > y0 ? tex->h - th : 0,
 			 tw, th,
-			 getAtlasTextureStart(&textureAtlas, tex->id));
+			 getAtlasTextureStart(&textureAtlas, tex->id));*/
+	r_spritefill(x, y, ww, hh,
+			 (x > x0 ? tex->w - tw : 0),
+			 (y > y0 ? tex->h - th : 0),
+			 tw, th, tex->w, tex->h,
+			 (unsigned char *) tex->data);
 #endif
 }
 

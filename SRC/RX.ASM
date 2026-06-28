@@ -40,10 +40,10 @@ PIX_PLANE equ 00100h
 
 CRTHI equ 0000ch
 CRTLO equ 0000dh
-
-SH equ 15
-MASK_LO equ 7fffh
-MASK_HI equ 0ffff8000h
+	
+SH equ 20
+MASK_LO equ 0fffh
+MASK_HI equ 0fff00000h
 MASK_ALL equ 0ffffffffh
 
 ;; int r_init13()
@@ -1005,7 +1005,7 @@ sfill2:
 _r_spritefill2 ENDP
 
 ;; void r_spriteplanefill(int x, int y, int w, int h, int p,
-;;                        int tw, int th, int tp, int tstart)
+;;                        int tw, int th, int tw0, th0, int tp, unsigned char far *tstart)
 ;; sp+4 x
 ;; sp+6 y
 ;; sp+8 w
@@ -1013,8 +1013,10 @@ _r_spritefill2 ENDP
 ;; sp+12 p
 ;; bp+14 tw
 ;; bp+16 th
-;; sp+18 tp
-;; sp+20 tstart
+;; bp+18 tw0
+;; bp+20 th0
+;; bp+22 tp
+;; sp+24 tstart
 public _r_spriteplanefill
 _r_spriteplanefill PROC FAR
 	cli
@@ -1027,8 +1029,10 @@ _r_spriteplanefill PROC FAR
 	;; bp+14 p
 	;; bp+16 tw
 	;; bp+18 th
-	;; bp+20 tp
-	;; bp+22 tstart
+	;; bp+20 tw0
+	;; bp+22 th0
+	;; bp+24 tp
+	;; bp+26 tstart
 	push di
 	push si
 	push ds
@@ -1049,11 +1053,11 @@ _r_spriteplanefill PROC FAR
 	mov bx, ax
 	mov cx, [bp+10] ;; w
 	add cx, 3
-	mov ax, [bp+20] ;; tp
+	mov ax, [bp+24] ;; tp
 	and ax, 3
 	sub cx, ax
 	shr cx, 2 ;; (w + 3 - tp) >> 2
-	mov ax, [bp+20] ;; tp
+	mov ax, [bp+24] ;; tp
 	and ax, 3
 	add ax, [bp+6] ;; x
 	shr ax, 2
@@ -1061,22 +1065,22 @@ _r_spriteplanefill PROC FAR
 	add ax, bx
 	add ax, _pgoffs ;; add page offset for cmp
 	push ax ;; xend to stack
-
+	
 	mov ax, [bp+8] ;; y
 	mul si
 	mov cx, ax ;; start point
 
-	mov di, [bp+20] ;; tp
+	mov di, [bp+24] ;; tp
 	and di, 3
 	add di, [bp+6] ;; x
 	shr di, 2
 	add di, cx ;; calculate address x>>2 + y0 * W/4
 	add di, _pgoffs ;; page offset
 
-	mov ax, VSTART
+	mov ax, [bp+28] ;; texture segment
 	mov ds, ax
 	xor esi, esi
-	mov si, [bp+22] ;; texture memory start
+	mov si, [bp+26] ;; texture memory start
 
 	xor eax, eax
 	mov ax, [bp+18] ;; th
@@ -1097,9 +1101,10 @@ _r_spriteplanefill PROC FAR
 	push cx ;; dx to stack
 
 	xor eax, eax
+	xor ecx, ecx
 	mov ax, [bp+18] ;; th
-	mov cx, W/4
-	mul cx
+	mov cx, [bp+20] ;; tw0
+	mul ecx
 	shl eax, SH
 	mov ebx, eax
 	
@@ -1112,7 +1117,9 @@ _r_spriteplanefill PROC FAR
 	div ecx ;; tw/w
 	inc eax
 	shr eax, 1
-	sub ebx, eax
+	mov ecx, eax
+	shl ecx, 2
+	sub ebx, ecx
 	push ebx ;; dtx to stack
 	mov ebx, eax
 	
@@ -1121,24 +1128,22 @@ _r_spriteplanefill PROC FAR
 	push cx ;; dy to stack
 
 	xor eax, eax
-	mov ax, W/4
+	mov ax, [bp+20] ;; tw0
 	shl eax, SH
 	push eax ;; dty to stack
 
 	xor eax, eax
-	mov ax, [bp+20] ;; tp
+	mov ax, [bp+24] ;; tp
 	xor ecx, ecx
 	mov cx, ax
 	and ax, 3
 	shr ecx, 2
 	shl ecx, SH-2
 	mul ebx ;; * tw/w
-	shr eax, 2
 	mov edx, eax
-	add edx, ecx
 	shl esi, SH
 	add edx, esi ;; tstart
-
+	
 	mov bp, sp
 	;; bp dty
 	;; bp+4 dy
@@ -1171,18 +1176,6 @@ sfillyf:
 	add ebx, [bp+12] ;; th/h
 	shr ebx, 1
 sfillx:
-	mov ecx, edx
-	shr ecx, SH-2
-	push edx
-	mov dx, GCI
-	mov ax, READ_MAP
-	out dx, ax
-	inc dx
-	mov ax, cx ;; select read plane
-	and ax, 3
-	out dx, ax
-	pop edx
-	
 	mov cx, [bp+36] ;; h
 sfilly:
 	mov esi, edx

@@ -15,9 +15,9 @@ Runs on real hardware (DOS, i486 or equivalent) or in DOSBox.
 ## Features
 
 - "Fast" x86 assembly draw routines for line drawing and triangle fills.
-    - Two video modes: mode 13h or mode X, define MODE13 or MODEX in RENDER.H to enable/disable.
+    - Two video modes: mode 13h or mode X, define MODE13 or MODEX in DEFS.H to enable/disable.
     - Line drawing is implemented using Bresenham's algorithm (mode 13h line draw is faster).
-    - Triangle filling is implemented in two ways: a non-clipped inaccurate fast fill (using fixed-point) and clipped accurate slow fill (using Bresenham's algorithm), define FASTFILL in RENDER.H to enable/disable.
+    - Triangle filling is implemented in two ways: a non-clipped inaccurate fast fill (using fixed-point) and clipped accurate slow fill (using Bresenham's algorithm), define FASTFILL in DEFS.H to enable/disable.
     - Graphics routines for mode 13h and mode X assembled and linked separately (32-bit).
 
 - 3D perspective projected triangle draw with z sorting, geometry clipping, face culling and wireframe rendering.
@@ -64,7 +64,7 @@ Project file: `REND13X.IDE`
 
 ### Visual C++
 
-Building requires Microsoft Macro Assembler. Visual C++ won't assemble the .ASM files for you, so they need to be assembled separately before building the project. Include the object files `IN.OBJ` and either `R13.OBJ` or `RX.OBJ`.
+Building requires Microsoft Macro Assembler. Visual C++ won't assemble the .ASM files for you, so they need to be assembled separately before building the project. Include the object files `IN.OBJ`, `T.OBJ` and either `R13.OBJ` or `RX.OBJ`.
 
 Project file: `REND13X.MAK`
 

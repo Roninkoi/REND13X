@@ -38,7 +38,8 @@ extern void far r_triplanefill(int x0, int dx0, int x1, int dx1,
 extern void far r_spritefill2(int x, int y, int w, int h, int tstart);
 
 extern void far r_spriteplanefill(int x, int y, int w, int h, int p,
-					    int tw, int th, int tp, int tstart);
+					    int tw, int th, int tw0, int th0,
+					    int tp, unsigned char far *tstart);
 
 void r_clear() {
 	r_fill(clearcol);
@@ -97,22 +98,28 @@ void far r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 }
 
 void far r_spritefill(int x, int y, int w, int h,
-			int tx, int ty, int tw, int th, unsigned tstart)
+			    int tx, int ty, int tw, int th, int tw0, int th0,
+			    unsigned char *tstart)
 {
 	int p0 = ((tx&3) << 2);
-	unsigned toffs = W / 4;
+	unsigned toffs = tw0;
 	toffs *= ty;
-	toffs += tx / 4;
-	toffs += tstart;
+	toffs += tx;
 
+	if (tx >= tw0 || ty >= th0) return;
+	
 	r_spriteplanefill(x, y, w, h, pixpx(x+0),
-				tw, th, 0 | p0, toffs);
+				tw, th, tw0, th0, 0 | p0,
+				(unsigned char far *) (tstart+toffs));
 	r_spriteplanefill(x, y, w, h, pixpx(x+1),
-				tw, th, 1 | p0, toffs);
+				tw, th, tw0, th0, 1 | p0,
+				(unsigned char far *) (tstart+toffs));
 	r_spriteplanefill(x, y, w, h, pixpx(x+2),
-				tw, th, 2 | p0, toffs);
+				tw, th, tw0, th0, 2 | p0,
+				(unsigned char far *) (tstart+toffs));
 	r_spriteplanefill(x, y, w, h, pixpx(x+3),
-				tw, th, 3 | p0, toffs);
+				tw, th, tw0, th0, 3 | p0,
+				(unsigned char far *) (tstart+toffs));
 }
 
 #endif
