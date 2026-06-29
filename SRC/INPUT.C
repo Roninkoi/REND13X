@@ -6,11 +6,11 @@ byte volatile keycodei = 0;
 
 int keyDown[256];
 
-void (interrupt *oldKeys) ();
+void (interrupt far *oldKeys) ();
 
-extern unsigned far get_keycode();
+extern unsigned far get_keycode(void);
 
-void interrupt getKeys()
+void interrupt getKeys(void)
 {
 	keycode = get_keycode();
 
@@ -39,13 +39,13 @@ unsigned mouseRight = 0;
 unsigned hasMouse = 0;
 
 extern void far set_mouse(void (interrupt *handler) ());
-extern int far reset_mouse();
+extern int far reset_mouse(void);
 
-extern unsigned far get_mousepos();
+extern unsigned far get_mousepos(void);
 extern void far set_mousepos(int x, int y);
-extern unsigned far get_mouseclick();
+extern unsigned far get_mouseclick(void);
 
-void /*interrupt*/ getMouse()
+void /*interrupt*/ getMouse(void)
 {
 	unsigned pos = 0, click = 0;
 	pos = get_mousepos();
@@ -67,7 +67,7 @@ void hookMouse()
 	// reset and check for mouse driver
 	hasMouse = reset_mouse();
 	hasMouse = hasMouse & 0x1;
-	
+
 	mousePos = Pix(W/2, H/2);
 
 	// set mouse interrupt handler

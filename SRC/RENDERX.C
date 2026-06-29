@@ -2,13 +2,13 @@
 
 #ifdef MODEX
 
-extern int far r_init13();
+extern int far r_init13(void);
 
-extern int far r_init();
+extern int far r_init(void);
 
 extern void far r_exit(int vmode);
 
-extern void far r_waitretrace();
+extern void far r_waitretrace(void);
 
 extern int far r_page(int pg);
 
@@ -41,11 +41,11 @@ extern void far r_spriteplanefill(int x, int y, int w, int h, int p,
 					    int tw, int th, int tw0, int th0,
 					    int tp, unsigned char far *tstart);
 
-void r_clear() {
+void r_clear(void) {
 	r_fill(clearcol);
 }
 
-void r_sync() {
+void r_sync(void) {
 	if (doublebuffer) {
 		page = r_flip(page);
 	}
@@ -99,27 +99,25 @@ void far r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c)
 
 void far r_spritefill(int x, int y, int w, int h,
 			    int tx, int ty, int tw, int th, int tw0, int th0,
-			    unsigned char *tstart)
+			    unsigned char far *tstart)
 {
+	unsigned char far *tex;
 	int p0 = ((tx&3) << 2);
 	unsigned toffs = tw0;
 	toffs *= ty;
 	toffs += tx;
+	tex = (unsigned char far *) (tstart + toffs);
 
 	if (tx >= tw0 || ty >= th0) return;
 	
 	r_spriteplanefill(x, y, w, h, pixpx(x+0),
-				tw, th, tw0, th0, 0 | p0,
-				(unsigned char far *) (tstart+toffs));
+				tw, th, tw0, th0, 0 | p0, tex);
 	r_spriteplanefill(x, y, w, h, pixpx(x+1),
-				tw, th, tw0, th0, 1 | p0,
-				(unsigned char far *) (tstart+toffs));
+				tw, th, tw0, th0, 1 | p0, tex);
 	r_spriteplanefill(x, y, w, h, pixpx(x+2),
-				tw, th, tw0, th0, 2 | p0,
-				(unsigned char far *) (tstart+toffs));
+				tw, th, tw0, th0, 2 | p0, tex);
 	r_spriteplanefill(x, y, w, h, pixpx(x+3),
-				tw, th, tw0, th0, 3 | p0,
-				(unsigned char far *) (tstart+toffs));
+				tw, th, tw0, th0, 3 | p0, tex);
 }
 
 #endif

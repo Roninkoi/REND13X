@@ -57,7 +57,7 @@ static int abs16(int x) {
 #define floorf(x) (float)((int) (x))
 #define round(x) floorf((x) + 0.5f)
 #undef fmod
-#define fmod(x, y) ((x) - floor((x) / (y)) * (y))
+#define fmod(x, y) ((x) - floorf((x) / (y)) * (y))
 
 #define TAU 6.2831853f
 #define PI 3.1415926f
@@ -68,7 +68,7 @@ static float sin_approx(float x)
 	//float z = fmod(x / PI + 1.0f, 2.0f) - 1.0f;
 	//return 4.0f * z * (1.0f - abs(z));
 	float y = x / TAU;
-	float z = y - floor(y) - 0.5f;
+	float z = y - (float) floor(y) - 0.5f;
 	return 8.0f * z * (fabsf(2.0f * z) - 1.0f);
 }
 
@@ -142,9 +142,10 @@ static float sin_approx(float x)
 #define SECOND 5013
 // convert itime to second
 #define TOSECOND 0.000199466f
-//#define SECOND 18.206
-//#define TOSECOND 0.054927f
-                     
+#define SECOND0 18 //.206
+#define TOSECOND0 0.054927f
+#define TIMERF 275
+
 // keyboard codes
 
 #define wDownCode 17

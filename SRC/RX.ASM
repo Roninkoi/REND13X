@@ -95,7 +95,7 @@ _r_init PROC FAR
 	cld
 	mov si, offset _crtparam
 	mov cx, 10 ;; length of crtparam
-	
+
 crtp: ;; set parameters from _crtparam
 	lodsw
 	out dx, ax

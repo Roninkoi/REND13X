@@ -61,17 +61,17 @@ extern TextureAtlas textureAtlas;
 // primitive VGA routines
 
 // initialize renderer, enter video mode
-int far r_init();
+int far r_init(void);
 // return original video mode
 void far r_exit(int vmode);
 // wait for screen retrace
-void far r_waitretrace();
+void far r_waitretrace(void);
 // select page to draw
 int far r_page(int pg);
 // clear screen
-void r_clear();
+void r_clear(void);
 // synchronize screen (wait/flip)
-void r_sync();
+void r_sync(void);
 
 // put pixel of color c at (x, y)
 void far r_putpixel(int x, int y, byte c);
@@ -97,7 +97,7 @@ void far r_trifill(int x0, int dx0, int x1, int dx1, int y, int dy, byte c);
 // fill (w, h) sprite at (x, y) with (tw, th) texture at tstart + (tx, ty)
 void far r_spritefill(int x, int y, int w, int h,
 			    int tx, int ty, int tw, int th, int tw0, int th0,
-			    unsigned char *tstart);
+			    unsigned char far *tstart);
 void far r_spritefill2(int x, int y, int w, int h, int tstart);
 
 // DRAW
@@ -110,8 +110,8 @@ void r_addf(float v0x, float v0y, float v0z,
 // add sprite to render buffer
 void r_addSprite(vec3 *v, float w, float h, Texture *tex);
 
-void r_sort(); // sort triangles by centroid z coordinate
-void r_draw(); // draw all triangles in render buffer
+void r_sort(void); // sort triangles by centroid z coordinate
+void r_draw(void); // draw all triangles in render buffer
 
 // 2D draws
 // draw line of color c from (x0, y0) to (x1, y1)
@@ -147,11 +147,11 @@ void r_drawString(int x, int y, char *str);
 extern FILE *outfile;
 
 extern unsigned volatile itime;  // time since start of program via int 0x1c (18.206/s)
-void hookTime();
-void unhookTime();
-unsigned now(); // get system time
-void timerStart(); // accurate timer
-float timerStop();
+void hookTime(void);
+void unhookTime(void);
+unsigned now(void); // get system time
+void timerStart(void); // accurate timer
+float timerStop(void);
 
 extern byte volatile keycode; // keycode of currently pressed/released key
 extern int keyDown[256]; // key pressed down?
@@ -160,10 +160,10 @@ extern unsigned mouseLeft; // mouse left button pressed down?
 extern unsigned mouseRight; // mouse right button pressed down?
 extern unsigned hasMouse; // mouse driver present?
 
-void hookKeys(); // attach keyboard interrupt handler
-void unhookKeys();
-void hookMouse(); // attach mouse interrupt handler
-void unhookMouse();
-void getInput(); // get which keys are pressed down
+void hookKeys(void); // attach keyboard interrupt handler
+void unhookKeys(void);
+void hookMouse(void); // attach mouse interrupt handler
+void unhookMouse(void);
+void getInput(void); // get which keys are pressed down
 
 #endif

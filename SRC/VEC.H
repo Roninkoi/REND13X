@@ -47,9 +47,9 @@ vec4 Vec4(float x, float y, float z, float w);
 vec4 vec4Copy(vec4 *v);
 
 // zero vector
-vec2 Zvec2();
-vec3 Zvec3();
-vec4 Zvec4();
+vec2 Zvec2(void);
+vec3 Zvec3(void);
+vec4 Zvec4(void);
 
 // vector conversion
 vec2 Vec2From3(vec3 *v);

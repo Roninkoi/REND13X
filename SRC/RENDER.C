@@ -766,7 +766,7 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 			 (x > x0 ? tex->w - tw : 0),
 			 (y > y0 ? tex->h - th : 0),
 			 tw, th, tex->w, tex->h,
-			 (unsigned char *) tex->data);
+			 (unsigned char far *) tex->data);
 #endif
 }
 

@@ -34,13 +34,13 @@ unsigned char RGBToVGA(float r, float g, float b)
 	}
 
 	if (sat < 0.25f || lit < 0.1f) {
-		lit = floor(lit * 15.0f);
+		lit = floorf(lit * 15.0f);
 		return 16 + (unsigned char) lit;
 	}
 	else {
-		hue = floor(fmod(hue * 24.0f + 8.0f, 24.0f));
-		sat = floor((1.0f - sat) * 3.0f) * 24.0f;
-		lit = floor((1.0f - lit) * 3.0f) * 24.0f * 3.0f;
+		hue = floorf(fmod(hue * 24.0f + 8.0f, 24.0f));
+		sat = floorf((1.0f - sat) * 3.0f) * 24.0f;
+		lit = floorf((1.0f - lit) * 3.0f) * 24.0f * 3.0f;
 		return 32 + (unsigned char) (hue + sat + lit);
 	}
 }

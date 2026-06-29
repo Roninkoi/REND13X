@@ -31,7 +31,7 @@ _timer_start PROC FAR
 	mov al, 34h
 	out 43h, al
 
-	mov al, 77h
+	mov al, 0eeh
 	out 40h, al
 	mov al, 00h
 	out 40h, al
@@ -79,6 +79,14 @@ _timer_stop PROC FAR
 
 	ret
 _timer_stop ENDP
+
+;; void timer_end()
+public _timer_end
+_timer_end PROC FAR
+	mov al, 20h
+	out 20h, al
+	ret
+_timer_end ENDP
 
 code ENDS
 END

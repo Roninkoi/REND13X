@@ -109,7 +109,7 @@ void r_draw()
 	// draw triangles back to front
 	for (i = 0; i < r_num; ++i) {
 		start = itime;
-		
+
 		if (r_buffer[r_sorted[i]].tex) { // sprite
 			r_drawSprite3D(&r_buffer[r_sorted[i]].v0,
 					 r_buffer[r_sorted[i]].v1.x,
@@ -146,8 +146,9 @@ void r_drawString(int x, int y, char *str)
 {
 	int i;
 	int fw = 8;
-	
-	for (i = 0; str[i] && i < 80; ++i) {
+	int num = W/fw;
+
+	for (i = 0; str[i] && i < num; ++i) {
 		r_drawAtlasFont(x + fw * i, y, str[i]);
 	}
 }

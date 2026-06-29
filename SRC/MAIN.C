@@ -5,8 +5,8 @@ FILE *outfile;
 
 #define FPS_TARGET 30
 
-extern void triDemo();
-extern void lineDemo();
+extern void triDemo(void);
+extern void lineDemo(void);
 extern void cubeDemo(float t);
 extern void lineTest(float t);
 
@@ -14,7 +14,7 @@ extern void drawIco(vec3 pos, mat4 *rot, float a, byte c, byte ci);
 extern void drawCube(vec3 pos, mat4 *rot, float a, byte c, byte ci);
 
 extern void drawWall(float x, float y, float z, float w, float h, int d,
-			   int n, byte c1, byte c2);
+				int n, byte c1, byte c2);
 
 // projection matrix
 mat4 projMatrix;
@@ -33,7 +33,7 @@ float t; // time in seconds
 
 Texture textures[4];
 
-void load()
+void load(void)
 {
 	// create texture atlas and load textures
 	createAtlas(&textureAtlas);
@@ -49,17 +49,26 @@ void load()
 #endif
 }
 
-void loadAfter()
+void loadAfter(void)
 {
 #ifdef MODEX
 	writeAtlasTextures(&textureAtlas);
 #endif
 }
 
-void draw()
+void draw(void)
 {
-	int i;
 	vec3 spritePos = Vec3(0.0f, 0.0f, 5.0f);
+	/*char *map1 = "\
+	       VVVVVV     \n\
+	      >......<    \n\
+	  VVVV#......<    \n\
+	 >........a..<    \n\
+	  AAAA#......<    \n\
+	      >......<    \n\
+	      >......<    \n\
+	       AAAAAA     \n\
+	";*/
 
 	//cubeDemo(3.0f*t);
 	//groundDemo(camPos);
@@ -145,7 +154,7 @@ void input(float dt)
 			camRot.x += rotSpdMouse*mouseDiffY;
 		if (abs(mouseDiffX) > 0)
 			camRot.y += rotSpdMouse*mouseDiffX;
-			// reset mouse position
+		// reset mouse position
 		mousePos = Pix(W/2, H/2);
 	}
 	if (abs(camRot.x) > PI/2)
@@ -160,7 +169,7 @@ int main(void)
 	float rt, rts; // render time
 
 	char header[64];
-	char footer[64];
+	//char footer[64];
 
 	int horizon = 0;
 	byte groundcol = 2;
@@ -189,9 +198,9 @@ int main(void)
 	camPos = Vec3(0.0f, 0.0f, 3.0f);
 	camRot = Vec3(0.0f, 0.0f, 0.0f);
 
-	walkSpd = 6.0f;
-	rotSpd = 3.0f;
-	rotSpdMouse = 0.006f;
+	walkSpd = 10.0f;
+	rotSpd = 5.0f;
+	rotSpdMouse = 0.005f;
 
 	load();
 	
@@ -252,6 +261,7 @@ int main(void)
 
 		sprintf(header, "FPS: %-2u, key: %-3i %-1i%-1i, rt: %2.1f, dc: %-3u\r",
 			  fps, keycode, mouseLeft, mouseRight, rt*1000.0f, drawCount);
+		//sprintf(footer, "t: %g    ", t);
 		
 #ifdef MODEX
 		r_drawString(0, 0, header);
@@ -266,22 +276,22 @@ int main(void)
 		input(dt);
 		
 		r_sync();
-		
+
 		do {
 			dt = (float) (itime - lt) * TOSECOND;
 		} while (dt < dt_target);
-	    
+
 		if (itime >= SECOND) { // runs every second
 			rt = rts / (float) frame;
 			rts = 0;
 			fps = frame;
 			frame = 0;
 			itime = 0;
-			
+
 			fprintf(outfile, "%s\n", header);
 			//fprintf(outfile, "%s\n", footer);
 		}
-		
+
 		lt = itime;
 	}
 

@@ -1,28 +1,43 @@
 #include "SRC\RENDER.H"
 
-extern int far timer();
-extern int far timer_start();
-extern int far timer_stop();
+extern int far timer(void);
+extern int far timer_start(void);
+extern int far timer_stop(void);
+extern void far timer_end(void);
 
 unsigned volatile itime = 0;
+unsigned volatile dtime = 0;
 
-void (interrupt *oldTime) ();
+void (interrupt far *oldTime) ();
 
-void interrupt getITime()
+void interrupt getITime(void)
 {
-	itime += 1;
+	disable();
+
+	++itime;
+	++dtime;
+
+	if (dtime >= TIMERF) {
+		dtime = 0;
+
+		((void (interrupt far *) (void)) oldTime)();
+	}
+	else {
+		timer_end();
+		enable();
+	}
 }
 
 void hookTime()
 {
-	oldTime = _dos_getvect(0x1c);
-	_dos_setvect(0x1c, getITime);
+	oldTime = _dos_getvect(0x08);
+	_dos_setvect(0x08, getITime);
 	timer_start();
 }
 
 void unhookTime()
 {
-	_dos_setvect(0x1c, oldTime);
+	_dos_setvect(0x08, oldTime);
 	timer_stop();
 }
 
@@ -44,7 +59,7 @@ float timerStop()
 	unsigned ticks = (unsigned) timerTicks - (unsigned) timer_stop();
 
 	timerTime = (float) ticks * TOSECOND;
-	
+
 	return timerTime;
 }
 
