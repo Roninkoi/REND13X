@@ -12,8 +12,6 @@ void (interrupt far *oldTime) ();
 
 void interrupt getITime(void)
 {
-	disable();
-
 	++itime;
 	++dtime;
 
@@ -24,7 +22,6 @@ void interrupt getITime(void)
 	}
 	else {
 		timer_end();
-		enable();
 	}
 }
 

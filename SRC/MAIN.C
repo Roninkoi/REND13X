@@ -157,6 +157,7 @@ void input(float dt)
 		// reset mouse position
 		mousePos = Pix(W/2, H/2);
 	}
+	
 	if (abs(camRot.x) > PI/2)
 		camRot.x = PI/2 * sign(camRot.x);
 }
@@ -164,12 +165,12 @@ void input(float dt)
 int main(void)
 {
 	unsigned fps; // frames per second
-	unsigned lt; // last frame time
+	unsigned lt, lts; // last frame time
 	float dt; // time between frames
 	float rt, rts; // render time
 
 	char header[64];
-	//char footer[64];
+	char footer[64];
 
 	int horizon = 0;
 	byte groundcol = 2;
@@ -199,7 +200,7 @@ int main(void)
 	camRot = Vec3(0.0f, 0.0f, 0.0f);
 
 	walkSpd = 10.0f;
-	rotSpd = 5.0f;
+	rotSpd = 4.0f;
 	rotSpdMouse = 0.005f;
 
 	load();
@@ -213,7 +214,7 @@ int main(void)
 	hookKeys();
 	hookMouse();
 	hookTime();
-	
+
 	lt = itime;
 	
 	doublebuffer = 1;
@@ -261,11 +262,11 @@ int main(void)
 
 		sprintf(header, "FPS: %-2u, key: %-3i %-1i%-1i, rt: %2.1f, dc: %-3u\r",
 			  fps, keycode, mouseLeft, mouseRight, rt*1000.0f, drawCount);
-		//sprintf(footer, "t: %g    ", t);
+		//sprintf(footer, "t: %g, dt: %g, it: %u          ", t, dt, itime);
 		
 #ifdef MODEX
 		r_drawString(0, 0, header);
-		//r_drawString(0, B+1, footer);
+		r_drawString(0, B+1, footer);
 #endif
 #ifdef MODE13
 		printf("%s\r", header);
@@ -277,20 +278,20 @@ int main(void)
 		
 		r_sync();
 
-		do {
-			dt = (float) (itime - lt) * TOSECOND;
-		} while (dt < dt_target);
-
-		if (itime >= SECOND) { // runs every second
+		if (itime - lts >= SECOND) { // runs every second
 			rt = rts / (float) frame;
 			rts = 0;
 			fps = frame;
 			frame = 0;
-			itime = 0;
+			lts = itime;
 
 			fprintf(outfile, "%s\n", header);
 			//fprintf(outfile, "%s\n", footer);
 		}
+
+		do {
+			dt = (float) (itime - lt) * TOSECOND;
+		} while (dt < dt_target);
 
 		lt = itime;
 	}

@@ -40,7 +40,7 @@ PIX_PLANE equ 00100h
 
 CRTHI equ 0000ch
 CRTLO equ 0000dh
-	
+
 SH equ 20
 MASK_LO equ 0fffh
 MASK_HI equ 0fff00000h

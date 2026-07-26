@@ -139,12 +139,12 @@ static float sin_approx(float x)
 #define RBUFFERLEN 256
 
 // second in clock ticks
-#define SECOND 5013
+#define SECOND 1003
 // convert itime to second
-#define TOSECOND 0.000199466f
+#define TOSECOND 0.00099733
 #define SECOND0 18 //.206
 #define TOSECOND0 0.054927f
-#define TIMERF 275
+#define TIMERF 55
 
 // keyboard codes
 

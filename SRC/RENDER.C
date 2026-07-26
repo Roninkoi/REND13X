@@ -757,11 +757,6 @@ void r_drawSprite3D(vec3 *v, float w, float h, Texture *tex)
 	tw = (int) ((float) tex->w * ((float) ww / (float) ww0));
 	th = (int) ((float) tex->h * ((float) hh / (float) hh0));
 	
-	/*r_spritefill(x, y, ww, hh,
-			 x > x0 ? tex->w - tw : 0,
-			 y > y0 ? tex->h - th : 0,
-			 tw, th,
-			 getAtlasTextureStart(&textureAtlas, tex->id));*/
 	r_spritefill(x, y, ww, hh,
 			 (x > x0 ? tex->w - tw : 0),
 			 (y > y0 ? tex->h - th : 0),
@@ -806,8 +801,6 @@ void r_drawAtlasFont(int x, int y, char c)
 	yo = ((int) c - 32) / 16;
 	xo *= fw;
 	yo *= fh;
-	
-	//r_spritefill(x, y, fw, fh, xo, yo, fw, fh, tstart); // alpha support
 
 	xo /= 4;
 	yo *= W/4;

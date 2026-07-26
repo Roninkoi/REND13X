@@ -28,12 +28,12 @@ public _timer_start
 _timer_start PROC FAR
 	cli
 
-	mov al, 34h
+	mov al, 36h
 	out 43h, al
 
-	mov al, 0eeh
+	mov al, 0a6h
 	out 40h, al
-	mov al, 00h
+	mov al, 04h
 	out 40h, al
 
 	mov al, 00h
