@@ -170,7 +170,7 @@ int main(void)
 	float rt, rts; // render time
 
 	char header[64];
-	char footer[64];
+	//char footer[64];
 
 	int horizon = 0;
 	byte groundcol = 2;
@@ -266,7 +266,7 @@ int main(void)
 		
 #ifdef MODEX
 		r_drawString(0, 0, header);
-		r_drawString(0, B+1, footer);
+		//r_drawString(0, B+1, footer);
 #endif
 #ifdef MODE13
 		printf("%s\r", header);
